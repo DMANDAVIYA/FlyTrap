@@ -5,6 +5,7 @@ Every route goes through `Gateway`, which enforces the hard rules.
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import time
 
@@ -210,11 +211,25 @@ def build_admin(gw: Gateway) -> FastAPI:
             raise HTTPException(502, f"real side unreachable: {exc}") from exc
         return {"ok": resp.status_code < 300, "status": resp.status_code}
 
+    async def _ready(name: str, wait_s: float = 30.0) -> bool:
+        deadline = time.monotonic() + wait_s
+        while time.monotonic() < deadline:
+            try:
+                resp = await gw.client.get(f"http://{name}:{gw.settings.upstream_port}/_edge/health", timeout=2.0)
+                if resp.status_code == 200:
+                    return True
+            except httpx.HTTPError:
+                pass
+            await asyncio.sleep(0.25)
+        return False
+
     @r.post("/upstreams/{name}")
     async def upstream(name: str, body: UpstreamIn):
         if name not in gw.settings.real_upstreams:
             raise HTTPException(404, "no such upstream")
         if body.enabled:
+            if not await _ready(name):  # a restarted server only rejoins once it answers
+                raise HTTPException(503, f"{name} did not become healthy")
             gw.enabled_upstreams.add(name)
         elif len(gw.enabled_upstreams - {name}) == 0:
             raise RuleError("at least one real upstream must stay in rotation")
