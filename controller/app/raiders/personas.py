@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
@@ -15,6 +15,11 @@ class Persona:
     objective: str             # what an AI raider is told to go after
     user_agent: str
     pause: tuple[float, float]  # seconds between scripted steps (demo mode halves it)
+
+    @property
+    def base(self) -> str:
+        """The persona a copy belongs to: 'odysseus-2' -> 'odysseus'."""
+        return self.name.split("-", 1)[0]
 
 
 PERSONAS = [
@@ -35,3 +40,22 @@ PERSONAS = [
             BROWSER_UA, (4.0, 7.0)),
 ]
 BY_NAME = {p.name: p for p in PERSONAS}
+INDEX = {p.name: i for i, p in enumerate(PERSONAS)}
+MAX_COPIES = 5  # one runner slot per copy of the same persona, so copies never share an IP
+
+
+def copy_of(persona: Persona, n: int) -> Persona:
+    """Copy n of a persona: copy 1 keeps the plain name, later copies are 'odysseus-2', 'odysseus-3'."""
+    return persona if n <= 1 else replace(persona, name=f"{persona.name}-{n}")
+
+
+def persona_for(name: str) -> Persona | None:
+    base, _, n = name.partition("-")
+    if base not in BY_NAME:
+        return None
+    return copy_of(BY_NAME[base], int(n)) if n.isdigit() else BY_NAME[base]
+
+
+def copy_number(name: str) -> int:
+    n = name.partition("-")[2]
+    return int(n) if n.isdigit() else 1

@@ -6,8 +6,10 @@ A model chain (see models.py) is an ordered, comma-separated list of "provider:m
 
 - ids whose provider has no API key are skipped, so a list can name providers you
   may never get a key for;
-- if a call fails, the next id is tried, and a failing provider sits out for a
-  minute so a dead API doesn't add a timeout to every call;
+- a rate limit or server error is retried on the same model first;
+- if a call still fails, the next id answers that call. A failing backup sits out
+  for a minute; the first model never sits out (it is tried first on every call)
+  unless its key is bad or out of credits;
 - if nothing is available or everything fails, callers fall back to rules mode.
 
 Base URLs can be overridden with <PROVIDER>_BASE_URL (Qwen and Kimi have regional hosts).
@@ -15,6 +17,7 @@ Base URLs can be overridden with <PROVIDER>_BASE_URL (Qwen and Kimi have regiona
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -38,15 +41,19 @@ PROVIDERS = {
 COOL_DOWN_S = 60.0
 LONG_COOL_DOWN_S = 900.0                 # bad key or no credits: won't fix itself in a minute
 LONG_STATUSES = {"401", "402", "403"}
+RETRY_STATUSES = {429, 500, 502, 503, 504, 529}  # transient: try the same model again
+RETRIES = 2
+MAX_RETRY_WAIT_S = 8.0
 log = logging.getLogger("controller.llm")
 NO_TEMPERATURE = {"openai", "anthropic", "kimi"}  # these reject a custom temperature (Kimi K3.x allows only 1)
 NO_JSON_MODE = {"anthropic"}             # Anthropic's compat API rejects response_format; the prompt asks for JSON
 
 
 class LLMError(Exception):
-    def __init__(self, message: str, status: int = 0) -> None:
+    def __init__(self, message: str, status: int = 0, retry_after: float = 0.0) -> None:
         super().__init__(message)
         self.status = status
+        self.retry_after = retry_after
 
 
 @dataclass
@@ -107,12 +114,20 @@ class Endpoint:
         except httpx.HTTPError as exc:
             raise LLMError(f"{self.spec} unreachable: {exc}") from exc
         if resp.status_code >= 300:
-            raise LLMError(f"{self.spec} HTTP {resp.status_code}: {resp.text[:200]}", resp.status_code)
+            raise LLMError(f"{self.spec} HTTP {resp.status_code}: {resp.text[:200]}", resp.status_code,
+                           _retry_after(resp.headers.get("retry-after")))
         try:
             msg = resp.json()["choices"][0]["message"]
         except (ValueError, KeyError, IndexError) as exc:
             raise LLMError(f"bad response from {self.spec}") from exc
         return _parse(msg, self.spec)
+
+
+def _retry_after(value: str | None) -> float:
+    try:
+        return max(0.0, float(value or 0))
+    except ValueError:
+        return 0.0
 
 
 def _parse(msg: dict, spec: str) -> Reply:
@@ -148,19 +163,37 @@ class LLM:
 
     async def chat(self, messages: list[dict], tools: list[dict] | None = None, temperature: float = 0.2,
                    max_tokens: int = 1500, json_mode: bool = False) -> Reply:  # headroom for reasoning models
-        candidates = [e for e in self.endpoints if e.ready] or [e for e in self.endpoints if e.configured]
+        configured = [e for e in self.endpoints if e.configured]
+        candidates = [e for e in configured if e.ready] or configured
         if not candidates:
             raise LLMError("no model with an API key")
         errors = []
         for endpoint in candidates:
             try:
-                return await endpoint.chat(messages, tools, temperature, max_tokens, json_mode)
+                return await self._call(endpoint, messages, tools, temperature, max_tokens, json_mode)
             except LLMError as exc:
-                wait = LONG_COOL_DOWN_S if str(exc.status) in LONG_STATUSES else COOL_DOWN_S
-                endpoint.mark_down(wait)
                 errors.append(str(exc))
+                bad_key = str(exc.status) in LONG_STATUSES
+                if endpoint is configured[0] and not bad_key:
+                    log.warning("model %s failed this call, backup answers: %s", endpoint.spec, str(exc)[:160])
+                    continue
+                wait = LONG_COOL_DOWN_S if bad_key else COOL_DOWN_S
+                endpoint.mark_down(wait)
                 log.warning("model %s skipped for %.0fs: %s", endpoint.spec, wait, str(exc)[:160])
         raise LLMError("all models failed: " + " | ".join(errors))
+
+    @staticmethod
+    async def _call(endpoint: Endpoint, messages: list[dict], tools: list[dict] | None, temperature: float,
+                    max_tokens: int, json_mode: bool) -> Reply:
+        """One model, with a short retry on rate limits and server errors."""
+        for attempt in range(RETRIES + 1):
+            try:
+                return await endpoint.chat(messages, tools, temperature, max_tokens, json_mode)
+            except LLMError as exc:
+                if exc.status not in RETRY_STATUSES or attempt == RETRIES:
+                    raise
+                await asyncio.sleep(min(exc.retry_after or 2.0 * (attempt + 1), MAX_RETRY_WAIT_S))
+        raise LLMError(f"{endpoint.spec}: retries exhausted")
 
 
 def tool_schema(name: str, description: str, properties: dict, required: list[str]) -> dict:

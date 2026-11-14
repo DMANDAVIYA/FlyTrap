@@ -40,7 +40,7 @@ Built at HackUMass XIV.
 | Clio | Writes incident reports that cite event IDs | Claude Opus 5.5 |
 | Hermes | Alerts | rules |
 
-The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Meta Muse Spark 1.3, Odysseus on Kimi K3.1 Pro, Icarus on Gemini 4 Hydrogen and Sisyphus on Claude Sonnet 5.5. Each agent has a fallback chain in `controller/app/models.py` (keys go in `.env.ai`); a raider with no working model runs its scripted storyline, and without any keys the whole system runs in rules mode.
+The red swarm releases 3 copies of each raider by default (15 raiders, each copy on its own runner and IP) and runs only Chinese models: Prometheus, Icarus and Sisyphus on DeepSeek V4 Pro, Pandora and Odysseus on Kimi K3.1 Pro, each falling back to the other. Claude and Gemini refuse the raider brief, so they only defend. Every chain lives in `controller/app/models.py` (keys go in `.env.ai`); the first model in a chain is retried on rate limits and never benched, a raider with no working model runs its scripted storyline, and without any keys the whole system runs in rules mode.
 
 ## The cast
 
