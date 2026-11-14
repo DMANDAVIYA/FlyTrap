@@ -374,3 +374,28 @@ def test_raider_nudged_when_it_replies_without_a_tool_call():
     persona = SimpleNamespace(name="odysseus", objective="test", user_agent="ua")
     asyncio.run(run_llm(persona, FakeLLM(), FakeRun(), emit, LootBoard(), "pw", 10, 1, asyncio.Event()))
     assert len(FakeRun.calls) == 1 and "http_request tool" in seen[1] and not replies
+
+
+def test_kimi_gets_no_temperature(monkeypatch):
+    """Kimi K3.x accepts only temperature 1, so we leave it to the provider default."""
+    from app.llm import Endpoint
+    sent = []
+
+    class FakeResp:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "OK"}}]}
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, url, json=None, headers=None):
+            sent.append(json)
+            return FakeResp()
+
+    monkeypatch.setattr("app.llm.httpx.AsyncClient", FakeClient)
+    monkeypatch.setenv("MOONSHOT_API_KEY", "k")
+    monkeypatch.delenv("KIMI_API_KEY", raising=False)
+    asyncio.run(Endpoint("kimi:kimi-k3.1-pro", 5).chat([{"role": "user", "content": "x"}], None, 0.2, 10, False))
+    assert "temperature" not in sent[0] and sent[0]["max_tokens"] == 10

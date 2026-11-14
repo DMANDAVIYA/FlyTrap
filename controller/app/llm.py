@@ -39,7 +39,7 @@ COOL_DOWN_S = 60.0
 LONG_COOL_DOWN_S = 900.0                 # bad key or no credits: won't fix itself in a minute
 LONG_STATUSES = {"401", "402", "403"}
 log = logging.getLogger("controller.llm")
-NO_TEMPERATURE = {"openai", "anthropic"}
+NO_TEMPERATURE = {"openai", "anthropic", "kimi"}  # these reject a custom temperature (Kimi K3.x allows only 1)
 NO_JSON_MODE = {"anthropic"}             # Anthropic's compat API rejects response_format; the prompt asks for JSON
 
 
@@ -91,7 +91,7 @@ class Endpoint:
     async def chat(self, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
                    json_mode: bool) -> Reply:
         body: dict = {"model": self.model, "messages": messages}
-        # Newer OpenAI models take max_completion_tokens; newer OpenAI and Claude models reject a custom temperature.
+        # Newer OpenAI models take max_completion_tokens; newer OpenAI, Claude and Kimi models reject a custom temperature.
         body["max_completion_tokens" if self.provider == "openai" else "max_tokens"] = max_tokens
         if self.provider not in NO_TEMPERATURE:
             body["temperature"] = temperature

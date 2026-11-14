@@ -40,7 +40,7 @@ Built at HackUMass XIV.
 | Clio | Writes incident reports that cite event IDs | Claude Opus 5.5 |
 | Hermes | Alerts | rules |
 
-The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Qwen 3.8 Max and Odysseus on Kimi K3.1 Pro; Icarus and Sisyphus are scripted. Every model setting is a fallback chain, and without any keys the whole system runs in rules mode.
+The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Meta Muse Spark and Odysseus on Kimi K3.1 Pro; Icarus and Sisyphus are scripted. Every model setting is a fallback chain, and without any keys the whole system runs in rules mode.
 
 ## The cast
 
@@ -100,7 +100,7 @@ Full plan and specification: [`plan/plan.md`](plan/plan.md). Coding agent brief:
 
 ## Tech stack
 
-Python 3.12, FastAPI, httpx, asyncpg, SQLAlchemy 2, Jinja2, Faker; PostgreSQL 18 with TimescaleDB (hypertable plus continuous aggregate); Docker Compose (19 containers, 7 networks); AI through OpenAI-compatible APIs from Anthropic, Google Gemini, Meta, DeepSeek, Moonshot (Kimi), Alibaba (Qwen) and OpenRouter.
+Python 3.12, FastAPI, httpx, asyncpg, SQLAlchemy 2, Jinja2, Faker; PostgreSQL 18 with TimescaleDB (hypertable plus continuous aggregate); Docker Compose (19 containers, 7 networks); AI through OpenAI-compatible APIs from Anthropic, Google Gemini, Meta, DeepSeek and Moonshot (Kimi); Qwen, GLM and OpenRouter are supported if a key is added.
 
 ## Tests
 
