@@ -16,7 +16,19 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 GATEWAY = os.getenv("GATEWAY_URL", "http://gateway:8080")
-BROWSER = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+BROWSERS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.{b}.{p} Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.{b}.{p} Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.{p}; rv:132.0) Gecko/20100101 Firefox/132.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0.{p}",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.{p} Safari/605.1.15",
+]
+
+
+def browser_ua(n: int) -> str:
+    """Every simulated customer has its own user agent: they share one IP, so identical UAs would
+    collapse their first cookie-less requests into one fingerprint session (and one fast 'visitor')."""
+    return BROWSERS[n % len(BROWSERS)].format(b=6700 + n * 13, p=n)
 PAGES = ["/", "/pricing", "/models", "/about", "/login", "/account", "/contact"]
 ASSETS = ["/static/site.css", "/static/px.js"]
 app = FastAPI(docs_url=None, redoc_url=None)
@@ -31,7 +43,7 @@ class StartIn(BaseModel):
 
 async def customer(n: int, demo: bool) -> None:
     jar = httpx.Cookies()
-    ua = f"{BROWSER}"
+    ua = browser_ua(n)
     async with httpx.AsyncClient(base_url=GATEWAY, cookies=jar, timeout=15.0) as c:
         while True:
             try:

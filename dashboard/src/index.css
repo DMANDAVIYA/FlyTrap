@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #07090c; --panel: #0e1217; --line: #1e2730; --text: #e6edf2; --text-2: #93a3af;
+  --real: #9ec3d9; --trap: #ff4747; --warn: #ffb020; --ok: #54d69a;
+}
+html, body, #root { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: "Chakra Petch", system-ui, sans-serif; font-size: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.panel-title { font-family: "Chakra Petch", sans-serif; letter-spacing: .14em; text-transform: uppercase; font-size: 12px; color: var(--text-2); }
+.scroll-thin::-webkit-scrollbar { width: 6px; } .scroll-thin::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.stripes { background: repeating-linear-gradient(-45deg, rgba(255,176,32,.18) 0 14px, transparent 14px 28px); }
+.btn { font-family: "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--line); background: #121820; color: var(--text); transition: border-color .15s, background .15s; }
+.btn:hover { border-color: var(--text-2); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-trap { border-color: rgba(255,71,71,.6); color: #ffd1d1; background: rgba(255,71,71,.12); }
+.btn-warn { border-color: rgba(255,176,32,.6); color: #ffe2a8; background: rgba(255,176,32,.1); }
+.btn-ok { border-color: rgba(84,214,154,.5); color: #c9f5e0; background: rgba(84,214,154,.08); }
+.md h1 { font-size: 20px; margin: 0 0 8px; } .md h2, .md h3 { font-size: 16px; margin: 12px 0 6px; color: var(--text); }
+.md p { margin: 6px 0; color: var(--text); } .md strong { color: #fff; }
+.md table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; } .md td, .md th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+.md code { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--warn); }
+.md ul { padding-left: 18px; list-style: disc; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
