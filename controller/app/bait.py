@@ -24,3 +24,15 @@ def cloud_key() -> tuple[str, str]:
 
 def canary_customer() -> str:
     return f"c{secrets.token_hex(4)}@{secrets.choice(WORDS)}-{secrets.choice(WORDS)}.example"
+
+
+def demo_password(secret: str) -> str:
+    """Password of the seeded real-side demo customer (same derivation as hlabs/app/bait.py)."""
+    import hashlib
+    import hmac
+    raw = hmac.new(secret.encode(), b"demo-customer|password|0", hashlib.sha256).digest()
+    number, digits = int.from_bytes(raw, "big"), []
+    for _ in range(43):
+        number, rest = divmod(number, 62)
+        digits.append(B62[rest])
+    return "".join(reversed(digits))[:16]
