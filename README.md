@@ -34,13 +34,13 @@ Built at HackUMass XIV.
 |---|---|---|
 | Athena | Commander: campaigns, damage checks, lockdown requests | Claude Opus 5.5 |
 | Argus | Labels visitors human, scanner or AI agent | rules (scoring) |
-| Hephaestus | Plants unique bait, rotates keys after a real-side probe | Gemini 3 Flash |
+| Hephaestus | Plants unique bait, rotates keys after a real-side probe | Claude Opus 5.5 |
 | Cerberus | Slows, drip-feeds, freezes, blocks trapped visitors | Meta Muse Spark 1.3 |
 | Mnemosyne | Fingerprints attackers, suggests new tripwires | rules |
 | Clio | Writes incident reports that cite event IDs | Claude Opus 5.5 |
 | Hermes | Alerts | rules |
 
-The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Meta Muse Spark and Odysseus on Kimi K3.1 Pro; Icarus and Sisyphus are scripted. Every model setting is a fallback chain, and without any keys the whole system runs in rules mode.
+The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Meta Muse Spark 1.3, Odysseus on Kimi K3.1 Pro, Icarus on Gemini 4 Hydrogen and Sisyphus on Claude Sonnet 5.5. Each agent has a fallback chain in `controller/app/models.py` (keys go in `.env.ai`); a raider with no working model runs its scripted storyline, and without any keys the whole system runs in rules mode.
 
 ## The cast
 

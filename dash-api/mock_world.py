@@ -22,11 +22,11 @@ BLUE_MODES = {
     "mnemosyne": "rules", "clio": "ai", "hermes": "rules",
 }
 RAIDER_MODES = {
-    "prometheus": "ai", "pandora": "ai", "odysseus": "ai", "icarus": "scripted", "sisyphus": "scripted",
+    "prometheus": "ai", "pandora": "ai", "odysseus": "ai", "icarus": "ai", "sisyphus": "ai",
 }
 RAIDER_MODELS = {
-    "prometheus": "gemini-flash", "pandora": "claude-haiku-5-5", "odysseus": "gemini-flash",
-    "icarus": "scripted", "sisyphus": "scripted",
+    "prometheus": "deepseek-v4-pro", "pandora": "muse-spark-1.3", "odysseus": "kimi-k3.1-pro",
+    "icarus": "gemini-4-hydrogen", "sisyphus": "claude-sonnet-5-5",
 }
 PODS = [f"pod-{i}" for i in range(1, 6)]
 LABELS = ("human", "scanner", "ai_agent", "unknown")

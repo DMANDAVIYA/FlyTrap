@@ -65,7 +65,7 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
             await emit(persona.name, f"(stepping back: {exc})")
             break
         if reply.text and not reply.tool_calls:
-            await emit(persona.name, reply.text[:240])
+            await emit(persona.name, reply.text[:240], reply.model)
         if not reply.tool_calls and "DONE" in reply.text.upper()[:40]:
             break
         if not reply.tool_calls:
@@ -80,7 +80,7 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
         for call in reply.tool_calls:
             args = call.args
             reason = str(args.get("reason") or reply.text or "probing")[:240]
-            await emit(persona.name, reason)
+            await emit(persona.name, reason, reply.model)
             result = await _do(run, persona, call, loot)
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
     await emit(persona.name, "Done.")

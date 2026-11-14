@@ -1,4 +1,4 @@
-"""Controller settings from the environment (.env shared values plus .env.ai keys)."""
+"""Controller settings from the environment (.env shared values plus .env.ai keys). Model names: models.py."""
 
 import os
 from dataclasses import dataclass, field
@@ -17,19 +17,9 @@ class Settings:
     rebuilder_url: str = os.getenv("REBUILDER_URL", "http://rebuilder:8050")
     crowd_url: str = os.getenv("CROWD_URL", "http://crowd:8040")
     raider_slots: list[str] = field(default_factory=lambda: _csv("RAIDERS", "raider-1,raider-2,raider-3,raider-4,raider-5"))
-    blue_model: str = os.getenv("BLUE_MODEL", "")
-    report_model: str = os.getenv("REPORT_MODEL", "")
-    raider_model: str = os.getenv("RAIDER_MODEL", "")
     raider_max_steps: int = int(os.getenv("RAIDER_MAX_STEPS", "40"))
     raider_max_minutes: float = float(os.getenv("RAIDER_MAX_MINUTES", "10"))
     blue_interval_s: float = float(os.getenv("BLUE_INTERVAL_S", "3"))
-
-    def blue_model_for(self, agent: str) -> str:
-        """Per-agent chain (BLUE_MODEL_ATHENA=...) or the shared BLUE_MODEL."""
-        return os.getenv(f"BLUE_MODEL_{agent.upper()}", "") or self.blue_model
-
-    def raider_model_for(self, name: str) -> str:
-        return os.getenv(f"RAIDER_MODEL_{name.upper()}", "") or self.raider_model
 
 
 settings = Settings()

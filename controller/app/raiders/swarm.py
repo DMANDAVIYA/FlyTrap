@@ -8,6 +8,7 @@ import logging
 from ..bait import demo_password
 from ..context import Ctx
 from ..llm import LLM
+from ..models import chain
 from .llm_raider import run_llm
 from .loot import LootBoard
 from .personas import BY_NAME, PERSONAS, Persona
@@ -30,18 +31,21 @@ class RedSwarm:
         slots = self.ctx.settings.raider_slots
         return slots[index % len(slots)]
 
-    async def _emit_thought(self, raider: str, text: str) -> None:
-        await self.ctx.db.emit("thought", {"agent": raider, "team": "red", "text": text}, "-")
+    async def _emit_thought(self, raider: str, text: str, model: str = "") -> None:
+        payload = {"agent": raider, "team": "red", "text": text}
+        if model:
+            payload["model"] = model  # which model in the chain actually answered
+        await self.ctx.db.emit("thought", payload, "-")
 
     async def _roster(self, raider: str, state: str, mode: str) -> None:
         self.state[raider] = state
-        model = LLM(self.ctx.settings.raider_model_for(raider)).label if mode == "ai" else "scripted"
+        model = LLM(chain(raider)).label if mode == "ai" else "scripted"
         await self.ctx.db.emit("roster", {"agent": raider, "team": "red", "state": state, "mode": mode, "model": model})
 
     def mode_for(self, persona: Persona, forced: str | None = None) -> str:
         if forced == "scripted" or persona.default_mode != "ai":
             return "scripted"
-        return "ai" if LLM(self.ctx.settings.raider_model_for(persona.name)).available else "scripted"
+        return "ai" if LLM(chain(persona.name)).available else "scripted"
 
     async def release(self, names: list[str], crowd: int, drones: int, demo: bool, mode: str | None = None) -> dict:
         """Start the crowd and the raiders. Returns at once; raiders launch staggered in the background."""
@@ -69,7 +73,7 @@ class RedSwarm:
         await self._roster(persona.name, "roaming", mode)
         try:
             if mode == "ai":
-                llm = LLM(self.ctx.settings.raider_model_for(persona.name))
+                llm = LLM(chain(persona.name))
                 await run_llm(persona, llm, run, self._emit_thought, self.loot, self.demo_pw,
                               self.ctx.settings.raider_max_steps, self.ctx.settings.raider_max_minutes, self.stop_event)
             else:
