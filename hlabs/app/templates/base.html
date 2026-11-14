@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+{% include "_head.html" %}
+  <title>{% block title %}HackUMass Labs: host, fine-tune and serve your models{% endblock %}</title>
+  <meta name="description" content="{% block description %}HackUMass Labs hosts, fine-tunes and serves open and private AI models behind fast, autoscaling endpoints.{% endblock %}">
+{% block head %}{% endblock %}
+</head>
+<body>
+{% set me = visitor(request) %}
+{# Error pages never depend on the requested path, so a 404 looks the same everywhere. #}
+{% set here = '' if code is defined else request.url.path %}
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/">{% include "_logo.html" %}<span>HackUMass <b>Labs</b></span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/models" class="{{ 'active' if here.startswith('/models') }}">Models</a>
+      <a href="/pricing" class="{{ 'active' if here.startswith('/pricing') }}">Pricing</a>
+      <a href="/docs" class="{{ 'active' if here.startswith('/docs') }}">Docs</a>
+      <a href="/about" class="{{ 'active' if here.startswith('/about') }}">About</a>
+      <a href="/contact" class="{{ 'active' if here.startswith('/contact') }}">Contact</a>
+    </nav>
+    <div class="nav-cta">
+      {% if me %}
+      <a class="nav-user" href="/account"><span class="avatar">{{ (me.name or '?').split()[:2]|map('first')|join|upper }}</span><span class="nav-name">{{ me.name }}</span></a>
+      <a class="btn btn-ghost btn-sm" href="/logout">Sign out</a>
+      {% else %}
+      <a class="nav-signin" href="/login">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="/signup">Get started</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/">{% include "_logo.html" %}<span>HackUMass <b>Labs</b></span></a>
+        <p>GPU hosting, fine-tuning and serving for teams that ship their own models. Built in Amherst, Massachusetts.</p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="/models">Model catalog</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/docs">Documentation</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="/about">About us</a>
+        <a href="/contact">Contact sales</a>
+        <a href="/contact">Support</a>
+      </div>
+      <div>
+        <h4>Account</h4>
+        <a href="/login">Sign in</a>
+        <a href="/signup">Create account</a>
+        <a href="/account">Dashboard</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; 2026 HackUMass Labs, Inc. All rights reserved.</span>
+      <span class="status-dot">All systems operational</span>
+    </div>
+    <a href="/admin-legacy/" class="u-clip" aria-hidden="true" tabindex="-1">Legacy admin</a>
+  </div>
+</footer>
+</body>
+</html>

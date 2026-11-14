@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block title %}Console{% endblock %}
+{% block heading %}Console{% endblock %}
+{% block subheading %}Read-only diagnostics shell on {{ node }}. Type <code>help</code> for the allowed commands.{% endblock %}
+{% block body %}
+{% set ps1 = 'svc-hlabs@' ~ node ~ ':/srv/hlabs$' %}
+<div class="term">
+  <div class="term-top"><span>{{ node }} &middot; /srv/hlabs</span><span>session audited</span></div>
+<pre class="term-out">{% if command %}<span class="ps1">{{ ps1 }}</span> {{ command }}
+{{ output }}{% else %}<span class="muted">Connected to {{ node }}. This shell runs a fixed set of read-only diagnostics.</span>{% endif %}</pre>
+  <form class="term-form" method="post" action="/admin/console">
+    <label for="command">{{ ps1 }}</label>
+    <input type="text" id="command" name="command" autocomplete="off" spellcheck="false" autofocus>
+  </form>
+</div>
+{% endblock %}

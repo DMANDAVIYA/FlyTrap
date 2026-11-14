@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Model catalog · HackUMass Labs{% endblock %}
+{% block description %}Public models hosted on HackUMass Labs, ready to deploy behind an autoscaling endpoint.{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div class="container page-head-row">
+    <div>
+      <p class="eyebrow">Model catalog</p>
+      <h1>Public models, ready to serve</h1>
+      <p class="lead">Models our customers have chosen to share. Deploy any of them as-is, or use one as the starting point for your own fine-tune.</p>
+    </div>
+    <div class="head-actions"><a class="btn btn-primary" href="/signup">Deploy a model</a></div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="toolbar">
+    <span class="muted">{{ models|length }} public models &middot; sorted by downloads</span>
+    <span class="muted small">Weights in safetensors &middot; OpenAI-compatible API</span>
+  </div>
+  {% if models %}
+  <div class="model-grid">
+    {% for model, org in models %}
+    <article class="model">
+      <div class="model-top">
+        <h3>{{ model.slug }}</h3>
+        <span class="pill pill-brand">{{ model.name.split('-')[1] if model.name.count('-') >= 2 else 'model' }}</span>
+      </div>
+      <div class="owner">by {{ org }}</div>
+      <p>{{ model.description }}</p>
+      <div class="model-meta">
+        <span><b>{{ model.downloads|number }}</b> downloads</span>
+        <span><b>{{ '%.1f'|format(model.size_gb) }}</b> GB</span>
+        <span>Updated {{ model.created_at.strftime('%b %Y') }}</span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty" style="margin-bottom:80px">No public models yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}About · HackUMass Labs{% endblock %}
+{% block description %}HackUMass Labs is a small team in Amherst, Massachusetts building GPU infrastructure for teams that ship their own models.{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <p class="eyebrow">About us</p>
+    <h1>We make running your own model boring.</h1>
+    <p class="lead">HackUMass Labs started in 2024 in a shared office above a bookshop in Amherst, Massachusetts. We were three engineers who had each spent too many nights babysitting GPU servers, and we wanted a platform where deploying a fine-tuned model felt as routine as deploying a web app.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:56px">
+  <div class="container">
+    <div class="facts">
+      <div><b>2024</b><span>Founded in Amherst, MA</span></div>
+      <div><b>14</b><span>People on the team</span></div>
+      <div><b>3</b><span>GPU regions in the US</span></div>
+      <div><b>$6.5M</b><span>Seed round, 2025</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container grid-2" style="align-items:start">
+    <div>
+      <p class="eyebrow">What we believe</p>
+      <h2>Your model, your data, your call.</h2>
+    </div>
+    <div>
+      <p class="lead">Open and private models are now good enough for most products, but running them well still takes a dedicated infrastructure team. We want any team of two to get the same reliability as a team of two hundred.</p>
+      <p>We keep our promises small and specific: predictable prices, endpoints that stay up, and a clear line that your weights, datasets and requests are never used to train anything. When something breaks, we tell you what happened and what we changed.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Team</p>
+      <h2>The people behind the platform</h2>
+      <p class="lead">A small team of infrastructure, ML and support engineers. We answer support tickets ourselves.</p>
+    </div>
+    <div class="team">
+      <div class="person"><span class="avatar a1">MO</span><h3>Maya Okafor</h3><p class="role">Co-founder &amp; CEO</p><p>Previously led ML infrastructure at a logistics startup, where she scaled inference from one GPU to four hundred.</p></div>
+      <div class="person"><span class="avatar a3">JR</span><h3>Jonah Reyes</h3><p class="role">Co-founder &amp; CTO</p><p>Wrote the scheduler that packs our GPU fleet. Cares a lot about cold starts, and a little too much about Rust.</p></div>
+      <div class="person"><span class="avatar a4">PR</span><h3>Priya Raman</h3><p class="role">Head of Platform</p><p>Runs our clusters, our on-call rotation and the database migrations nobody else wants to touch.</p></div>
+      <div class="person"><span class="avatar a2">LH</span><h3>Leo Haddad</h3><p class="role">Founding Engineer, Inference</p><p>Owns batching and quantization. Has opinions about KV caches that he will happily share over coffee.</p></div>
+      <div class="person"><span class="avatar a5">AF</span><h3>Ana Ferreira</h3><p class="role">Customer Engineering</p><p>Helps teams move models onto the platform and turns their feedback into our roadmap.</p></div>
+      <div class="person"><span class="avatar a6">SW</span><h3>Sam Whitaker</h3><p class="role">Developer Experience</p><p>Maintains the CLI, the Python client and the docs. If a page is unclear, Sam wants to hear about it.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="container">
+    <div class="cta-box">
+      <div>
+        <h2>We are hiring in Amherst and Boston.</h2>
+        <p>Infrastructure, inference and customer engineering roles. Tell us what you would build.</p>
+      </div>
+      <a class="btn btn-primary btn-lg" href="/contact">Get in touch</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Documentation · HackUMass Labs{% endblock %}
+{% block description %}Quickstart, authentication and API reference for HackUMass Labs.{% endblock %}
+{% block content %}
+<div class="container docs">
+  {% include "_docs_nav.html" %}
+  <article class="prose">
+    <p class="eyebrow">Documentation</p>
+    <h1>HackUMass Labs API</h1>
+    <p class="lead">Everything you need to call the platform API: authentication, the resources you can read, and how errors are reported. Inference requests go to each deployment's own URL; this API covers your account, models and billing.</p>
+
+    <h2 id="quickstart">Quickstart</h2>
+    <ol>
+      <li>Create an account on the <a href="/signup">sign-up page</a>. A default API key is issued automatically.</li>
+      <li>Copy the key from the <strong>API keys</strong> section of your <a href="/account">account dashboard</a>.</li>
+      <li>Make your first request:</li>
+    </ol>
+<pre>curl https://hackumass-labs.example/api/v1/models \
+  -H "Authorization: Bearer $HL_API_KEY"</pre>
+    <p>Or with the Python client:</p>
+<pre>pip install hlabs
+
+import hlabs
+client = hlabs.Client()          # reads HL_API_KEY from the environment
+for model in client.models.list():
+    print(model.slug, model.size_gb)</pre>
+
+    <h2 id="authentication">Authentication</h2>
+    <p>Every request is authenticated with an API key sent as a bearer token. Keys start with <code>hl_live_</code> and are scoped; a key can only do what its scopes allow (<code>inference</code>, <code>models:read</code>, <code>models:write</code>, <code>billing:read</code>).</p>
+<pre>Authorization: Bearer hl_live_&lt;your key&gt;</pre>
+    <div class="callout"><p><strong>Keep keys out of source control.</strong> Store them in your secret manager or environment. If a key leaks, ask support to rotate it; old keys stop working immediately.</p></div>
+    <p>Requests made from the dashboard in your browser use your signed-in session instead of a key.</p>
+
+    <h2 id="errors">Errors and limits</h2>
+    <p>Errors use conventional HTTP status codes and a JSON body with a single <code>error</code> field.</p>
+<pre>HTTP/1.1 403 Forbidden
+{"error": "forbidden"}</pre>
+    <table class="data">
+      <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>401</code></td><td>Missing or invalid API key.</td></tr>
+        <tr><td><code>403</code></td><td>The key is valid but cannot read this resource. Customers can only read their own records.</td></tr>
+        <tr><td><code>404</code></td><td>The resource does not exist.</td></tr>
+        <tr><td><code>429</code></td><td>Rate limited. Default limit is 600 requests per minute per key.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="models">Models</h2>
+    <p><span class="endpoint"><span class="verb">GET</span>/api/v1/models</span></p>
+    <p>Lists public models in the catalog, most downloaded first.</p>
+<pre>{
+  "data": [
+    {"id": 12, "name": "Kestrel-13B-Instruct", "slug": "kestrel-13b-instruct",
+     "owner": "Valley Robotics", "size_gb": 26.4, "downloads": 1840,
+     "description": "...", "created_at": "2026-03-02T14:21:07"}
+  ],
+  "count": 1
+}</pre>
+
+    <h2 id="users">Users</h2>
+    <p><span class="endpoint"><span class="verb">GET</span>/api/v1/users/{id}</span></p>
+    <p>Returns the profile of the user that owns the key. Requesting any other user returns <code>403</code>.</p>
+<pre>{"id": 1, "email": "dana@valley-robotics.example", "name": "Dana Whitfield",
+ "org": "Valley Robotics", "role": "customer",
+ "created_at": "2025-09-20T12:00:00", "last_login": "2026-11-13T16:00:00"}</pre>
+
+    <h2 id="invoices">Invoices</h2>
+    <p><span class="endpoint"><span class="verb">GET</span>/api/v1/invoices/{id}</span></p>
+    <p>Returns one of your invoices. Amounts are in cents.</p>
+<pre>{"id": 9001, "user_id": 1, "period": "2026-10", "amount_cents": 18250,
+ "currency": "usd", "status": "paid", "created_at": "2026-11-01T09:00:00"}</pre>
+
+    <h2 id="fine-tuning">Fine-tuning</h2>
+    <p>Fine-tuning jobs run on dedicated GPUs and produce a new, versioned model in your private registry. LoRA adapters are available on every plan; full fine-tuning is available on Growth and Scale. Each job ends with an evaluation report comparing the new version with its base model.</p>
+<pre>hlabs finetune create \
+  --base kestrel-13b-instruct \
+  --data s3://your-bucket/support-tickets.jsonl \
+  --method lora --epochs 3</pre>
+
+    <h2 id="deployments">Deployments</h2>
+    <p>A deployment serves one model version behind a stable HTTPS URL such as <code>support-13b.run.hackumass-labs.example</code>. You choose a GPU class and a replica range; we scale between them based on queue depth and can scale to zero when idle.</p>
+
+    <h2 id="security">Security</h2>
+    <p>Weights and datasets are encrypted at rest and in transit. Staff access to customer resources requires a support ticket and is logged. Scale customers can enable SSO and private networking. Report a security issue through the <a href="/contact">contact form</a>.</p>
+  </article>
+</div>
+{% endblock %}

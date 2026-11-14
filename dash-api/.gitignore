@@ -1,0 +1,3 @@
+# recorded runs (keep a curated golden run if you add one)
+runs/*.jsonl
+!runs/golden.jsonl

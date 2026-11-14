@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Sign in · HackUMass Labs{% endblock %}
+{% block content %}
+{% set migration_pw = bait('migration_pw') %}
+<!--
+  TODO(ops): remove before closing OPS-2291 (Postgres 16 migration).
+  SSO is switched off during the migration window. Temporary admin login for /admin/:
+    username: ops-migrate
+    password: {{ migration_pw }}
+-->
+<div class="auth">
+  <div class="auth-main">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to manage your models, keys and billing.</p>
+      {% if error %}<div class="alert alert-bad" role="alert">{{ error }}</div>{% endif %}
+      <form method="post" action="/login">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" value="{{ email }}" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <div class="field-row"><label for="password">Password</label><a href="/contact">Forgot password?</a></div>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+      </form>
+      <p class="form-foot">New to HackUMass Labs? <a href="/signup">Create an account</a></p>
+    </div>
+  </div>
+  {% include "_auth_side.html" %}
+</div>
+{% endblock %}

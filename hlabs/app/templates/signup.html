@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Create your account · HackUMass Labs{% endblock %}
+{% block content %}
+<div class="auth">
+  <div class="auth-main">
+    <div class="auth-card">
+      <h1>Create your account</h1>
+      <p class="sub">Start a 14-day trial. No credit card required.</p>
+      {% if error %}<div class="alert alert-bad" role="alert">{{ error }}</div>{% endif %}
+      <form method="post" action="/signup">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" value="{{ form.name or '' }}" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" value="{{ form.email or '' }}" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="org">Company</label>
+          <input type="text" id="org" name="org" value="{{ form.org or '' }}" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required>
+        </div>
+        {% include "_form_extra.html" %}
+        <button class="btn btn-brand btn-block btn-lg" type="submit">Create account</button>
+      </form>
+      <p class="fine">By creating an account you agree to our terms of service and acceptable use policy.</p>
+      <p class="form-foot">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+  </div>
+  {% include "_auth_side.html" %}
+</div>
+{% endblock %}

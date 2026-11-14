@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+{% include "_head.html" %}
+  <meta name="robots" content="noindex, nofollow">
+  <title>Staff sign in · HackUMass Labs</title>
+</head>
+<body>
+<div class="staff-login">
+  <div>
+    <div class="staff-card">
+      <a class="brand" href="/">{% include "_logo.html" %}<span>HackUMass <b>Ops</b></span></a>
+      <h1>Staff sign in</h1>
+      <p class="muted">Internal tools for the HackUMass Labs team.</p>
+      <div class="alert alert-info">Single sign-on is temporarily unavailable while we migrate our database. Use your break-glass credentials.</div>
+      {% if error %}<div class="alert alert-bad" role="alert">{{ error }}</div>{% endif %}
+      <form method="post" action="/admin/login">
+        <div class="field">
+          <label for="username">Username or staff email</label>
+          <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+      </form>
+    </div>
+    <p class="staff-foot">Access is restricted to authorized staff and is logged.</p>
+  </div>
+</div>
+</body>
+</html>

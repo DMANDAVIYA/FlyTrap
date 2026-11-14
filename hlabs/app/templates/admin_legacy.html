@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="robots" content="noindex, nofollow" />
+<title>HL Control Panel - Login</title>
+<script type="text/javascript" src="/static/px.js" defer="defer"></script>
+<style type="text/css">
+body { margin: 0; background: #d9dde3; font: 12px Verdana, Tahoma, Arial, sans-serif; color: #222; }
+#top { background: #2b4a6f; background: linear-gradient(#3d6391, #23405f); color: #fff; padding: 8px 14px; border-bottom: 3px solid #e2a03f; }
+#top b { font-size: 15px; }
+#top span { float: right; color: #c9d6e6; font-size: 11px; padding-top: 3px; }
+#box { width: 360px; margin: 70px auto 0; background: #fff; border: 1px solid #8fa1b8; }
+#box h2 { margin: 0; padding: 6px 10px; font-size: 12px; color: #fff; background: #5b7aa1; background: linear-gradient(#6f8fb6, #4d6b91); border-bottom: 1px solid #3e5a7d; }
+#box table { width: 100%; padding: 14px 12px 6px; }
+#box td { padding: 4px 2px; }
+#box td.l { width: 90px; text-align: right; color: #444; }
+#box input.t { width: 190px; border: 1px solid #9aa9bb; padding: 3px; font: 12px Verdana, sans-serif; }
+#box input.b { border: 1px solid #6d6d6d; background: #e9e9e9; background: linear-gradient(#fbfbfb, #dcdcdc); padding: 3px 14px; font: 12px Verdana, sans-serif; cursor: pointer; }
+.err { margin: 10px 12px 0; padding: 6px 8px; background: #fde4e1; border: 1px solid #d9877c; color: #9a2617; }
+.note { margin: 4px 12px 12px; color: #777; font-size: 11px; }
+#foot { width: 360px; margin: 10px auto; color: #6b7684; font-size: 10px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="top"><span>v1.4.7 (build 2024-06)</span><b>HackUMass Labs</b> &nbsp;Control Panel</div>
+<div id="box">
+  <h2>Administrator Login</h2>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <form method="post" action="/admin-legacy/">
+  <table cellspacing="0" cellpadding="0">
+    <tr><td class="l">Username:</td><td><input class="t" type="text" name="username" /></td></tr>
+    <tr><td class="l">Password:</td><td><input class="t" type="password" name="password" /></td></tr>
+    <tr><td></td><td><input class="b" type="submit" value="Login" /></td></tr>
+  </table>
+  </form>
+  <div class="note">This panel is being replaced by the new staff console. Please report problems to the platform team.</div>
+</div>
+<div id="foot">&copy; 2024 HackUMass Labs. Authorized use only.</div>
+</body>
+</html>
