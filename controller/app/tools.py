@@ -118,8 +118,6 @@ async def rotate_keys(ctx: Ctx, a: dict) -> tuple[bool, str]:
 async def set_pace(ctx: Ctx, a: dict) -> tuple[bool, str]:
     rate = a.get("rate") or (25 if ctx.state.demo_mode and a["mode"] == "drip" else None)
     ok, data = await ctx.gw.pace(a["session"], a["mode"], rate)
-    if ok:
-        ctx.state.paced.add(a["session"])
     return ok, data.get("error", f"pace {a['mode']}")
 
 

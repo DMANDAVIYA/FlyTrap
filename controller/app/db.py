@@ -118,6 +118,14 @@ class DB:
             "INSERT INTO fingerprints (session_id, user_agent, src_ip, path_signature, timing) VALUES ($1,$2,$3,$4,$5)",
             session_id, user_agent, src_ip or None, path_signature, _j(timing))
 
+    async def clear_fingerprints(self) -> None:
+        """Reset Tartarus: forget remembered attackers so the next demo run starts fresh."""
+        await self.p.execute("DELETE FROM fingerprints")
+
+    async def expire_pending_approvals(self) -> None:
+        """Reset Tartarus: requests from a previous run no longer apply."""
+        await self.p.execute("UPDATE approvals SET status = 'expired', decided_at = now() WHERE status = 'pending'")
+
     async def existing_event_ids(self, ids: list[int]) -> set[int]:
         if not ids:
             return set()

@@ -17,7 +17,8 @@ class SwarmState:
 
     demo_mode: bool = True
     planted: set[str] = field(default_factory=set)        # sessions Hephaestus already baited
-    paced: set[str] = field(default_factory=set)
+    paced: set[tuple[str, str]] = field(default_factory=set)  # (mode, session) Cerberus already set
+    blocked: set[str] = field(default_factory=set)
     reported: set[str] = field(default_factory=set)
     fingerprinted: set[str] = field(default_factory=set)
     suggested: set[str] = field(default_factory=set)
