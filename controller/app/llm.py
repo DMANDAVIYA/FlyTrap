@@ -34,6 +34,7 @@ PROVIDERS = {
     "openrouter": ("https://openrouter.ai/api/v1", ("OPENROUTER_API_KEY",)),
 }
 COOL_DOWN_S = 60.0
+NO_TEMPERATURE = {"openai", "anthropic"}
 
 
 class LLMError(Exception):
@@ -82,10 +83,10 @@ class Endpoint:
     async def chat(self, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
                    json_mode: bool) -> Reply:
         body: dict = {"model": self.model, "messages": messages}
-        if self.provider == "openai":  # newer OpenAI models take max_completion_tokens and only the default temperature
-            body["max_completion_tokens"] = max_tokens
-        else:
-            body.update(temperature=temperature, max_tokens=max_tokens)
+        # Newer OpenAI models take max_completion_tokens; newer OpenAI and Claude models reject a custom temperature.
+        body["max_completion_tokens" if self.provider == "openai" else "max_tokens"] = max_tokens
+        if self.provider not in NO_TEMPERATURE:
+            body["temperature"] = temperature
         if tools:
             body["tools"] = tools
             body["tool_choice"] = "auto"
