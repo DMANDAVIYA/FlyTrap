@@ -108,6 +108,8 @@ class RedSwarm:
     async def reset(self) -> dict:
         await self.stop()
         self.loot.clear()
+        await self.ctx.db.clear_fingerprints()
+        await self.ctx.db.expire_pending_approvals()
         ok, data = await self.ctx.gw.reset_all()
         await self.ctx.db.emit("swarm", {"state": "reset"})
         return {"reset": ok, **({} if ok else {"error": data.get("error")})}

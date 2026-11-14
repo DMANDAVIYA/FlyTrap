@@ -14,6 +14,7 @@ from .core import Gateway
 from .public import handle
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)  # pod health checks every 5 s would flood the log
 METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
 

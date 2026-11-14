@@ -22,8 +22,10 @@ class Plan:
     def think(self, session: str, text: str) -> None:
         self.thoughts.append((session, text))
 
-    def act(self, tool: str, reason: str, evidence: list[int] | None = None, **args) -> None:
-        self.intents.append(Intent(tool, args, reason, evidence or []))
+    def act(self, tool: str, why: str, cited: list[int] | None = None, /, **args) -> None:
+        """Positional-only: `why` and `cited` go to the action log, and every keyword is a tool
+        argument, so a tool's own `reason` or `evidence` argument can never clash with them."""
+        self.intents.append(Intent(tool, args, why, cited or args.get("evidence") or []))
 
     def note(self, session: str, text: str, evidence: list[int] | None = None) -> None:
         self.notes.append((session, text, evidence or []))

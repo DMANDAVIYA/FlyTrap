@@ -175,6 +175,7 @@ class Gateway:
     async def reset_all(self) -> int:
         """Reset Tartarus: end every session, clear and reset every pod."""
         ended = self.store.end_all()
+        self.known_attackers.clear()  # the controller clears the stored fingerprints; drop the cached copy too
         self.pods.clear()
         await asyncio.gather(*(self.reset_pod(p) for p in self.pods.pods))
         return len(ended)

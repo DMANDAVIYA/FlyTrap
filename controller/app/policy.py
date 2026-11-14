@@ -24,7 +24,10 @@ ALLOWLIST: dict[str, set[str]] = {
     "zeus": set(TOOLS),  # the human; buttons on the dashboard
 }
 QUIET_TOOLS = {"post_note", "alert", "write_report"}  # logged through their own events
-SWARM_PER_MIN, AGENT_SESSION_PER_MIN = 20, 3
+# Rate limits stop runaway loops. Cheap, harmless tools (labels, notes, alerts) don't count against
+# the swarm-wide cap; every call still has a per-agent, per-tool, per-target cap.
+CHEAP_TOOLS = {"label_session", "post_note", "alert"}
+SWARM_PER_MIN, PER_TARGET_PER_MIN, CHEAP_PER_TARGET_PER_MIN = 120, 3, 10
 
 
 @dataclass
@@ -43,24 +46,30 @@ class Policy:
     def __init__(self, ctx: Ctx) -> None:
         self.ctx = ctx
         self.swarm_calls: deque[float] = deque()
-        self.per_target: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+        self.per_target: dict[tuple[str, str, str], deque[float]] = defaultdict(deque)
 
-    def _rate_ok(self, actor: str, session: str) -> bool:
+    def _rate_ok(self, actor: str, tool: str, session: str) -> bool:
         if actor == "zeus":
             return True
         now = time.time()
-        for q in (self.swarm_calls, self.per_target[(actor, session)]):
+        target = self.per_target[(actor, tool, session)]
+        for q in (self.swarm_calls, target):
             while q and now - q[0] > 60:
                 q.popleft()
-        if len(self.swarm_calls) >= SWARM_PER_MIN or len(self.per_target[(actor, session)]) >= AGENT_SESSION_PER_MIN:
+        counts_swarm = tool not in CHEAP_TOOLS
+        cap = PER_TARGET_PER_MIN if counts_swarm else CHEAP_PER_TARGET_PER_MIN
+        if len(target) >= cap or (counts_swarm and len(self.swarm_calls) >= SWARM_PER_MIN):
             return False
-        self.swarm_calls.append(now)
-        self.per_target[(actor, session)].append(now)
+        target.append(now)
+        if counts_swarm:
+            self.swarm_calls.append(now)
         return True
 
     async def execute(self, actor: str, name: str, args: dict, reason: str = "", evidence: list[int] | None = None) -> Result:
         evidence = [int(e) for e in (evidence or args.get("evidence") or []) if str(e).isdigit()]
         args = {**args, "_actor": actor}
+        if reason:
+            args.setdefault("reason", reason)  # tools that require a reason get the one the caller gave
         session = args.get("session") or "-"
         tool = TOOLS.get(name)
         if tool is None:
@@ -74,7 +83,7 @@ class Policy:
             ok, why = await tool.guard(self.ctx, args)
             if not ok:
                 return await self._log(actor, name, args, reason, evidence, "rejected", why)
-        if not self._rate_ok(actor, session):
+        if not self._rate_ok(actor, name, session):
             return await self._log(actor, name, args, reason, evidence, "rejected", "rate limit")
         needs_zeus = bool(tool.approval_kind) and tool.approval_if(args) and actor != "zeus"
         if needs_zeus:

@@ -75,6 +75,14 @@ class Engine:
         self.running[role.name] = asyncio.create_task(self._turn(role, list(self.sessions), events))
 
     async def _turn(self, role: Role, sessions: list[dict], events: list) -> None:
+        """One role turn. Any failure is logged and the role goes back to idle; the loop never dies."""
+        try:
+            await self._decide_and_act(role, sessions, events)
+        except Exception:
+            log.exception("%s turn failed", role.name)
+            await self.set_roster(role, "idle")
+
+    async def _decide_and_act(self, role: Role, sessions: list[dict], events: list) -> None:
         plan = rules_plan(self.ctx, role, sessions, events)
         llm = self.models[role.name]
         if plan.empty:

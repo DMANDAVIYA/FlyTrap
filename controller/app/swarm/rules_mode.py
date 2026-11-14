@@ -22,7 +22,9 @@ def _short(sid: str) -> str:
 
 
 def _trapped(s: dict) -> bool:
-    return s.get("side") in ("trap", "blocked") and bool(s.get("pod"))
+    """In Tartarus because of what it did. Visitors moved there only by lockdown are held for
+    safety, not hunted: no bait, pacing, reports or fingerprints for them."""
+    return s.get("side") in ("trap", "blocked") and bool(s.get("pod")) and s.get("flip_kind") != "lockdown"
 
 
 def _real_probe(s: dict) -> bool:
@@ -43,7 +45,7 @@ def argus(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
             continue
         v = score(s)
         prev = ctx.state.labels.get(s["session"])
-        if v.label == "unknown" or (prev and prev[0] == v.label and abs(prev[1] - v.confidence) < 0.1):
+        if v.label == "unknown" or (prev and prev[0] == v.label):  # relabel only when the label changes
             continue
         evidence = v.evidence or [s["last_event"]]
         name = {"ai_agent": "AI agent", "scanner": "scanner", "human": "human"}[v.label]
@@ -61,6 +63,7 @@ def hephaestus(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
     for s in sessions:
         sid = s["session"]
         if _trapped(s) and sid not in ctx.state.planted:
+            ctx.state.planted.add(sid)
             plan.think(sid, f"{_short(sid)} is in {s['pod']}. Forging a unique API token and cloud key just for it.")
             plan.act("plant_bait", "unique token: if it is ever used, we know exactly who took it",
                      session=sid, kind="api_token", where="account")
@@ -79,14 +82,18 @@ def cerberus(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
         sid = s["session"]
         if not _trapped(s) or s["side"] == "blocked":
             continue
-        if s["stage"] in ("collection", "exfil") and s["pace"] != "drip":
+        if s["stage"] in ("collection", "exfil") and ("drip", sid) not in ctx.state.paced:
+            ctx.state.paced.add(("drip", sid))
             taken = sum(s["records_taken"].values())
             plan.think(sid, f"{_short(sid)} is taking data ({taken} records so far). Drip-feeding it so the theft takes minutes.")
             plan.act("set_pace", "keep it busy on fake data while we watch", session=sid, mode="drip")
-        elif s.get("label") == "scanner" and s["pace"] == "normal":
+        elif s.get("label") == "scanner" and s["pace"] == "normal" and ("slow", sid) not in ctx.state.paced:
+            ctx.state.paced.add(("slow", sid))
             plan.think(sid, f"{_short(sid)} is a fast scanner. Slowing every response like a busy server.")
             plan.act("set_pace", "slow a scanner down without tipping it off", session=sid, mode="slow")
-        elif sid in ctx.state.reported and s["canaries_fired"] and (s.get("confidence") or 0) >= 0.7:
+        elif (sid in ctx.state.reported and s["canaries_fired"] and (s.get("confidence") or 0) >= 0.7
+              and sid not in ctx.state.blocked):
+            ctx.state.blocked.add(sid)
             plan.think(sid, f"{_short(sid)} used a stolen key and its report is written. Closing the door.")
             plan.act("block", "learned enough: report written, canary used", [c["event"] for c in s["canaries_fired"]],
                      session=sid)
@@ -98,6 +105,7 @@ def mnemosyne(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
     for s in sessions:
         sid = s["session"]
         if _trapped(s) and sid in ctx.state.reported and sid not in ctx.state.fingerprinted:
+            ctx.state.fingerprinted.add(sid)
             plan.think(sid, f"Remembering {_short(sid)}: user agent, address and path order. If it returns, it lands in Tartarus on request one.")
             plan.act("save_fingerprint", "returning attackers are trapped on their first request", session=sid)
             rule = _suggested_rule(s)
