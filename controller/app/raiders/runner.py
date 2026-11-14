@@ -40,8 +40,8 @@ class RunnerClient:
         data = resp.json()
         return Page(data["status"], data.get("headers", {}), data.get("body", ""), data.get("ms", 0.0))
 
-    async def reset(self) -> None:
+    async def reset(self, raider: str | None = None) -> None:
         try:
-            await self.http.post(f"{self.base}/reset", timeout=5.0)
+            await self.http.post(f"{self.base}/reset", params={"raider": raider} if raider else None, timeout=5.0)
         except httpx.HTTPError:
             pass

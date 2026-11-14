@@ -216,7 +216,7 @@ def test_chain_falls_through_on_failure(monkeypatch):
     llm.endpoints[0].chat, llm.endpoints[1].chat = boom, ok
     reply = asyncio.run(llm.chat([{"role": "user", "content": "x"}]))
     assert reply.model == "deepseek:deepseek-chat"
-    assert llm.label == "deepseek:deepseek-chat"  # qwen sits out after failing
+    assert llm.label == "qwen:qwen-plus"  # the first model is never benched, it is tried first on every call
     Endpoint._down_until.clear()
 
 
@@ -269,6 +269,10 @@ def test_model_chains_live_in_code(monkeypatch):
     ai_agents = {r.name for r in ROLES if r.uses_ai} | {p.name for p in PERSONAS if p.default_mode == "ai"} | {"clio"}
     assert ai_agents <= set(CHAINS)
     assert {spec.split(":")[0] for models in CHAINS.values() for spec in models} <= set(PROVIDERS)
+    from app.models import RED_PROVIDERS
+    for p in PERSONAS:                                            # red team: Chinese models only
+        assert {spec.split(":")[0] for spec in CHAINS[p.name]} <= RED_PROVIDERS, p.name
+    assert chain("athena").startswith("anthropic:claude-opus-5-5")
     monkeypatch.setenv("MUSE_API_KEY", "k")
     e = LLM("meta:muse-spark-1.3").endpoints[0]
     assert e.base == "https://api.meta.ai/v1" and e.configured
@@ -376,7 +380,7 @@ def test_raider_nudged_when_it_replies_without_a_tool_call():
     async def emit(*a):
         pass
 
-    persona = SimpleNamespace(name="odysseus", objective="test", user_agent="ua")
+    persona = SimpleNamespace(name="odysseus", base="odysseus", objective="test", user_agent="ua")
     asyncio.run(run_llm(persona, FakeLLM(), FakeRun(), emit, LootBoard(), "pw", 10, 1, asyncio.Event()))
     assert len(FakeRun.calls) == 1 and "http_request tool" in seen[1] and not replies
 
@@ -404,3 +408,55 @@ def test_kimi_gets_no_temperature(monkeypatch):
     monkeypatch.delenv("KIMI_API_KEY", raising=False)
     asyncio.run(Endpoint("kimi:kimi-k3.1-pro", 5).chat([{"role": "user", "content": "x"}], None, 0.2, 10, False))
     assert "temperature" not in sent[0] and sent[0]["max_tokens"] == 10
+
+
+def test_primary_retried_on_rate_limit_and_backup_benched(monkeypatch):
+    """Opus gets retried on a 429 instead of handing the call to Sonnet; a failing backup sits out."""
+    from app import llm as llm_mod
+    from app.llm import LLM, LLMError, Endpoint, Reply
+    Endpoint._down_until.clear()
+    monkeypatch.setattr(llm_mod, "MAX_RETRY_WAIT_S", 0.0)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    chain_ = LLM("anthropic:claude-opus-5-5,anthropic:claude-sonnet-5-5,deepseek:deepseek-v4-pro")
+    calls = []
+
+    async def opus(*a, **k):
+        calls.append("opus")
+        if len(calls) == 1:
+            raise LLMError("busy", 429)
+        return Reply("ok", model="anthropic:claude-opus-5-5")
+
+    chain_.endpoints[0].chat = opus
+    assert asyncio.run(chain_.chat([{"role": "user", "content": "x"}])).model == "anthropic:claude-opus-5-5"
+    assert calls == ["opus", "opus"]
+
+    async def down(*a, **k):
+        raise LLMError("server error", 500)
+
+    async def ok(*a, **k):
+        return Reply("ok", model="deepseek:deepseek-v4-pro")
+
+    chain_.endpoints[0].chat = chain_.endpoints[1].chat = down
+    chain_.endpoints[2].chat = ok
+    assert asyncio.run(chain_.chat([{"role": "user", "content": "x"}])).model == "deepseek:deepseek-v4-pro"
+    assert chain_.endpoints[0].ready and not chain_.endpoints[1].ready   # Opus stays first, Sonnet sits out
+    Endpoint._down_until.clear()
+
+
+def test_raider_copies_get_names_and_separate_slots():
+    from app.raiders.personas import BY_NAME, PERSONAS, copy_number, copy_of, persona_for
+    from app.raiders.swarm import RedSwarm
+    from types import SimpleNamespace
+
+    odd = copy_of(BY_NAME["odysseus"], 3)
+    assert odd.name == "odysseus-3" and odd.base == "odysseus" and copy_number(odd.name) == 3
+    assert persona_for("odysseus-3") == odd and persona_for("odysseus") is BY_NAME["odysseus"]
+    assert persona_for("nobody") is None
+
+    slots = [f"raider-{i}" for i in range(1, 6)]
+    swarm = RedSwarm.__new__(RedSwarm)
+    swarm.ctx = SimpleNamespace(settings=SimpleNamespace(raider_slots=slots))
+    for p in PERSONAS:
+        used = {swarm._slot_for(copy_of(p, k)) for k in range(1, 4)}
+        assert len(used) == 3, p.name   # copies of one raider never share a runner, so never share an IP

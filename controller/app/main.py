@@ -51,6 +51,7 @@ class ReleaseIn(BaseModel):
     crowd: int = 30
     drones: int = 0
     demo_mode: bool = True
+    copies: int | None = None  # copies of each raider; default settings.raider_copies
 
 
 class DecisionIn(BaseModel):
@@ -72,13 +73,14 @@ class RaiderIn(BaseModel):
 async def health(request: Request):
     red = request.app.state.red
     return {"ok": True, "blue": request.app.state.engine.health(),
-            "red": [{"raider": p.name, "mode": red.mode_for(p), "state": red.state.get(p.name, "idle")}
-                    for p in PERSONAS]}
+            "red": [{"raider": p.name, "mode": red.mode_for(p), "state": red.persona_state(p.name),
+                     "copies": red.copies_of(p.name)} for p in PERSONAS]}
 
 
 @app.post("/swarm/release")
 async def release(body: ReleaseIn, request: Request):
-    return await request.app.state.red.release(body.raiders, body.crowd, body.drones, body.demo_mode)
+    return await request.app.state.red.release(body.raiders, body.crowd, body.drones, body.demo_mode,
+                                               copies=body.copies)
 
 
 @app.post("/swarm/stop")
@@ -95,7 +97,8 @@ async def reset(request: Request):
 @app.post("/raiders/{name}/start")
 async def start_raider(name: str, body: RaiderIn, request: Request):
     red = request.app.state.red
-    return await red.release([name], crowd=0, drones=0, demo=request.app.state.ctx.state.demo_mode, mode=body.mode)
+    return await red.release([name], crowd=0, drones=0, demo=request.app.state.ctx.state.demo_mode, mode=body.mode,
+                             copies=1)
 
 
 @app.get("/scoreboard")

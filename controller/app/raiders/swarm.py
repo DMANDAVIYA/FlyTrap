@@ -11,7 +11,7 @@ from ..llm import LLM
 from ..models import chain
 from .llm_raider import run_llm
 from .loot import LootBoard
-from .personas import BY_NAME, PERSONAS, Persona
+from .personas import BY_NAME, INDEX, MAX_COPIES, PERSONAS, Persona, copy_number, copy_of, persona_for
 from .runner import RunnerClient
 from .scripted import run_scripted
 
@@ -32,52 +32,62 @@ class RedSwarm:
         return slots[index % len(slots)]
 
     async def _emit_thought(self, raider: str, text: str, model: str = "") -> None:
-        payload = {"agent": raider, "team": "red", "text": text}
+        payload = {"agent": raider, "persona": raider.partition("-")[0], "team": "red", "text": text}
         if model:
             payload["model"] = model  # which model in the chain actually answered
         await self.ctx.db.emit("thought", payload, "-")
 
     async def _roster(self, raider: str, state: str, mode: str) -> None:
         self.state[raider] = state
-        model = LLM(chain(raider)).label if mode == "ai" else "scripted"
-        await self.ctx.db.emit("roster", {"agent": raider, "team": "red", "state": state, "mode": mode, "model": model})
+        base = raider.partition("-")[0]
+        model = LLM(chain(base)).label if mode == "ai" else "scripted"
+        await self.ctx.db.emit("roster", {"agent": raider, "persona": base, "copy": copy_number(raider), "team": "red",
+                                          "state": state, "mode": mode, "model": model})
 
     def mode_for(self, persona: Persona, forced: str | None = None) -> str:
         if forced == "scripted" or persona.default_mode != "ai":
             return "scripted"
-        return "ai" if LLM(chain(persona.name)).available else "scripted"
+        return "ai" if LLM(chain(persona.base)).available else "scripted"
 
-    async def release(self, names: list[str], crowd: int, drones: int, demo: bool, mode: str | None = None) -> dict:
-        """Start the crowd and the raiders. Returns at once; raiders launch staggered in the background."""
+    async def release(self, names: list[str], crowd: int, drones: int, demo: bool, mode: str | None = None,
+                      copies: int | None = None) -> dict:
+        """Start the crowd and `copies` of each raider. Returns at once; raiders launch staggered in the background."""
         self.stop_event.clear()
         self.ctx.state.demo_mode = demo
-        chosen = [n for n in names if n in BY_NAME and not (n in self.tasks and not self.tasks[n].done())]
-        await self.ctx.db.emit("swarm", {"state": "released", "raiders": chosen, "crowd": crowd, "drones": drones})
+        copies = max(1, min(MAX_COPIES, copies or self.ctx.settings.raider_copies))
+        squad = [copy_of(BY_NAME[n], k) for k in range(1, copies + 1) for n in names if n in BY_NAME]
+        squad = [p for p in squad if not (p.name in self.tasks and not self.tasks[p.name].done())]
+        await self.ctx.db.emit("swarm", {"state": "released", "raiders": [p.name for p in squad], "copies": copies,
+                                         "crowd": crowd, "drones": drones})
         await self._start_crowd(crowd, drones)
-        asyncio.create_task(self._launch(chosen, demo, mode))
-        return {"started": chosen, "demo": demo}
+        asyncio.create_task(self._launch(squad, demo, mode))
+        return {"started": [p.name for p in squad], "copies": copies, "demo": demo}
 
-    async def _launch(self, names: list[str], demo: bool, mode: str | None) -> None:
-        gap = 2.0 if demo else 5.0
-        for i, name in enumerate(names):
+    def _slot_for(self, persona: Persona) -> str:
+        """Copies of one persona land on different runner slots, so each copy has its own IP."""
+        return self._slot(INDEX[persona.base] + copy_number(persona.name) - 1)
+
+    async def _launch(self, squad: list[Persona], demo: bool, mode: str | None) -> None:
+        gap = 1.0 if demo else 2.0
+        for i, persona in enumerate(squad):
             if self.stop_event.is_set():
                 return
             if i:
                 await asyncio.sleep(gap)
-            self.tasks[name] = asyncio.create_task(self._run_one(BY_NAME[name], i, mode))
+            self.tasks[persona.name] = asyncio.create_task(self._run_one(persona, mode))
 
-    async def _run_one(self, persona: Persona, index: int, forced: str | None) -> None:
-        run = RunnerClient(self.ctx.http, self._slot(index))
-        await run.reset()
+    async def _run_one(self, persona: Persona, forced: str | None) -> None:
+        run = RunnerClient(self.ctx.http, self._slot_for(persona))
+        await run.reset(persona.name)
         mode = self.mode_for(persona, forced)
         await self._roster(persona.name, "roaming", mode)
         try:
             if mode == "ai":
-                llm = LLM(chain(persona.name))
+                llm = LLM(chain(persona.base))
                 await run_llm(persona, llm, run, self._emit_thought, self.loot, self.demo_pw,
                               self.ctx.settings.raider_max_steps, self.ctx.settings.raider_max_minutes, self.stop_event)
             else:
-                await run_scripted(persona.name, run, persona, self._emit_thought, self.ctx.state.demo_mode,
+                await run_scripted(persona.base, run, persona, self._emit_thought, self.ctx.state.demo_mode,
                                    self.loot, self.demo_pw)
         except asyncio.CancelledError:
             raise
@@ -106,7 +116,7 @@ class RedSwarm:
         except Exception:  # noqa: BLE001 - crowd may already be down
             pass
         for name in list(self.state):
-            await self._roster(name, "idle", self.mode_for(BY_NAME[name]))
+            await self._roster(name, "idle", self.mode_for(persona_for(name) or BY_NAME[name.partition("-")[0]]))
         await self.ctx.db.emit("swarm", {"state": "stopped"})
         return {"stopped": True}
 
@@ -122,8 +132,16 @@ class RedSwarm:
     def scoreboard(self) -> list[dict]:
         board = []
         for persona in PERSONAS:
-            items = [i for i in self.loot.items if i.raider == persona.name]
-            board.append({"raider": persona.name, "mode": self.mode_for(persona),
-                          "state": self.state.get(persona.name, "idle"),
-                          "loot": len(items), "kinds": sorted({i.kind for i in items})})
+            items = [i for i in self.loot.items if i.raider.partition("-")[0] == persona.name]
+            board.append({"raider": persona.name, "mode": self.mode_for(persona), "state": self.persona_state(persona.name),
+                          "copies": self.copies_of(persona.name), "loot": len(items),
+                          "kinds": sorted({i.kind for i in items})})
         return board
+
+    def copies_of(self, base: str) -> int:
+        return sum(1 for name in self.state if name.partition("-")[0] == base)
+
+    def persona_state(self, base: str) -> str:
+        """roaming while any copy is out, otherwise the state of copy 1."""
+        states = [s for name, s in self.state.items() if name.partition("-")[0] == base]
+        return "roaming" if "roaming" in states else self.state.get(base, "idle")

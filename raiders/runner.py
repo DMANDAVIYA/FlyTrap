@@ -17,7 +17,13 @@ from pydantic import BaseModel
 GATEWAY = os.getenv("GATEWAY_URL", "http://gateway:8080")
 SLOT = os.getenv("RAIDER_SLOT", "raider")
 app = FastAPI(docs_url=None, redoc_url=None)
-client = httpx.AsyncClient(base_url=GATEWAY, timeout=30.0, follow_redirects=False)
+clients: dict[str, httpx.AsyncClient] = {}  # one cookie jar per raider, so copies sharing a slot stay separate visitors
+
+
+def client_for(raider: str) -> httpx.AsyncClient:
+    if raider not in clients:
+        clients[raider] = httpx.AsyncClient(base_url=GATEWAY, timeout=30.0, follow_redirects=False)
+    return clients[raider]
 
 
 class Req(BaseModel):
@@ -44,7 +50,7 @@ async def do(req: Req):
         headers["content-type"] = "application/x-www-form-urlencoded"
     started = time.perf_counter()
     try:
-        resp = await client.request(req.method, req.path, headers=headers, content=req.body)
+        resp = await client_for(req.raider).request(req.method, req.path, headers=headers, content=req.body)
     except httpx.HTTPError as exc:
         return {"status": 0, "headers": {}, "body": f"error: {exc}", "ms": 0.0}
     ms = (time.perf_counter() - started) * 1000
@@ -54,9 +60,12 @@ async def do(req: Req):
 
 
 @app.post("/reset")
-async def reset():
-    """Forget the previous run's login cookies so each run starts as a new visitor."""
-    client.cookies.clear()
+async def reset(raider: str | None = None):
+    """Forget login cookies so a run starts as a new visitor: one raider, or every raider on this slot."""
+    for name in [raider] if raider else list(clients):
+        old = clients.pop(name, None)
+        if old is not None:
+            await old.aclose()
     return {"ok": True}
 
 
