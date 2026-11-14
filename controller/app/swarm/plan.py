@@ -18,6 +18,7 @@ class Plan:
     thoughts: list[tuple[str, str]] = field(default_factory=list)   # (session or "-", text)
     intents: list[Intent] = field(default_factory=list)
     notes: list[tuple[str, str, list[int]]] = field(default_factory=list)  # (session or "-", note, evidence)
+    model: str = "rules"  # which "provider:model" made this plan
 
     def think(self, session: str, text: str) -> None:
         self.thoughts.append((session, text))

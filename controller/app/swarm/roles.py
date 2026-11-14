@@ -65,7 +65,7 @@ async def ai_plan(ctx: Ctx, role: Role, llm: LLM, sessions: list[dict], events: 
     }
     reply = await llm.chat([{"role": "system", "content": role.prompt()},
                             {"role": "user", "content": json.dumps(context, default=str)}], tools=tools)
-    plan = Plan()
+    plan = Plan(model=reply.model)
     if reply.text:
         plan.think(sessions[0]["session"] if len(sessions) == 1 else "-", reply.text[:240])
     for call in reply.tool_calls:
