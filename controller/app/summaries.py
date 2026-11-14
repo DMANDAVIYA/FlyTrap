@@ -24,6 +24,9 @@ ORDER BY id DESC LIMIT 6000
 """
 
 
+PAUSE_S = 1.5  # longer than any scripted scanner wait, shorter than a model thinking about its next step
+
+
 def visitor_text(value: str) -> str:
     """Attacker-controlled text: cut short and stripped before any model sees it."""
     return CONTROL_CHARS.sub(" ", value or "")[:120]
@@ -34,6 +37,7 @@ def summarize(row, events: list) -> dict:
     requests = [e for e in events if e["kind"] == "request"]
     times = [e["ts"].timestamp() for e in requests[-60:]]
     gaps = [b - a for a, b in zip(times, times[1:])]
+    pauses = [g for g in gaps if g >= PAUSE_S]  # time spent thinking between bursts of requests
     tripwires = [{"id": e["tripwire"], "event": e["id"]} for e in events if e["kind"] == "tripwire"][-10:]
     beacons = [json.loads(e["payload"] or "{}") for e in events if e["kind"] == "beacon"]
     note_hit = next((e for e in events if e["kind"] == "tripwire" and e["tripwire"] == "T7"), None)
@@ -57,6 +61,9 @@ def summarize(row, events: list) -> dict:
         "requests_2min": sum(1 for t in times if times and times[-1] - t <= 120),
         "median_gap_s": round(statistics.median(gaps), 2) if gaps else None,
         "gap_spread_s": round(statistics.pstdev(gaps), 2) if len(gaps) > 1 else None,
+        "pauses": len(pauses),
+        "pause_share": round(len(pauses) / len(gaps), 2) if gaps else None,
+        "median_pause_s": round(statistics.median(pauses), 1) if pauses else None,
         "js_beacon": bool(beacons),
         "mouse_keys": sum(b.get("mouse", 0) + b.get("keys", 0) for b in beacons),
         "assets_loaded": sum(1 for e in requests if (e["path"] or "").startswith("/static/")),
