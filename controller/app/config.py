@@ -24,6 +24,10 @@ class Settings:
     raider_max_minutes: float = float(os.getenv("RAIDER_MAX_MINUTES", "10"))
     blue_interval_s: float = float(os.getenv("BLUE_INTERVAL_S", "3"))
 
+    def blue_model_for(self, agent: str) -> str:
+        """Per-agent chain (BLUE_MODEL_ATHENA=...) or the shared BLUE_MODEL."""
+        return os.getenv(f"BLUE_MODEL_{agent.upper()}", "") or self.blue_model
+
     def raider_model_for(self, name: str) -> str:
         return os.getenv(f"RAIDER_MODEL_{name.upper()}", "") or self.raider_model
 

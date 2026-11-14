@@ -89,7 +89,7 @@ async def _ai_words(llm: LLM, facts: dict) -> dict:
               "Return JSON with keys: summary (2 sentences), goal (one phrase), timeline (object mapping each stage in the "
               "facts to one plain sentence). Do not invent events, numbers or event ids.")
     reply = await llm.chat([{"role": "system", "content": prompt},
-                            {"role": "user", "content": json.dumps(facts, default=str)}], json_mode=True, max_tokens=600)
+                            {"role": "user", "content": json.dumps(facts, default=str)}], json_mode=True, max_tokens=2000)
     try:
         return json.loads(reply.text)
     except ValueError as exc:

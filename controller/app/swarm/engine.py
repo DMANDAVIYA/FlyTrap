@@ -24,7 +24,7 @@ WATCHED = ("flip", "canary", "tripwire", "lockdown", "approval", "report", "camp
 class Engine:
     def __init__(self, ctx: Ctx, policy: Policy) -> None:
         self.ctx, self.policy = ctx, policy
-        self.models = {r.name: LLM(ctx.settings.blue_model if r.uses_ai else "") for r in ROLES}
+        self.models = {r.name: LLM(ctx.settings.blue_model_for(r.name) if r.uses_ai else "") for r in ROLES}
         self.running: dict[str, asyncio.Task] = {}
         self.last_run: dict[str, float] = {r.name: 0.0 for r in ROLES}
         self.pending: dict[str, list] = {r.name: [] for r in ROLES}

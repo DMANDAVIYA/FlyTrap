@@ -31,6 +31,7 @@ PROVIDERS = {
     "qwen": ("https://dashscope-intl.aliyuncs.com/compatible-mode/v1", ("QWEN_API_KEY", "DASHSCOPE_API_KEY")),
     "kimi": ("https://api.moonshot.ai/v1", ("KIMI_API_KEY", "MOONSHOT_API_KEY")),
     "glm": ("https://api.z.ai/api/paas/v4", ("GLM_API_KEY", "ZHIPU_API_KEY")),
+    "meta": ("https://api.meta.ai/v1", ("MUSE_API_KEY", "META_API_KEY")),
     "openrouter": ("https://openrouter.ai/api/v1", ("OPENROUTER_API_KEY",)),
 }
 COOL_DOWN_S = 60.0
@@ -139,7 +140,7 @@ class LLM:
         return ready[0].spec if ready else "rules"
 
     async def chat(self, messages: list[dict], tools: list[dict] | None = None, temperature: float = 0.2,
-                   max_tokens: int = 800, json_mode: bool = False) -> Reply:
+                   max_tokens: int = 1500, json_mode: bool = False) -> Reply:  # headroom for reasoning models
         candidates = [e for e in self.endpoints if e.ready] or [e for e in self.endpoints if e.configured]
         if not candidates:
             raise LLMError("no model with an API key")
