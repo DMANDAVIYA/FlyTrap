@@ -32,6 +32,7 @@ ROUTES: dict[str, tuple[str, str, dict[str, Any]]] = {
     "reject": ("POST", "/approvals/{id}", {"decision": "reject", "by": "human"}),
 }
 NEEDS_ID = {"approve", "reject"}
+SLOW = {"approve": 130.0, "reset": 30.0}  # approving a rebuild rolls both real servers; a reset clears every pod
 
 
 def resolve(action: str, item_id: int | None) -> tuple[str, str, dict[str, Any]] | None:
@@ -56,7 +57,8 @@ class ControllerProxy:
         method, path, default = route
         payload = {**default, **(body or {})}
         try:
-            r = await self.http.request(method, self.base + path, json=payload)
+            r = await self.http.request(method, self.base + path, json=payload,
+                                        timeout=httpx.Timeout(SLOW.get(action, 8.0), connect=3.0))
         except httpx.HTTPError as exc:
             log.warning("controller %s %s failed: %s", method, path, exc)
             return 502, {"ok": False, "error": f"controller unreachable ({exc.__class__.__name__})"}
