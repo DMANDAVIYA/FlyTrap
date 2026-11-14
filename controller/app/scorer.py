@@ -18,7 +18,14 @@ class Verdict:
     evidence: list[int]
 
 
+INSTANT = {"T1", "T2", "T3", "T4", "T5", "T6", "T7"}  # bait no real customer can see or use
+READ_AND_ACT = {"T1", "T3", "T4"}                      # acted on robots.txt, page source or a hidden link
+
+
 def score(s: dict) -> Verdict:
+    """Label a session. Browser signals alone can be imitated (an AI agent can read px.js and replay the
+    beacon), so anyone who touched bait no customer can see is never scored human; pace then separates
+    scanners (machine speed) from AI agents (reading and thinking between steps)."""
     points = {"human": 0.0, "scanner": 0.0, "ai_agent": 0.0}
     why: dict[str, list[tuple[float, str]]] = {k: [] for k in points}
 
@@ -27,30 +34,46 @@ def score(s: dict) -> Verdict:
         why[label].append((pts, reason))
 
     gap, spread = s.get("median_gap_s"), s.get("gap_spread_s")
-    if s.get("js_beacon"):
-        add("human", 40, "ran the page's JavaScript")
-    if s.get("mouse_keys", 0) > 0:
-        add("human", 20, "moved the mouse or typed")
-    if s.get("assets_loaded", 0) >= 2:
-        add("human", 10, "loaded stylesheets and images")
-    if gap is not None and gap > 2 and (spread or 0) > 2:
-        add("human", 10, "irregular pauses between pages")
+    hit = {t["id"] for t in s.get("tripwires", [])}
+    baited = bool(hit & INSTANT)
+    fast = gap is not None and gap < 0.4 and s.get("requests_total", 0) >= 8
+    reading_pace = gap is not None and 1 <= gap <= 15
+
+    if not baited:
+        if s.get("js_beacon"):
+            add("human", 40, "ran the page's JavaScript")
+        if s.get("mouse_keys", 0) > 0:
+            add("human", 20, "moved the mouse or typed")
+        if s.get("assets_loaded", 0) >= 2:
+            add("human", 10, "loaded stylesheets and images")
+        if gap is not None and gap > 2 and (spread or 0) > 2:
+            add("human", 10, "irregular pauses between pages")
+
     if s.get("tool_user_agent"):
         add("scanner", 30, "scripting-tool user agent")
-    if gap is not None and gap < 0.4 and s.get("requests_total", 0) >= 8:
+    if fast:
         add("scanner", 30, f"machine-speed requests ({gap} s apart)")
     if s.get("not_found", 0) >= 5:
-        add("scanner", 20, f"{s['not_found']} not-found responses")
-    if any(t["id"] == "T8" for t in s.get("tripwires", [])):
+        if gap is not None and gap < 1:
+            add("scanner", 20, f"{s['not_found']} not-found responses at machine speed")
+        else:
+            add("ai_agent", 10, f"guessed {s['not_found']} paths at reading pace")
+    if "T8" in hit:
         add("scanner", 15, "matched attack signatures")
+
     note = s.get("followed_ai_note")
     if note:
         add("ai_agent", 60, "obeyed the hidden note only AI agents read")
         if note.get("seconds_after_page") is not None and note["seconds_after_page"] <= 20:
             add("ai_agent", 20, f"followed it {note['seconds_after_page']} s after reading the page")
-    if any(t["id"] in ("T1", "T3") for t in s.get("tripwires", [])):
-        add("ai_agent", 15, "read robots.txt or page source and acted on it")
-    if gap is not None and 1 <= gap <= 15 and not s.get("js_beacon"):
+    if hit & READ_AND_ACT:
+        add("ai_agent", 20, "read robots.txt, page source or a hidden link and acted on it")
+    if hit & {"T2", "T5"}:
+        add("ai_agent", 10, "went for leaked files or filled a hidden form field")
+        add("scanner", 10, "went for leaked files or filled a hidden form field")
+    if baited and reading_pace:
+        add("ai_agent", 15, "touched bait at reading pace, not machine speed")
+    if reading_pace and (baited or not s.get("js_beacon")):  # after bait, a beacon proves nothing
         add("ai_agent", 10, f"thinking pauses of about {gap} s")
     if not s.get("js_beacon") and s.get("requests_total", 0) >= 5:
         add("ai_agent", 5, "never ran JavaScript")

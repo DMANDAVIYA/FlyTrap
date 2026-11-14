@@ -16,6 +16,7 @@ Base URLs can be overridden with <PROVIDER>_BASE_URL (Qwen and Kimi have regiona
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass, field
@@ -35,11 +36,17 @@ PROVIDERS = {
     "openrouter": ("https://openrouter.ai/api/v1", ("OPENROUTER_API_KEY",)),
 }
 COOL_DOWN_S = 60.0
+LONG_COOL_DOWN_S = 900.0                 # bad key or no credits: won't fix itself in a minute
+LONG_STATUSES = {"401", "402", "403"}
+log = logging.getLogger("controller.llm")
 NO_TEMPERATURE = {"openai", "anthropic"}
+NO_JSON_MODE = {"anthropic"}             # Anthropic's compat API rejects response_format; the prompt asks for JSON
 
 
 class LLMError(Exception):
-    pass
+    def __init__(self, message: str, status: int = 0) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 @dataclass
@@ -78,8 +85,8 @@ class Endpoint:
     def ready(self) -> bool:
         return self.configured and time.monotonic() >= self._down_until.get(self.spec, 0.0)
 
-    def mark_down(self) -> None:
-        Endpoint._down_until[self.spec] = time.monotonic() + COOL_DOWN_S
+    def mark_down(self, seconds: float = COOL_DOWN_S) -> None:
+        Endpoint._down_until[self.spec] = time.monotonic() + seconds
 
     async def chat(self, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
                    json_mode: bool) -> Reply:
@@ -91,7 +98,7 @@ class Endpoint:
         if tools:
             body["tools"] = tools
             body["tool_choice"] = "auto"
-        if json_mode:
+        if json_mode and self.provider not in NO_JSON_MODE:
             body["response_format"] = {"type": "json_object"}
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -100,7 +107,7 @@ class Endpoint:
         except httpx.HTTPError as exc:
             raise LLMError(f"{self.spec} unreachable: {exc}") from exc
         if resp.status_code >= 300:
-            raise LLMError(f"{self.spec} HTTP {resp.status_code}: {resp.text[:200]}")
+            raise LLMError(f"{self.spec} HTTP {resp.status_code}: {resp.text[:200]}", resp.status_code)
         try:
             msg = resp.json()["choices"][0]["message"]
         except (ValueError, KeyError, IndexError) as exc:
@@ -126,7 +133,7 @@ def _parse(msg: dict, spec: str) -> Reply:
 class LLM:
     """An ordered fallback chain of endpoints. Empty or keyless means rules mode."""
 
-    def __init__(self, spec: str, timeout: float = 20.0) -> None:
+    def __init__(self, spec: str, timeout: float = 60.0) -> None:  # frontier models can think for a while
         self.endpoints = [Endpoint(s, timeout) for s in (spec or "").split(",") if s.strip()]
 
     @property
@@ -149,8 +156,10 @@ class LLM:
             try:
                 return await endpoint.chat(messages, tools, temperature, max_tokens, json_mode)
             except LLMError as exc:
-                endpoint.mark_down()
+                wait = LONG_COOL_DOWN_S if str(exc.status) in LONG_STATUSES else COOL_DOWN_S
+                endpoint.mark_down(wait)
                 errors.append(str(exc))
+                log.warning("model %s skipped for %.0fs: %s", endpoint.spec, wait, str(exc)[:160])
         raise LLMError("all models failed: " + " | ".join(errors))
 
 

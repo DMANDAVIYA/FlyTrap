@@ -90,10 +90,15 @@ async def _ai_words(llm: LLM, facts: dict) -> dict:
               "facts to one plain sentence). Do not invent events, numbers or event ids.")
     reply = await llm.chat([{"role": "system", "content": prompt},
                             {"role": "user", "content": json.dumps(facts, default=str)}], json_mode=True, max_tokens=2000)
+    text = reply.text
+    start, end = text.find("{"), text.rfind("}")  # tolerate code fences or a lead-in sentence
     try:
-        return json.loads(reply.text)
+        words = json.loads(text[start:end + 1] if start >= 0 else text)
     except ValueError as exc:
         raise LLMError("report JSON did not parse") from exc
+    if not isinstance(words, dict):
+        raise LLMError("report JSON is not an object")
+    return words
 
 
 def render(r: dict) -> str:
@@ -131,7 +136,7 @@ async def build_report(ctx: Ctx, session_id: str) -> bool:
                          f"handled entirely inside Tartarus. Other customers' records exposed: "
                          f"{report['real_exposure']['other_customers_records']}.")
     report["goal"] = "customer data and credentials" if report["taken"]["records"] or report["canaries_fired"] else "reconnaissance"
-    llm = LLM(ctx.settings.report_model, timeout=30.0)
+    llm = LLM(ctx.settings.report_model, timeout=90.0)
     if llm.available:
         try:
             words = await _ai_words(llm, report)

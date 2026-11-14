@@ -267,3 +267,110 @@ def test_per_agent_model_and_meta_provider(monkeypatch):
     monkeypatch.setenv("MUSE_API_KEY", "k")
     e = LLM("meta:muse-spark-1.3").endpoints[0]
     assert e.base == "https://api.meta.ai/v1" and e.configured
+
+
+def test_ai_agent_replaying_the_beacon_is_not_human():
+    """Regression (AI run): an AI agent read px.js and replayed the beacon after touching bait."""
+    v = score(base(js_beacon=True, mouse_keys=12, assets_loaded=2, median_gap_s=3.1, gap_spread_s=2.5,
+                   tripwires=[{"id": "T2", "event": 70}]))
+    assert v.label == "ai_agent"
+
+
+def test_ai_agent_exploring_at_reading_pace_is_not_scanner():
+    """Regression (AI run): many guessed paths at reading pace plus a hidden-link hit means AI, not scanner."""
+    v = score(base(median_gap_s=2.8, not_found=9, requests_total=30, tripwires=[{"id": "T4", "event": 80}]))
+    assert v.label == "ai_agent"
+
+
+def test_fast_bait_toucher_is_still_scanner():
+    v = score(base(median_gap_s=0.2, requests_total=20, tool_user_agent=True, not_found=7,
+                   tripwires=[{"id": "T2", "event": 90}, {"id": "T1", "event": 91}]))
+    assert v.label == "scanner"
+
+
+def test_json_mode_skipped_for_anthropic(monkeypatch):
+    """Anthropic's OpenAI-compatible API rejects response_format; others get it."""
+    from app.llm import Endpoint
+    sent = []
+
+    class FakeResp:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "{}"}}]}
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, url, json=None, headers=None):
+            sent.append(json)
+            return FakeResp()
+
+    monkeypatch.setattr("app.llm.httpx.AsyncClient", FakeClient)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    for spec in ("anthropic:claude-opus-5-5", "deepseek:deepseek-v4-pro"):
+        asyncio.run(Endpoint(spec, 5).chat([{"role": "user", "content": "x"}], None, 0.2, 10, True))
+    assert "response_format" not in sent[0] and sent[1]["response_format"] == {"type": "json_object"}
+
+
+def test_no_credits_sits_out_longer(monkeypatch):
+    import time as _time
+    from app.llm import LLM, LLMError, Endpoint, Reply, COOL_DOWN_S
+    Endpoint._down_until.clear()
+    monkeypatch.setenv("OPENROUTER_API_KEY", "k1")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k2")
+    llm = LLM("openrouter:qwen/qwen3.7-max,deepseek:deepseek-chat")
+
+    async def broke(*a, **k):
+        raise LLMError("openrouter HTTP 402: needs credits", 402)
+
+    async def ok(*a, **k):
+        return Reply("hi", model="deepseek:deepseek-chat")
+
+    llm.endpoints[0].chat, llm.endpoints[1].chat = broke, ok
+    asyncio.run(llm.chat([{"role": "user", "content": "x"}]))
+    assert Endpoint._down_until["openrouter:qwen/qwen3.7-max"] - _time.monotonic() > COOL_DOWN_S * 5
+    Endpoint._down_until.clear()
+
+
+def test_report_words_tolerate_code_fences():
+    from app.llm import Reply
+    from app.swarm.report import _ai_words
+
+    class FakeLLM:
+        async def chat(self, *a, **k):
+            return Reply('Here it is:\n```json\n{"summary": "s", "goal": "g"}\n```')
+
+    assert asyncio.run(_ai_words(FakeLLM(), {}))["goal"] == "g"
+
+
+def test_raider_nudged_when_it_replies_without_a_tool_call():
+    from types import SimpleNamespace
+    from app.llm import Reply, ToolCall
+    from app.raiders.llm_raider import run_llm
+    from app.raiders.runner import Page
+
+    replies = [Reply("I would GET /login next."),
+               Reply("", [ToolCall("c1", "http_request", {"method": "GET", "path": "/login", "reason": "look"})],
+                     {"role": "assistant", "content": ""}),
+               Reply("DONE")]
+    seen = []
+
+    class FakeLLM:
+        async def chat(self, messages, **k):
+            seen.append(messages[-1]["content"])
+            return replies.pop(0)
+
+    class FakeRun:
+        calls = []
+        async def do(self, *a, **k):
+            FakeRun.calls.append(a)
+            return Page(200, {}, "<html>login</html>", 1.0)
+
+    async def emit(*a):
+        pass
+
+    persona = SimpleNamespace(name="odysseus", objective="test", user_agent="ua")
+    asyncio.run(run_llm(persona, FakeLLM(), FakeRun(), emit, LootBoard(), "pw", 10, 1, asyncio.Event()))
+    assert len(FakeRun.calls) == 1 and "http_request tool" in seen[1] and not replies
