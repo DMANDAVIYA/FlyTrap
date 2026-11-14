@@ -118,7 +118,8 @@ class Engine:
             return
         self.roster[role.name] = key
         await self.ctx.db.emit("roster", {"agent": role.name, "team": "blue", "state": state, "mode": mode,
-                                          "session": session, "title": role.title})
+                                          "model": self.models[role.name].label, "session": session,
+                                          "title": role.title})
 
     def health(self) -> list[dict]:
         return [{"agent": r.name, "title": r.title, "mode": self.mode(r),

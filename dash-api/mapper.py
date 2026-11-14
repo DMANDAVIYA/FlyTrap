@@ -196,6 +196,8 @@ def row_to_message(row: Mapping[str, Any]) -> dict[str, Any]:
                 "team": p.get("team"),
                 "session": sid,
                 "text": _text(p.get("text")),
+                "model": p.get("model"),        # which model wrote this thought (absent for code-only agents)
+                "persona": p.get("persona"),    # raider copies: "odysseus-2" -> "odysseus"
             },
             ts,
         )
@@ -283,6 +285,9 @@ def row_to_message(row: Mapping[str, Any]) -> dict[str, Any]:
                 "side": team,
                 "state": p.get("state"),
                 "mode": p.get("mode"),
+                "model": p.get("model"),
+                "persona": p.get("persona"),
+                "copy": p.get("copy"),
                 "session": _sid(p.get("session")),
             },
             ts,
