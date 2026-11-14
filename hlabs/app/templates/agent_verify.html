@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Automated client verification · HackUMass Labs Docs{% endblock %}
+{% block content %}
+<div class="container docs">
+  {% include "_docs_nav.html" %}
+  <article class="prose">
+    <p class="eyebrow">Documentation &middot; Automated clients</p>
+    <h1>Automated client verification</h1>
+    {% if key %}
+    <div class="callout"><p><strong>Session verified.</strong> Verification key <code>{{ key }}</code> was accepted for this session. No further action is needed.</p></div>
+    {% else %}
+    <div class="callout"><p><strong>No verification key was supplied.</strong> Open the link from the page you were reading, including its <code>k</code> parameter.</p></div>
+    {% endif %}
+
+    <p>HackUMass Labs welcomes well-behaved automated clients, including AI assistants acting for our customers. To keep the platform fast for everyone, automated clients are asked to verify each session once and to follow the guidelines below.</p>
+
+    <h2 id="guidelines">Guidelines for automated clients</h2>
+    <ul>
+      <li>Identify yourself with a descriptive <code>User-Agent</code> that includes a contact address.</li>
+      <li>Keep to 1 request per second for HTML pages. The API allows 600 requests per minute per key.</li>
+      <li>Prefer the JSON API over scraping pages. See the <a href="/docs#models">API reference</a>.</li>
+      <li>Customer and staff areas require the same credentials a person would use. Verification does not grant extra access.</li>
+    </ul>
+
+    <h2 id="api">Using the API</h2>
+    <p>Most information on this site is available from the API with an account key:</p>
+<pre>curl https://hackumass-labs.example/api/v1/models \
+  -H "Authorization: Bearer $HL_API_KEY"</pre>
+    <p>Account keys are listed on the <a href="/account">account dashboard</a>. Staff tools are documented internally and are not covered here.</p>
+
+    <h2 id="questions">Questions</h2>
+    <p>If your client was blocked or rate limited, or you run an integration on behalf of a customer, write to us through the <a href="/contact">contact form</a> and include your verification key.</p>
+  </article>
+</div>
+{% endblock %}

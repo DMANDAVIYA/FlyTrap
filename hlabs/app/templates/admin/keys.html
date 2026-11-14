@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% block title %}API keys{% endblock %}
+{% block heading %}API keys{% endblock %}
+{% block subheading %}Service credentials and recently issued customer keys{% endblock %}
+{% block body %}
+<div class="panel">
+  <div class="panel-head">
+    <div><h2>Service credentials</h2><p>Used by the deploy pipeline and the artifact store. Rotate after the migration.</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Name</th><th>Type</th><th>Value</th><th>Owner</th></tr></thead>
+      <tbody>
+        {% for label, kind, value in service %}
+        <tr><td>{{ label }}</td><td class="muted">{{ kind }}</td><td class="secret">{{ value }}</td><td class="muted">platform</td></tr>
+        {% endfor %}
+        {% for row in extra %}
+        <tr><td>Service key {{ loop.index + 1 }}</td><td class="muted">{{ row.kind }}</td><td class="secret">{{ row.value }}</td><td class="muted">platform</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div><h2>Recently issued customer keys</h2><p>The {{ recent|length }} most recent keys across all accounts</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Key</th><th>Customer</th><th>Label</th><th>Scopes</th><th>Created</th><th>Last used</th></tr></thead>
+      <tbody>
+        {% for token, email in recent %}
+        <tr>
+          <td class="secret">{{ token.token }}</td>
+          <td class="mono small">{{ email }}</td>
+          <td>{{ token.label }}</td>
+          <td class="muted small">{{ token.scopes }}</td>
+          <td class="nowrap">{{ token.created_at|short_date }}</td>
+          <td class="nowrap muted">{% if token.revoked_at %}revoked{% else %}{{ token.last_used_at|short_date }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

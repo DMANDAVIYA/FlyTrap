@@ -1,0 +1,116 @@
+{
+  "model_prefixes": [
+    "Kestrel", "Quill", "Basalt", "Larchwood", "Ferrite", "Tessel", "Halcyon", "Brindle",
+    "Saffron", "Sable", "Tundra", "Copperleaf", "Lumen", "Wren", "Cobalt", "Nimbus",
+    "Orchid", "Fennel", "Ironbark", "Kittiwake", "Lodestar", "Marigold", "Nettle", "Pewter",
+    "Quartzline", "Rowan", "Sorrel", "Thistle", "Umber", "Verdant", "Wisteria", "Yarrow",
+    "Alder", "Bramble", "Cinder", "Driftwood"
+  ],
+  "model_params": [1, 3, 3, 7, 7, 8, 8, 13, 14, 32, 34, 70],
+  "token_labels": [
+    "Production", "Staging", "CI pipeline", "Notebook", "Batch jobs", "Local dev",
+    "Inference worker", "Eval harness", "Data team", "Support bot", "Analytics", "Mobile app"
+  ],
+  "token_scopes": [
+    "inference", "inference models:read", "models:read", "models:read models:write",
+    "inference models:read models:write", "billing:read"
+  ],
+  "model_descriptions": {
+    "Instruct": [
+      "Instruction-tuned for structured extraction from invoices, contracts and support tickets. Returns strict JSON.",
+      "General assistant tuned on 1.2M curated instructions. Strong at summarization and step-by-step answers.",
+      "Follows long multi-part instructions reliably; trained with preference data from our annotation team.",
+      "Compact instruction model for classification and routing. Runs comfortably on a single A10G.",
+      "Tuned for customer support macros and reply drafting in English, Spanish and Portuguese.",
+      "Distilled from a larger teacher for low-latency completions under 50 ms per token.",
+      "Fine-tuned on internal SOPs to answer operations questions with citations to the source document.",
+      "Instruction model for form filling and data entry; trained to say when a field is missing.",
+      "Balanced helpfulness and refusal tuning for regulated industries. Ships with an audit log template.",
+      "Multilingual instruction model covering 14 languages with a consistent tone across replies."
+    ],
+    "Chat": [
+      "Conversational model with a friendly, concise voice. A good default for in-app assistants.",
+      "Chat model tuned for tutoring: asks clarifying questions before giving worked solutions.",
+      "Persona-stable chat model for branded assistants; keeps a consistent tone over long sessions.",
+      "Lightweight chat model for mobile and on-device use. Quantized weights included.",
+      "Chat model trained on de-identified help desk transcripts. Hands off gracefully to humans.",
+      "Open chat model with tool-friendly formatting and markdown tables out of the box.",
+      "Onboarding and FAQ flows for consumer apps, with a very low hallucination rate on product questions.",
+      "Retail assistant tuned on catalog data; recommends products and answers sizing questions.",
+      "Chat model for internal IT help: password resets, VPN setup and laptop provisioning guides.",
+      "Warm, plain-language chat model for clinic front desks. Avoids medical advice by design."
+    ],
+    "Base": [
+      "Pretrained base model on 2T tokens of filtered web, books and code. An ideal starting point for fine-tuning.",
+      "Base checkpoint with an extended 32k context window. No instruction tuning applied.",
+      "Domain-adapted base model for legal text: case law, statutes and contracts.",
+      "Scientific base model with continued pretraining on papers and lab notebooks.",
+      "Base model for financial filings and earnings calls, with improved numeric tokenization.",
+      "Efficient base model trained with grouped-query attention for fast batch inference.",
+      "Biomedical base model with continued pretraining on open-access literature.",
+      "Base model with a 128k vocabulary tuned for European languages.",
+      "Raw pretrained weights for research, with training curves and data cards.",
+      "Small base model meant for distillation experiments and classroom use."
+    ],
+    "Coder": [
+      "Code completion model for Python, TypeScript and Go with fill-in-the-middle support.",
+      "SQL generation model that reads your schema and writes safe, parameterized queries.",
+      "Code review assistant that flags bugs and suggests minimal diffs.",
+      "Infrastructure-as-code model for Terraform and Kubernetes manifests.",
+      "Unit test generator tuned on open-source repositories with high coverage.",
+      "Data science helper for pandas, SQL and plotting code in notebooks.",
+      "Shell and DevOps assistant that explains commands before running them.",
+      "Legacy code translator: COBOL and Fortran to modern Java and Python.",
+      "Docstring and API reference writer that matches your project's style.",
+      "Small, fast autocomplete model for IDE plugins with a 16k context."
+    ],
+    "Vision": [
+      "Vision-language model for reading receipts, ID cards and shipping labels.",
+      "Chart and dashboard understanding: answers questions about plots and tables in images.",
+      "Product photo captioning and attribute tagging for e-commerce catalogs.",
+      "Document layout model that turns scanned PDFs into clean markdown.",
+      "Defect detection for manufacturing lines with natural-language explanations.",
+      "Satellite and aerial imagery model for land-use classification.",
+      "Screenshot understanding for UI testing and accessibility audits.",
+      "Imaging triage assistant for clinical research use only.",
+      "Handwriting recognition tuned on forms and field notes.",
+      "Retail shelf analytics: counts facings and spots out-of-stock items."
+    ],
+    "Reason": [
+      "Reasoning model trained to plan before answering; strong on math word problems.",
+      "Multi-step reasoning for analytics questions over spreadsheets.",
+      "Logic and constraint solving model for scheduling and rostering.",
+      "Tuned to think step by step and finish with short, verifiable final answers.",
+      "Reasoning model for policy and compliance questions with clause references.",
+      "Math and physics tutor model with step checking.",
+      "Planner model that breaks goals into tool calls for agent frameworks.",
+      "Root-cause analysis assistant for incident timelines and logs.",
+      "Puzzle and board game solver used for evaluation research.",
+      "Quantitative reasoning model for pricing and forecasting what-ifs."
+    ],
+    "Long": [
+      "Long-context model with a 256k window for whole-repository questions.",
+      "Reads entire contracts and board decks; extracts obligations and dates.",
+      "Meeting transcript summarizer that handles full-day workshops.",
+      "Long-document question answering over manuals and technical specifications.",
+      "Book-length summarization and chapter outlines for publishers.",
+      "Research assistant that compares dozens of papers in one prompt.",
+      "Log analysis over millions of lines with timeline reconstruction.",
+      "Due-diligence reader for data rooms that flags unusual clauses.",
+      "Long-context retrieval companion that reranks and cites passages.",
+      "Customer history model that reads full account timelines before replying."
+    ],
+    "Tools": [
+      "Function-calling model with reliable JSON arguments and parallel calls.",
+      "Agent model tuned for browser and API tools with careful error handling.",
+      "Calendar, email and CRM tool use for sales assistants.",
+      "Retrieval-augmented model that decides when to search and when to answer.",
+      "Spreadsheet automation: writes formulas and calls sheet APIs.",
+      "Workflow automation model for ticket triage and routing tools.",
+      "Data pipeline helper that calls warehouse and BI tools.",
+      "Customer support agent with order lookup and refund tools.",
+      "Voice assistant tool model with short, speakable responses.",
+      "Small tool-use model for embedded devices and kiosks."
+    ]
+  }
+}

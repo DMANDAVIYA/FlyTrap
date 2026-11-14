@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+{% include "_head.html" %}
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}Staff console{% endblock %} · HackUMass Labs</title>
+</head>
+<body class="admin">
+<div class="admin-shell">
+  <nav class="side" aria-label="Staff console">
+    <a class="brand" href="/admin/customers">{% include "_logo.html" %}<span>HackUMass <b>Ops</b></span></a>
+    <div class="side-label">Data</div>
+    <a class="item {{ 'active' if section == 'customers' }}" href="/admin/customers"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Customers</a>
+    <a class="item {{ 'active' if section == 'keys' }}" href="/admin/keys"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>API keys</a>
+    <div class="side-label">Operations</div>
+    <a class="item {{ 'active' if section == 'infra' }}" href="/admin/infra"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 6.5h.01"/><path d="M6 17.5h.01"/></svg>Infrastructure</a>
+    <a class="item {{ 'active' if section == 'console' }}" href="/admin/console"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg>Console</a>
+    <div class="side-foot">
+      Signed in as <b>{{ who }}</b><br>
+      <a href="/admin/logout">Sign out</a>
+    </div>
+  </nav>
+  <div class="admin-main">
+    <header class="admin-top">
+      <div>
+        <h1>{% block heading %}{% endblock %}</h1>
+        <p>{% block subheading %}{% endblock %}</p>
+      </div>
+      <div class="head-actions">{% block actions %}{% endblock %}</div>
+    </header>
+    <div class="admin-body">
+      <div class="banner" role="status"><span aria-hidden="true">&#9888;</span><span><b>Migration window open (OPS-2291).</b> Single sign-on is disabled until the Postgres 16 cutover is complete. Temporary logins expire when the ticket is closed.</span></div>
+      {% block body %}{% endblock %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

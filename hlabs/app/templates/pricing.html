@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Pricing · HackUMass Labs{% endblock %}
+{% block description %}Simple monthly plans plus pay-as-you-go tokens and GPU hours.{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div class="container center">
+    <p class="eyebrow">Pricing</p>
+    <h1>Simple plans. Pay for what you serve.</h1>
+    <p class="lead" style="margin:0 auto">Every plan includes hosting, fine-tuning and serving. Usage beyond your included tokens is billed per million at the rates below.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:64px">
+  <div class="container">
+    <div class="plans">
+      <div class="plan">
+        <h3>Starter</h3>
+        <p class="for">For side projects and prototypes getting their first users.</p>
+        <div class="price"><b>$49</b><span>/ month</span></div>
+        <ul class="checks">
+          <li>1 production deployment</li>
+          <li>Shared L4 GPUs with scale to zero</li>
+          <li>5M tokens included each month</li>
+          <li>LoRA fine-tuning up to 8B parameters</li>
+          <li>7-day request logs</li>
+          <li>Community and email support</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="/signup?plan=starter">Start free trial</a>
+      </div>
+      <div class="plan featured">
+        <span class="ribbon">Most popular</span>
+        <h3>Growth</h3>
+        <p class="for">For product teams running models in front of customers.</p>
+        <div class="price"><b>$149</b><span>/ month</span></div>
+        <ul class="checks">
+          <li>5 production deployments</li>
+          <li>Dedicated L40S or A10G with autoscaling</li>
+          <li>50M tokens included each month</li>
+          <li>LoRA and full fine-tuning up to 34B</li>
+          <li>30-day logs and usage alerts</li>
+          <li>Email support, 1 business day response</li>
+        </ul>
+        <a class="btn btn-brand btn-block" href="/signup?plan=growth">Start free trial</a>
+      </div>
+      <div class="plan">
+        <h3>Scale</h3>
+        <p class="for">For companies with steady traffic and compliance needs.</p>
+        <div class="price"><b>$499</b><span>/ month</span></div>
+        <ul class="checks">
+          <li>Unlimited deployments</li>
+          <li>Reserved H100 capacity</li>
+          <li>250M tokens included each month</li>
+          <li>Fine-tuning up to 70B with priority queue</li>
+          <li>SSO, audit logs and VPC peering</li>
+          <li>99.95% uptime SLA and a named engineer</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="/contact">Talk to sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Usage pricing</p>
+      <h2>Beyond your included usage</h2>
+      <p class="lead">Billed monthly in arrears. No minimums, no egress fees.</p>
+    </div>
+    <div class="grid-2">
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Serving, by model size</th><th class="num">Input / 1M</th><th class="num">Output / 1M</th></tr></thead>
+          <tbody>
+            <tr><td>Up to 8B parameters</td><td class="num">$0.10</td><td class="num">$0.20</td></tr>
+            <tr><td>8B to 34B parameters</td><td class="num">$0.40</td><td class="num">$0.80</td></tr>
+            <tr><td>34B to 70B parameters</td><td class="num">$0.90</td><td class="num">$1.80</td></tr>
+            <tr><td>Vision models, per image</td><td class="num" colspan="2">$0.002</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Fine-tuning and dedicated GPUs</th><th class="num">Per hour</th></tr></thead>
+          <tbody>
+            <tr><td>NVIDIA L4, 24 GB</td><td class="num">$0.80</td></tr>
+            <tr><td>NVIDIA A10G, 24 GB</td><td class="num">$1.10</td></tr>
+            <tr><td>NVIDIA L40S, 48 GB</td><td class="num">$1.90</td></tr>
+            <tr><td>NVIDIA H100, 80 GB</td><td class="num">$3.95</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head center center-text" style="text-align:center">
+      <p class="eyebrow">FAQ</p>
+      <h2>Questions, answered</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>How does the free trial work?</summary>
+        <p>You get 14 days of the Growth plan with 5M tokens, no card required. At the end of the trial you pick a plan or your deployments pause. Nothing is deleted.</p>
+      </details>
+      <details>
+        <summary>Do you train on my data or my prompts?</summary>
+        <p>No. Your weights, datasets and requests are yours. We never use them to train anything, and request bodies are only kept for the log retention window of your plan.</p>
+      </details>
+      <details>
+        <summary>What happens if I go over my included tokens?</summary>
+        <p>Extra usage is billed at the per-million rates above. You can set a monthly budget per key and we will alert you, or pause traffic, when you reach it.</p>
+      </details>
+      <details>
+        <summary>Can I bring my own model?</summary>
+        <p>Yes. Upload safetensors or GGUF weights with the CLI, or connect a private repository. Most architectures under 70B parameters are supported out of the box.</p>
+      </details>
+      <details>
+        <summary>How do invoices and payment work?</summary>
+        <p>Invoices are issued on the first of each month and are payable by card or ACH within 15 days. Scale customers can pay annually by invoice.</p>
+      </details>
+    </div>
+  </div>
+</section>
+{% endblock %}

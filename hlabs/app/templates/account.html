@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · HackUMass Labs{% endblock %}
+{% block content %}
+{% set plan = ['Starter', 'Growth', 'Growth', 'Scale'][user.id % 4] %}
+{% set active_keys = (tokens|selectattr('revoked_at', 'none')|list|length) + (extra_keys|length) %}
+{% set open_balance = invoices|selectattr('status', 'in', ['due', 'overdue'])|sum(attribute='amount_cents') %}
+{% set key_labels = {'api_token': 'Deploy key', 'cloud_key_id': 'Storage access key ID', 'cloud_secret': 'Storage secret'} %}
+<section class="page-head">
+  <div class="container page-head-row">
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1>{{ user.name }}</h1>
+      <p class="muted" style="margin:0">{{ user.org }} &middot; {{ user.email }} &middot; Member since {{ user.created_at|short_date }}</p>
+    </div>
+    <div class="head-actions">
+      <span class="pill pill-brand">{{ plan }} plan</span>
+      <a class="btn btn-ghost btn-sm" href="/pricing">Change plan</a>
+    </div>
+  </div>
+</section>
+
+<div class="container account">
+  <div class="kpis">
+    <div class="kpi"><span>Requests, last 30 days</span><b>{{ chart.requests|number }}</b></div>
+    <div class="kpi"><span>Tokens, last 30 days</span><b>{{ chart.tokens|compact }}</b></div>
+    <div class="kpi"><span>Active API keys</span><b>{{ active_keys }}</b></div>
+    <div class="kpi"><span>Open balance</span><b>{{ open_balance|money }}</b></div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>Usage</h2><p>Daily API requests across all keys, last 30 days</p></div>
+      <div class="chart-legend">
+        <span><b>{{ chart.peak|number }}</b>peak day</span>
+        <span><b>{{ ((chart.requests / (chart.bars|length)) if chart.bars else 0)|round|int|number }}</b>daily average</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      {% if chart.bars %}
+      <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" preserveAspectRatio="none" role="img" aria-label="Bar chart of daily API requests over the last 30 days">
+        {% for step in [0.25, 0.5, 0.75, 1.0] %}
+        {% set gy = (chart.height - step * (chart.height - 24))|round(1) %}
+        <line x1="0" y1="{{ gy }}" x2="{{ chart.width }}" y2="{{ gy }}"></line>
+        {% endfor %}
+        <line x1="0" y1="{{ chart.height - 0.5 }}" x2="{{ chart.width }}" y2="{{ chart.height - 0.5 }}"></line>
+        {% for bar in chart.bars %}
+        <rect x="{{ bar.x }}" y="{{ bar.y }}" width="{{ bar.w }}" height="{{ bar.h }}" rx="2"><title>{{ bar.label }}</title></rect>
+        {% endfor %}
+      </svg>
+      <div class="chart-axis"><span>{{ chart.bars[0].label.split(':')[0] }}</span><span>{{ chart.bars[(chart.bars|length) // 2].label.split(':')[0] }}</span><span>{{ chart.bars[-1].label.split(':')[0] }}</span></div>
+      {% else %}
+      <div class="empty">No usage yet. Make your first request with one of the keys below and it will show up here within a minute.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>API keys</h2><p>Send a key as <code>Authorization: Bearer &lt;key&gt;</code>. Treat keys like passwords.</p></div>
+      <a class="btn btn-ghost btn-sm" href="/docs#authentication">API docs</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Name</th><th>Key</th><th>Scopes</th><th>Created</th><th>Last used</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for row in extra_keys %}
+          <tr>
+            <td>{{ key_labels.get(row.kind, 'Service key') }}</td>
+            <td><code>{{ row.value }}</code></td>
+            <td class="muted">inference models:read models:write</td>
+            <td class="nowrap">{{ row.created_at|short_date }}</td>
+            <td class="nowrap muted">never</td>
+            <td><span class="pill pill-ok">Active</span></td>
+          </tr>
+          {% endfor %}
+          {% for token in tokens %}
+          <tr>
+            <td>{{ token.label }}</td>
+            <td><code>{{ token.token }}</code></td>
+            <td class="muted">{{ token.scopes }}</td>
+            <td class="nowrap">{{ token.created_at|short_date }}</td>
+            <td class="nowrap muted">{{ token.last_used_at|short_date }}</td>
+            <td>{% if token.revoked_at %}<span class="pill pill-off">Revoked</span>{% else %}<span class="pill pill-ok">Active</span>{% endif %}</td>
+          </tr>
+          {% else %}
+          {% if not extra_keys %}<tr><td colspan="6" class="empty">No API keys yet.</td></tr>{% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>Invoices</h2><p>Issued on the 1st of each month, payable within 15 days</p></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Invoice</th><th>Period</th><th class="num">Amount</th><th>Status</th><th>Issued</th></tr></thead>
+        <tbody>
+          {% for invoice in invoices %}
+          <tr>
+            <td class="mono">INV-{{ invoice.id }}</td>
+            <td>{{ invoice.period|period }}</td>
+            <td class="num">{{ invoice.amount_cents|money }}</td>
+            <td>{% if invoice.status == 'paid' %}<span class="pill pill-ok">Paid</span>{% elif invoice.status == 'due' %}<span class="pill pill-warn">Due</span>{% else %}<span class="pill pill-bad">Overdue</span>{% endif %}</td>
+            <td class="nowrap">{{ invoice.created_at|short_date }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="empty">No invoices yet. Your first invoice is issued at the end of your trial.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

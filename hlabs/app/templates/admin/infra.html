@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+{% block title %}Infrastructure{% endblock %}
+{% block heading %}Infrastructure{% endblock %}
+{% block subheading %}us-east-2 &middot; you are on {{ node }}{% endblock %}
+{% block body %}
+{% set web_nodes = ['hl-web-03', 'hl-web-04', 'hl-web-05'] %}
+<div class="kpis">
+  <div class="kpi"><span>Web nodes healthy</span><b>{{ web_nodes|length + (0 if node in web_nodes else 1) }} / {{ web_nodes|length + (0 if node in web_nodes else 1) }}</b></div>
+  <div class="kpi"><span>API p95 latency</span><b>182 ms</b></div>
+  <div class="kpi"><span>Last nightly backup</span><b>03:00 UTC</b></div>
+  <div class="kpi"><span>Open incidents</span><b>0</b></div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div><h2>Hosts</h2><p>Internal hosts on the private network. Links open the host's own web interface.</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Host</th><th>Role</th><th>Address</th><th>Version</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% if node not in web_nodes %}
+        <tr><td class="mono">{{ node }} <span class="muted small nowrap">(this node)</span></td><td>Web and API</td><td class="mono small">10.20.1.12</td><td class="muted nowrap">hlabs-web 2026.11.2</td><td><span class="pill pill-ok">Healthy</span></td><td></td></tr>
+        {% endif %}
+        {% for host in web_nodes %}
+        <tr><td class="mono">{{ host }}{% if host == node %} <span class="muted small nowrap">(this node)</span>{% endif %}</td><td>Web and API</td><td class="mono small">10.20.1.{{ 13 + loop.index0 }}</td><td class="muted nowrap">hlabs-web 2026.11.2</td><td><span class="pill pill-ok">Healthy</span></td><td></td></tr>
+        {% endfor %}
+        <tr><td class="mono">db-primary.internal</td><td>Postgres 16 (primary)</td><td class="mono small">10.20.2.10</td><td class="muted">16.4</td><td><span class="pill pill-warn">Migrating</span></td><td></td></tr>
+        <tr><td class="mono">cache-01.internal</td><td>Redis cache</td><td class="mono small">10.20.2.21</td><td class="muted">7.2.5</td><td><span class="pill pill-ok">Healthy</span></td><td></td></tr>
+        <tr><td class="mono">backup-01</td><td>Nightly backups and exports</td><td class="mono small">10.20.3.5</td><td class="muted">Apache 2.4.58</td><td><span class="pill pill-ok">Healthy</span></td><td class="right"><a class="btn btn-ghost btn-sm" href="/admin/infra/backup-01/">Browse files</a></td></tr>
+        <tr><td class="mono">model-vault</td><td>Private model registry</td><td class="mono small">10.20.3.9</td><td class="muted">registry 3.1.0</td><td><span class="pill pill-ok">Healthy</span></td><td class="right"><a class="btn btn-ghost btn-sm" href="/admin/infra/model-vault/">Open registry</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div><h2>Scheduled jobs</h2><p>Last run of each recurring job</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Job</th><th>Schedule</th><th>Target</th><th>Last run</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Database snapshot</td><td class="mono small">0 3 * * *</td><td class="mono small">backup-01</td><td>Today, 03:00 UTC</td><td><span class="pill pill-ok">Succeeded</span></td></tr>
+        <tr><td>Customer export</td><td class="mono small">0 4 1 * *</td><td class="mono small">backup-01</td><td>Nov 01, 04:00 UTC</td><td><span class="pill pill-ok">Succeeded</span></td></tr>
+        <tr><td>Registry checksum audit</td><td class="mono small">30 5 * * 0</td><td class="mono small">model-vault</td><td>Nov 08, 05:30 UTC</td><td><span class="pill pill-ok">Succeeded</span></td></tr>
+        <tr><td>Log rotation</td><td class="mono small">0 0 * * *</td><td class="mono small">all web nodes</td><td>Today, 00:00 UTC</td><td><span class="pill pill-ok">Succeeded</span></td></tr>
+        <tr><td>Postgres 16 replica sync</td><td class="mono small">continuous</td><td class="mono small">db-primary.internal</td><td>Running</td><td><span class="pill pill-warn">In progress</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

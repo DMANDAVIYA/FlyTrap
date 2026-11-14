@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block heading %}Customers{% endblock %}
+{% block subheading %}{{ total|number }} customer accounts &middot; page {{ page_no }} of {{ pages }}{% endblock %}
+{% block actions %}<a class="btn btn-primary btn-sm" href="/admin/customers/export">Export CSV</a>{% endblock %}
+{% block body %}
+<div class="panel">
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th class="num">ID</th><th>Name</th><th>Email</th><th>Organization</th><th>Created</th><th>Last login</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="num mono">{{ row.id }}</td>
+          <td class="nowrap">{{ row.name }}</td>
+          <td class="mono small">{{ row.email }}</td>
+          <td>{{ row.org }}</td>
+          <td class="nowrap">{{ row.created_at|short_date }}</td>
+          <td class="nowrap muted">{{ row.last_login|short_date }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No customers.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span>Showing {{ rows|length }} of {{ total|number }}</span>
+    <span class="head-actions">
+      <a class="btn btn-ghost btn-sm" href="/admin/customers?page={{ page_no - 1 }}" {% if page_no <= 1 %}aria-disabled="true" tabindex="-1"{% endif %}>&larr; Previous</a>
+      <a class="btn btn-ghost btn-sm" href="/admin/customers?page={{ page_no + 1 }}" {% if page_no >= pages %}aria-disabled="true" tabindex="-1"{% endif %}>Next &rarr;</a>
+    </span>
+  </div>
+</div>
+{% endblock %}
