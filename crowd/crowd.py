@@ -29,10 +29,10 @@ class StartIn(BaseModel):
     demo: bool = True
 
 
-async def customer(n: int, demo: bool) -> None:
-    jar = httpx.Cookies()
-    ua = f"{BROWSER}"
-    async with httpx.AsyncClient(base_url=GATEWAY, cookies=jar, timeout=15.0) as c:
+async def customer(demo: bool) -> None:
+    """One simulated customer with its own cookie jar."""
+    ua = BROWSER
+    async with httpx.AsyncClient(base_url=GATEWAY, timeout=15.0) as c:
         while True:
             try:
                 page = random.choice(PAGES)
@@ -46,7 +46,7 @@ async def customer(n: int, demo: bool) -> None:
             await asyncio.sleep(random.uniform(1.5, 6.0) * (0.5 if demo else 1.0))
 
 
-async def drone(n: int, demo: bool) -> None:
+async def drone(demo: bool) -> None:
     ua = "Mozilla/5.0 (compatible; scan-bot/3.1)"
     probes = ["/admin", "/wp-login.php", "/.env", "/api/v1/users/1", "/backup.zip", "/phpmyadmin", "/server-status"]
     async with httpx.AsyncClient(base_url=GATEWAY, timeout=15.0) as c:
@@ -61,11 +61,11 @@ async def drone(n: int, demo: bool) -> None:
 @app.post("/start")
 async def start(body: StartIn):
     await _stop()
-    for i in range(body.customers):
-        tasks.append(asyncio.create_task(customer(i, body.demo)))
+    for _ in range(body.customers):
+        tasks.append(asyncio.create_task(customer(body.demo)))
         await asyncio.sleep(0.05)
-    for i in range(body.drones):
-        tasks.append(asyncio.create_task(drone(i, body.demo)))
+    for _ in range(body.drones):
+        tasks.append(asyncio.create_task(drone(body.demo)))
     return {"customers": body.customers, "drones": body.drones}
 
 

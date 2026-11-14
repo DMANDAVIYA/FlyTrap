@@ -1,4 +1,4 @@
-"""Ask the rebuilder to recreate Olympus from clean images (only after Zeus approves)."""
+"""Ask the rebuilder to restart Olympus's servers one at a time (only after Zeus approves)."""
 
 from __future__ import annotations
 
@@ -16,6 +16,6 @@ async def rebuild_olympus(ctx: Ctx, approval_id: int) -> tuple[bool, str]:
         return False, f"rebuilder unreachable: {exc}"
     ok = resp.status_code < 300
     await ctx.db.emit("alert", {"agent": "hermes", "severity": "info" if ok else "warn",
-                                "message": "Olympus rebuilt from clean images, one server at a time" if ok
-                                else f"Rebuild failed: {resp.text[:120]}", "evidence": []})
-    return ok, "rebuild complete" if ok else "rebuild failed"
+                                "message": "Olympus servers restarted one at a time; the site stayed up" if ok
+                                else f"Restart failed: {resp.text[:120]}", "evidence": []})
+    return ok, "restart complete" if ok else "restart failed"

@@ -13,8 +13,9 @@ from .gateway_client import GatewayClient
 
 @dataclass
 class SwarmState:
+    """What the blue swarm remembers between turns. Reset by 'Reset Tartarus'."""
+
     demo_mode: bool = True
-    released: bool = False
     planted: set[str] = field(default_factory=set)        # sessions Hephaestus already baited
     paced: set[str] = field(default_factory=set)
     reported: set[str] = field(default_factory=set)
@@ -25,11 +26,14 @@ class SwarmState:
     linked_pairs: set[tuple[str, ...]] = field(default_factory=set)
     labels: dict[str, tuple[str, float]] = field(default_factory=dict)
     summaries: dict[str, dict] = field(default_factory=dict)
+    lockdown_requested_at: float | None = None
+    last_status: tuple | None = None                       # Athena's last status line, to avoid repeats
 
     def clear(self) -> None:
-        demo = self.demo_mode
-        self.__init__()
-        self.demo_mode = demo
+        """Forget everything except the demo-mode setting."""
+        fresh = SwarmState(demo_mode=self.demo_mode)
+        for name in self.__dataclass_fields__:
+            setattr(self, name, getattr(fresh, name))
 
 
 @dataclass

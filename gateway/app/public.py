@@ -73,7 +73,7 @@ async def handle(gw: Gateway, request: Request) -> Response:
     records = parse_records_header(internal.get("x-edge-records", ""))
     for kind, value in parse_bait_header(internal.get("x-edge-bait", "")):
         gw.register_canary(Canary(value, kind, session.session_id, path))
-    _after_response(gw, session, path, request.method, upstream_resp.status_code,
+    _after_response(gw, session, path, upstream_resp.status_code,
                     "; ".join(v for k, v in visible if k.lower() == "set-cookie"), now)
 
     if set_cookie:
@@ -138,12 +138,12 @@ def _beacon_payload(body: bytes | None) -> dict:
     return {k: int(data[k]) for k in ("mouse", "keys", "js") if isinstance(data.get(k), (int, float))}
 
 
-def _after_response(gw: Gateway, session: Session, path: str, method: str, status: int, set_cookie: str, now: float) -> None:
+def _after_response(gw: Gateway, session: Session, path: str, status: int, set_cookie: str, now: float) -> None:
     hit = rules.not_found_hit(session, status, now)
     if hit:
         _apply_hits(gw, session, [hit], 0.0, now)
     if session.trapped:
-        stage = rules.infer_stage(path, method, set_cookie, status)
+        stage = rules.infer_stage(path, set_cookie)
         if stage and session.advance_stage(stage):
             session.ladder = "contain" if stage in ("collection", "exfil") else session.ladder
             gw.store.touch(session)

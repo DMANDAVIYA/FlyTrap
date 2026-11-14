@@ -6,6 +6,7 @@ import json
 import logging
 from collections import Counter
 
+from .. import records
 from ..context import Ctx
 from ..llm import LLM, LLMError
 from ..scorer import score
@@ -43,14 +44,8 @@ RECOMMEND = {
 
 
 def _records_by_type(rows) -> dict[str, int]:
-    out: Counter = Counter()
-    for e in rows:
-        if e["kind"] == "request" and e["side"] in ("trap", "blocked"):
-            for rec in e["records"] or []:
-                kind, _, ident = rec.partition(":")
-                a, sep, b = ident.partition("-")
-                out[kind] += int(b) - int(a) + 1 if sep and a.isdigit() and b.isdigit() else 1
-    return dict(out)
+    return dict(records.by_type(rec for e in rows if e["kind"] == "request" and e["side"] in ("trap", "blocked")
+                                for rec in (e["records"] or [])))
 
 
 def build_facts(summary: dict, rows: list) -> dict:

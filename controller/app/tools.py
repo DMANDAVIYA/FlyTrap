@@ -245,7 +245,7 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
          {**SESSION, "reason": S}, ["session", "reason"], request_release, _not_instant, approval_kind="release"),
     Tool("request_lockdown", "Start the 10-second lockdown countdown (any human can cancel).",
          {"reason": S, **EVIDENCE}, ["reason"], request_lockdown),
-    Tool("request_rebuild", "Ask Zeus to rebuild Olympus from clean images, one server at a time.",
+    Tool("request_rebuild", "Ask Zeus to restart Olympus's servers one at a time, keeping the site up.",
          {"reason": S, **EVIDENCE}, ["reason"], request_rebuild, approval_kind="rebuild"),
     Tool("cancel_lockdown", "End or cancel lockdown (Zeus only).", {"reason": S}, [], cancel_lockdown),
     Tool("post_note", "Post a short note to the swarm's shared board.",

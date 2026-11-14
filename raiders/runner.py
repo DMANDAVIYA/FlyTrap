@@ -55,6 +55,8 @@ async def do(req: Req):
 
 @app.post("/reset")
 async def reset():
+    """Forget the previous run's login cookies so each run starts as a new visitor."""
+    client.cookies.clear()
     return {"ok": True}
 
 

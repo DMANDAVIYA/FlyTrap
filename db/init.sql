@@ -1,10 +1,10 @@
--- Flytrap events database (TimescaleDB on Postgres 16).
--- The events hypertable is the append-only source of truth; everything else
+-- Flytrap events database. Plain PostgreSQL; idempotent, safe to re-run.
+-- The events table is the append-only source of truth; everything else
 -- (sessions, stats, reports) is state or a view derived from it.
+-- If TimescaleDB is installed, db/timescale.sql upgrades events to a
+-- hypertable and stats_1m to a continuous aggregate.
 
-CREATE EXTENSION IF NOT EXISTS timescaledb;
-
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id          BIGSERIAL,
   ts          TIMESTAMPTZ NOT NULL DEFAULT now(),
   session_id  TEXT NOT NULL,
@@ -26,12 +26,11 @@ CREATE TABLE events (
   payload     JSONB,
   PRIMARY KEY (id, ts)
 );
-SELECT create_hypertable('events', 'ts');
-CREATE INDEX events_session_ts ON events (session_id, ts DESC);
-CREATE INDEX events_kind_ts ON events (kind, ts DESC);
-CREATE INDEX events_id ON events (id);
+CREATE INDEX IF NOT EXISTS events_session_ts ON events (session_id, ts DESC);
+CREATE INDEX IF NOT EXISTS events_kind_ts ON events (kind, ts DESC);
+CREATE INDEX IF NOT EXISTS events_id ON events (id);
 
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   session_id  TEXT PRIMARY KEY,
   first_seen  TIMESTAMPTZ NOT NULL,
   last_seen   TIMESTAMPTZ NOT NULL,
@@ -53,7 +52,7 @@ CREATE TABLE sessions (
   ended       BOOLEAN NOT NULL DEFAULT false
 );
 
-CREATE TABLE canaries (
+CREATE TABLE IF NOT EXISTS canaries (
   value       TEXT PRIMARY KEY,
   kind        TEXT NOT NULL,
   session_id  TEXT NOT NULL,
@@ -64,7 +63,7 @@ CREATE TABLE canaries (
   fired_event BIGINT
 );
 
-CREATE TABLE actions (
+CREATE TABLE IF NOT EXISTS actions (
   id          BIGSERIAL PRIMARY KEY,
   ts          TIMESTAMPTZ NOT NULL DEFAULT now(),
   actor       TEXT NOT NULL,   -- athena | argus | hephaestus | cerberus | mnemosyne | clio | hermes | zeus | charon
@@ -76,7 +75,7 @@ CREATE TABLE actions (
   status      TEXT NOT NULL    -- done | rejected | pending_approval | approved | cancelled
 );
 
-CREATE TABLE approvals (
+CREATE TABLE IF NOT EXISTS approvals (
   id          BIGSERIAL PRIMARY KEY,
   ts          TIMESTAMPTZ NOT NULL DEFAULT now(),
   kind        TEXT NOT NULL,   -- release | new_rule | virtual_patch | lockdown | rebuild
@@ -88,7 +87,7 @@ CREATE TABLE approvals (
   decided_at  TIMESTAMPTZ
 );
 
-CREATE TABLE agent_notes (
+CREATE TABLE IF NOT EXISTS agent_notes (
   id          BIGSERIAL PRIMARY KEY,
   ts          TIMESTAMPTZ NOT NULL DEFAULT now(),
   agent       TEXT NOT NULL,
@@ -96,9 +95,9 @@ CREATE TABLE agent_notes (
   note        TEXT NOT NULL,
   evidence    BIGINT[]
 );
-CREATE INDEX agent_notes_ts ON agent_notes (ts DESC);
+CREATE INDEX IF NOT EXISTS agent_notes_ts ON agent_notes (ts DESC);
 
-CREATE TABLE campaigns (
+CREATE TABLE IF NOT EXISTS campaigns (
   id          BIGSERIAL PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   name        TEXT NOT NULL,
@@ -107,7 +106,7 @@ CREATE TABLE campaigns (
   evidence    BIGINT[]
 );
 
-CREATE TABLE fingerprints (
+CREATE TABLE IF NOT EXISTS fingerprints (
   id             BIGSERIAL PRIMARY KEY,
   session_id     TEXT,
   user_agent     TEXT,
@@ -117,22 +116,16 @@ CREATE TABLE fingerprints (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
   session_id  TEXT PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   report      JSONB NOT NULL,
   markdown    TEXT NOT NULL
 );
 
--- Continuous aggregate behind the dashboard counters (Tiger Data prize).
-CREATE MATERIALIZED VIEW stats_1m
-  WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
-  SELECT time_bucket('1 minute', ts) AS bucket, side, kind, count(*) AS n
+-- Per-minute counts behind the dashboard counters. A plain view here;
+-- db/timescale.sql replaces it with a continuous aggregate.
+CREATE OR REPLACE VIEW stats_1m AS
+  SELECT date_trunc('minute', ts) AS bucket, side, kind, count(*) AS n
   FROM events
-  GROUP BY bucket, side, kind
-  WITH NO DATA;
-
-SELECT add_continuous_aggregate_policy('stats_1m',
-  start_offset => INTERVAL '2 hours',
-  end_offset => INTERVAL '1 minute',
-  schedule_interval => INTERVAL '1 minute');
+  GROUP BY 1, 2, 3;
