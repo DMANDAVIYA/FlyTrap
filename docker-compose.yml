@@ -1,0 +1,206 @@
+# Flytrap lab: one laptop, six networks.
+#   front   (bridge)    host access to the site (8080) and dash-api (8090)
+#   egress  (bridge)    controller only: AI API calls
+#   edge    (internal)  raiders and crowd reach the gateway here
+#   realnet (internal)  Olympus: the real servers
+#   trapnet (internal)  Tartarus: trap pods and islands, no internet, no route to Olympus
+#   control (internal)  control plane
+# Create .env first:  python scripts/init_env.py
+
+name: flytrap
+
+x-secrets: &secrets
+  SESSION_SECRET: ${SESSION_SECRET:?run python scripts/init_env.py}
+  BAIT_SECRET: ${BAIT_SECRET:?run python scripts/init_env.py}
+
+x-events-db: &events-db-url
+  EVENTS_DB_URL: postgresql://flytrap:${EVENTS_DB_PASSWORD:?run python scripts/init_env.py}@events-db:5432/flytrap
+
+x-pod: &pod
+  build: ./hlabs
+  image: flytrap-hlabs
+  networks: [trapnet]
+  restart: unless-stopped
+
+x-pod-env: &pod-env
+  <<: *secrets
+  APP_ROLE: pod
+  DATABASE_URL: sqlite:////data/pod.db
+
+x-real: &real
+  build: ./hlabs
+  image: flytrap-hlabs
+  networks: [realnet]
+  restart: unless-stopped
+  depends_on:
+    db-real: {condition: service_healthy}
+
+x-real-env: &real-env
+  <<: *secrets
+  APP_ROLE: real
+  DATABASE_URL: postgresql+psycopg://hlabs:${REAL_DB_PASSWORD:?run python scripts/init_env.py}@db-real:5432/hlabs
+
+x-raider: &raider
+  build: ./raiders
+  image: flytrap-raider
+  networks: [edge]
+  restart: unless-stopped
+
+networks:
+  front: {}
+  egress: {}
+  edge:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24
+  realnet: {internal: true}
+  trapnet: {internal: true}
+  control:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+services:
+  gateway:
+    build: ./gateway
+    image: flytrap-gateway
+    environment:
+      <<: [*secrets, *events-db-url]
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?run python scripts/init_env.py}
+      ADMIN_BIND: 172.30.0.10
+      EDGE_SUBNET: 172.31.0.0/24
+      RISK_FLIP: ${RISK_FLIP:-60}
+      RISK_REVIEW: ${RISK_REVIEW:-30}
+      POD_IDLE_RESET_MIN: ${POD_IDLE_RESET_MIN:-10}
+      PODS: ${PODS:-pod-1,pod-2,pod-3,pod-4,pod-5}
+      REAL_UPSTREAMS: ${REAL_UPSTREAMS:-web-1,web-2}
+    ports: ["8080:8080"]
+    networks:
+      front: {}
+      edge: {}
+      realnet: {}
+      trapnet: {}
+      control:
+        ipv4_address: 172.30.0.10
+        aliases: [gateway-admin]
+    depends_on:
+      events-db: {condition: service_healthy}
+      web-1: {condition: service_started}
+      web-2: {condition: service_started}
+    restart: unless-stopped
+
+  web-1:
+    <<: *real
+    environment: {<<: *real-env, NODE_NAME: web-1}
+  web-2:
+    <<: *real
+    environment: {<<: *real-env, NODE_NAME: web-2}
+
+  db-real:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hlabs
+      POSTGRES_PASSWORD: ${REAL_DB_PASSWORD:?run python scripts/init_env.py}
+      POSTGRES_DB: hlabs
+    networks: [realnet]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hlabs -d hlabs"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  pod-1: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-1, NODE_NAME: hl-web-03}}
+  pod-2: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-2, NODE_NAME: hl-web-04}}
+  pod-3: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-3, NODE_NAME: hl-web-05}}
+  pod-4: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-4, NODE_NAME: hl-web-06}}
+  pod-5: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-5, NODE_NAME: hl-web-07}}
+
+  backup-01:
+    build: ./islands
+    image: flytrap-islands
+    environment: {<<: *secrets, ISLAND: backup}
+    networks: [trapnet]
+    restart: unless-stopped
+  model-vault:
+    build: ./islands
+    image: flytrap-islands
+    environment: {<<: *secrets, ISLAND: vault}
+    networks: [trapnet]
+    restart: unless-stopped
+
+  events-db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: flytrap
+      POSTGRES_PASSWORD: ${EVENTS_DB_PASSWORD:?run python scripts/init_env.py}
+      POSTGRES_DB: flytrap
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [control]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flytrap -d flytrap"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  controller:
+    build: ./controller
+    image: flytrap-controller
+    environment:
+      <<: [*secrets, *events-db-url]
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?run python scripts/init_env.py}
+      GATEWAY_ADMIN_URL: http://gateway-admin:8081
+      REBUILDER_URL: http://rebuilder:8050
+      RAIDERS: raider-1,raider-2,raider-3,raider-4,raider-5
+    env_file:
+      - path: .env.ai
+        required: false
+    networks: [control, edge, egress]
+    depends_on:
+      events-db: {condition: service_healthy}
+      gateway: {condition: service_started}
+    restart: unless-stopped
+
+  dash-api:
+    build: ./dash-api
+    image: flytrap-dash-api
+    environment:
+      <<: *events-db-url
+      CONTROLLER_URL: http://controller:8070
+    ports: ["8090:8090"]
+    networks: [control, front]
+    depends_on:
+      events-db: {condition: service_healthy}
+    restart: unless-stopped
+
+  raider-1: {<<: *raider, environment: {RAIDER_SLOT: raider-1}}
+  raider-2: {<<: *raider, environment: {RAIDER_SLOT: raider-2}}
+  raider-3: {<<: *raider, environment: {RAIDER_SLOT: raider-3}}
+  raider-4: {<<: *raider, environment: {RAIDER_SLOT: raider-4}}
+  raider-5: {<<: *raider, environment: {RAIDER_SLOT: raider-5}}
+
+  crowd:
+    build: ./crowd
+    image: flytrap-crowd
+    environment:
+      GATEWAY_URL: http://gateway:8080
+      CONTROL_PORT: "8040"
+    networks: [edge]
+    restart: unless-stopped
+
+  rebuilder:
+    build: ./rebuilder
+    image: flytrap-rebuilder
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?run python scripts/init_env.py}
+      COMPOSE_PROJECT: flytrap
+      TARGETS: web-1,web-2
+      GATEWAY_ADMIN_URL: http://gateway-admin:8081
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [control]
+    restart: unless-stopped
