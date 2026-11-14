@@ -22,15 +22,16 @@ from dataclasses import dataclass, field
 
 import httpx
 
-# provider -> (default base URL, API key env var)
+# provider -> (default base URL, API key env vars; the first one that is set wins)
 PROVIDERS = {
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY"),
-    "anthropic": ("https://api.anthropic.com/v1", "ANTHROPIC_API_KEY"),
-    "deepseek": ("https://api.deepseek.com", "DEEPSEEK_API_KEY"),
-    "qwen": ("https://dashscope-intl.aliyuncs.com/compatible-mode/v1", "QWEN_API_KEY"),
-    "kimi": ("https://api.moonshot.ai/v1", "KIMI_API_KEY"),
-    "glm": ("https://api.z.ai/api/paas/v4", "GLM_API_KEY"),
-    "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", ("GEMINI_API_KEY",)),
+    "anthropic": ("https://api.anthropic.com/v1", ("ANTHROPIC_API_KEY",)),
+    "openai": ("https://api.openai.com/v1", ("OPENAI_API_KEY",)),
+    "deepseek": ("https://api.deepseek.com", ("DEEPSEEK_API_KEY",)),
+    "qwen": ("https://dashscope-intl.aliyuncs.com/compatible-mode/v1", ("QWEN_API_KEY", "DASHSCOPE_API_KEY")),
+    "kimi": ("https://api.moonshot.ai/v1", ("KIMI_API_KEY", "MOONSHOT_API_KEY")),
+    "glm": ("https://api.z.ai/api/paas/v4", ("GLM_API_KEY", "ZHIPU_API_KEY")),
+    "openrouter": ("https://openrouter.ai/api/v1", ("OPENROUTER_API_KEY",)),
 }
 COOL_DOWN_S = 60.0
 
@@ -62,9 +63,9 @@ class Endpoint:
     def __init__(self, spec: str, timeout: float) -> None:
         self.spec = spec.strip()
         self.provider, _, self.model = self.spec.partition(":")
-        default_base, key_env = PROVIDERS.get(self.provider, ("", ""))
+        default_base, key_envs = PROVIDERS.get(self.provider, ("", ()))
         self.base = os.getenv(f"{self.provider.upper()}_BASE_URL", default_base).rstrip("/")
-        self.key = os.getenv(key_env, "") if key_env else ""
+        self.key = next((os.environ[k] for k in key_envs if os.getenv(k)), "")
         self.timeout = timeout
 
     @property
@@ -80,7 +81,11 @@ class Endpoint:
 
     async def chat(self, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
                    json_mode: bool) -> Reply:
-        body: dict = {"model": self.model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
+        body: dict = {"model": self.model, "messages": messages}
+        if self.provider == "openai":  # newer OpenAI models take max_completion_tokens and only the default temperature
+            body["max_completion_tokens"] = max_tokens
+        else:
+            body.update(temperature=temperature, max_tokens=max_tokens)
         if tools:
             body["tools"] = tools
             body["tool_choice"] = "auto"

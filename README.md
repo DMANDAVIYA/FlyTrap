@@ -35,6 +35,26 @@ All database settings live in `.env` (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSW
 - Dashboard API: http://localhost:8090
 - Dashboard: `cd dashboard && npm install && npm run dev`, then http://localhost:5173
 
+## AI models
+
+Add the keys you have to `.env.ai` (Gemini, Anthropic, OpenAI, DeepSeek, Kimi/Moonshot, Qwen, GLM, OpenRouter), then restart the controller and test them:
+
+```bash
+docker compose up -d --force-recreate controller
+docker compose exec controller python -m app.check_models          # add --list to see each provider's model names
+```
+
+Every model setting is a fallback chain; providers without a key are skipped and agents fall back to rules mode if nothing works.
+
+## Before the demo
+
+```bash
+python scripts/demo_preflight.py     # containers, site, swarm, trap copies, counters, kill switch
+python scripts/leakcheck.py          # crawls the trap copies for anything that gives them away
+```
+
+Press Reset Tartarus afterwards (`curl -X POST localhost:8090/api/control/reset`). Every run is recorded to `runs/`; save the best one as `runs/golden.jsonl` for replay.
+
 Full plan and specification: [`plan/plan.md`](plan/plan.md). Coding agent brief: [`plan/agent-context.md`](plan/agent-context.md).
 
 ## Safety

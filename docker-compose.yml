@@ -163,6 +163,8 @@ services:
     environment:
       <<: *events-db-url
       CONTROLLER_URL: http://controller:8070
+    volumes:
+      - ./runs:/app/runs   # recorded runs survive restarts; runs/golden.jsonl is the replay backup
     ports: ["8090:8090"]
     networks: [control, front]
     restart: unless-stopped
