@@ -61,7 +61,8 @@ def main() -> None:
 
     post(f"{DASH}/api/control/reset", {})
     time.sleep(3)
-    post(f"{DASH}/api/control/release", {"crowd": a.crowd, "drones": a.drones})
+    released = post(f"{DASH}/api/control/release", {"crowd": a.crowd, "drones": a.drones})
+    raiders = len(released.get("started", []))
     until = time.time() + a.seconds
     latencies: list[float] = []
     errors: list[str] = []
@@ -83,7 +84,7 @@ def main() -> None:
     rps = [s.get("rps_real", 0) + s.get("rps_trap", 0) for s in samples]
     p50s = [s.get("p50_gw_ms", 0) for s in samples if s.get("p50_gw_ms")]
     p95s = [s.get("p95_gw_ms", 0) for s in samples if s.get("p95_gw_ms")]
-    print(f"Load: {a.crowd} customers, {a.drones} drones, 5 raiders, {a.workers} extra browsers, {a.seconds}s")
+    print(f"Load: {a.crowd} customers, {a.drones} drones, {raiders} raiders, {a.workers} extra browsers, {a.seconds}s")
     print(f"  extra browsers: {len(latencies)} requests, {len(latencies) / a.seconds:.0f} req/s, "
           f"latency p50 {pct(latencies, 0.5)} ms, p95 {pct(latencies, 0.95)} ms, p99 {pct(latencies, 0.99)} ms, "
           f"errors {len(errors)}")
