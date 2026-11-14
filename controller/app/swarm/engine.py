@@ -99,7 +99,8 @@ class Engine:
             except LLMError as exc:
                 log.warning("%s fell back to rules mode: %s", role.name, exc)
         for session, text in plan.thoughts:
-            await self.ctx.db.emit("thought", {"agent": role.name, "team": "blue", "text": text, "mode": mode}, session)
+            await self.ctx.db.emit("thought", {"agent": role.name, "team": "blue", "text": text, "mode": mode,
+                                               "model": plan.model}, session)
         for intent in plan.intents:
             target = intent.args.get("session")
             await self.set_roster(role, "acting", session=target, mode=mode)

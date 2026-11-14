@@ -184,7 +184,43 @@ def test_lockdown_held_visitors_are_not_hunted():
 
 def test_deepseek_provider_is_known():
     from app.llm import LLM
-    llm = LLM("deepseek:deepseek-chat")
-    assert llm.provider == "deepseek" and llm.model == "deepseek-chat"
-    assert llm.base == "https://api.deepseek.com"
-    assert llm.label in ("rules", "deepseek:deepseek-chat")  # available only once the key is set
+    e = LLM("deepseek:deepseek-chat").endpoints[0]
+    assert e.provider == "deepseek" and e.model == "deepseek-chat" and e.base == "https://api.deepseek.com"
+
+
+def test_chain_skips_providers_without_keys(monkeypatch):
+    from app.llm import LLM
+    for k in ("QWEN_API_KEY", "KIMI_API_KEY", "GLM_API_KEY", "OPENROUTER_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    llm = LLM("qwen:qwen-plus,kimi:kimi-k2,openrouter:qwen/qwen-plus,deepseek:deepseek-chat")
+    assert llm.available and llm.label == "deepseek:deepseek-chat"
+    monkeypatch.delenv("DEEPSEEK_API_KEY")
+    assert not LLM("qwen:qwen-plus,deepseek:deepseek-chat").available
+    assert LLM("").label == "rules"
+
+
+def test_chain_falls_through_on_failure(monkeypatch):
+    from app.llm import LLM, LLMError, Endpoint, Reply
+    Endpoint._down_until.clear()
+    monkeypatch.setenv("QWEN_API_KEY", "k1")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k2")
+    llm = LLM("qwen:qwen-plus,deepseek:deepseek-chat")
+
+    async def boom(*a, **k):
+        raise LLMError("down")
+
+    async def ok(*a, **k):
+        return Reply("hi", model="deepseek:deepseek-chat")
+
+    llm.endpoints[0].chat, llm.endpoints[1].chat = boom, ok
+    reply = asyncio.run(llm.chat([{"role": "user", "content": "x"}]))
+    assert reply.model == "deepseek:deepseek-chat"
+    assert llm.label == "deepseek:deepseek-chat"  # qwen sits out after failing
+    Endpoint._down_until.clear()
+
+
+def test_base_url_override(monkeypatch):
+    from app.llm import LLM
+    monkeypatch.setenv("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1/")
+    assert LLM("qwen:qwen-plus").endpoints[0].base == "https://dashscope.aliyuncs.com/compatible-mode/v1"

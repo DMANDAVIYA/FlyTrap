@@ -35,7 +35,8 @@ class RedSwarm:
 
     async def _roster(self, raider: str, state: str, mode: str) -> None:
         self.state[raider] = state
-        await self.ctx.db.emit("roster", {"agent": raider, "team": "red", "state": state, "mode": mode})
+        model = LLM(self.ctx.settings.raider_model_for(raider)).label if mode == "ai" else "scripted"
+        await self.ctx.db.emit("roster", {"agent": raider, "team": "red", "state": state, "mode": mode, "model": model})
 
     def mode_for(self, persona: Persona, forced: str | None = None) -> str:
         if forced == "scripted" or persona.default_mode != "ai":
