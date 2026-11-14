@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+<section class="auth">
+  <h1>Create your account</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/signup">
+    <label>Full name<input name="name" required></label>
+    <label>Work email<input name="email" type="email" required></label>
+    <label>Company<input name="company"></label>
+    <label>Password<input name="password" type="password" minlength="8" required></label>
+    <div class="vh" aria-hidden="true"><label>Company website<input name="company_website" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn" type="submit">Create account</button>
+  </form>
+</section>
+{% endblock %}

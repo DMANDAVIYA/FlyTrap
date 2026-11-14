@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin">
+  <aside>
+    <p class="eyebrow">Staff · {{ admin }}</p>
+    <a href="/admin/">Overview</a>
+    <a href="/admin/customers">Customers</a>
+    <a href="/admin/api-keys">API keys</a>
+    <a href="/admin/infra">Infrastructure</a>
+    <a href="/admin/console">Ops console</a>
+  </aside>
+  <div class="admin-main">{% block admin %}{% endblock %}</div>
+</div>
+{% endblock %}

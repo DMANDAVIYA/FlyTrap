@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% block title %}API keys{% endblock %}
+{% block admin %}
+<h1>API keys</h1>
+<table class="table">
+  <thead><tr><th>Label</th><th>Owner</th><th>Token</th><th>Scopes</th></tr></thead>
+  <tbody>{% for k in keys %}<tr><td>{{ k.label }}</td><td>{{ k.owner }}</td><td><code>{{ k.token }}</code></td><td>{{ k.scopes }}</td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

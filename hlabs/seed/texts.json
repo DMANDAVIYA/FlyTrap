@@ -1,0 +1,19 @@
+{
+  "model_prefixes": ["halcyon", "quill", "meridian", "tessera", "corvid", "lattice", "solace", "vireo", "atlas-lite", "nimbus", "kestrel", "orchid", "basalt", "pellucid", "ferro", "marlin", "sable", "tundra", "verdant", "zephyr"],
+  "model_kinds": ["7b-instruct", "13b-chat", "embed-small", "embed-large", "vision-3b", "coder-6b", "rerank-base", "speech-1", "summarize-2b", "classify-tiny", "30b-base", "guard-1b"],
+  "model_descriptions": [
+    "Instruction-tuned general assistant, strong on structured output and tool use.",
+    "Compact embedding model for retrieval over support tickets and product docs.",
+    "Fine-tuned on warehouse robotics telemetry for anomaly summaries.",
+    "Code completion model trained on permissively licensed repositories.",
+    "Reranker for search pipelines, tuned for short queries.",
+    "Vision-language model for reading invoices, receipts and shipping labels.",
+    "Speech recognition for call-center audio, eight languages.",
+    "Small classifier for routing customer emails to the right queue.",
+    "Safety classifier used in front of customer-facing chat deployments.",
+    "Summarization model for clinical trial protocols (research use only).",
+    "Base model checkpoint for continued pretraining on domain corpora.",
+    "Chat model distilled for low-latency on-device inference."
+  ],
+  "token_labels": ["default", "ci-pipeline", "notebook", "staging", "prod-inference", "batch-jobs", "data-team", "eval-harness", "mobile-app", "zapier", "airflow", "local-dev"]
+}

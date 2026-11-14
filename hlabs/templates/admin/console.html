@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+{% block title %}Ops console{% endblock %}
+{% block admin %}
+<h1>Ops console</h1>
+<p class="muted">Read-only shell for the migration window. Type <code>help</code>.</p>
+<pre class="console">{% for cmd, out in history %}ops-migrate@web-01:~$ {{ cmd }}
+{{ out }}
+{% endfor %}ops-migrate@web-01:~$ </pre>
+<form method="post" action="/admin/console" class="inline"><input name="cmd" autofocus autocomplete="off" placeholder="command"><button class="btn" type="submit">Run</button></form>
+{% endblock %}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HackUMass Labs{% endblock %} · HackUMass Labs</title>
+  <meta name="description" content="HackUMass Labs hosts, fine-tunes and serves models for teams that ship AI products.">
+  <link rel="stylesheet" href="/static/site.css">
+  <link rel="icon" href="/static/logo.svg">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/"><img src="/static/logo.svg" alt="" width="26" height="26"> HackUMass Labs</a>
+    <nav>
+      <a href="/models">Models</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+      {% if user %}
+        <a class="btn ghost" href="/account">{{ user.name.split(' ')[0] }}</a>
+        <a href="/logout">Sign out</a>
+      {% else %}
+        <a href="/login">Sign in</a>
+        <a class="btn" href="/signup">Start free</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="foot">
+    <div>
+      <strong>HackUMass Labs, Inc.</strong><br>
+      <span class="muted">Amherst, MA · Model hosting, fine-tuning and inference.</span>
+    </div>
+    <div class="links">
+      <a href="/docs">API reference</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">Company</a>
+      <a href="/contact">Support</a>
+      <a class="vh" href="/admin-legacy/" aria-hidden="true" tabindex="-1">Staff login (legacy)</a>
+    </div>
+    <div class="muted small">© 2026 HackUMass Labs. All rights reserved. Status: all systems operational.</div>
+  </footer>
+  <script src="/static/px.js" defer></script>
+</body>
+</html>

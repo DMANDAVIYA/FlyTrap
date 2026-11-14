@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% block title %}Infrastructure{% endblock %}
+{% block admin %}
+<h1>Infrastructure</h1>
+<table class="table">
+  <thead><tr><th>Host</th><th>Address</th><th>Role</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for h in hosts %}<tr><td>{{ h.name }}</td><td><code>{{ h.addr }}</code></td><td>{{ h.role }}</td><td><span class="pill paid">{{ h.status }}</span></td><td>{% if h.link %}<a href="{{ h.link }}">Browse →</a>{% endif %}</td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

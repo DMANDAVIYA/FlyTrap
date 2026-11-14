@@ -26,3 +26,7 @@ runs/*.jsonl
 Thumbs.db
 .vscode/
 .idea/
+
+# dash-api recordings (keep the golden run)
+dash-api/runs/*.jsonl
+!dash-api/runs/golden.jsonl

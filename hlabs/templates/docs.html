@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}API reference{% endblock %}
+{% block content %}
+<section class="hero small"><h1>API reference</h1><p class="lead">REST API, JSON responses. Base path <code>/api/v1</code>.</p></section>
+<section class="prose">
+  <h3>Authentication</h3>
+  <p>Create a token on your <a href="/account">account page</a> and send it as <code>Authorization: Bearer &lt;token&gt;</code>. Tokens start with <code>hl_live_</code>.</p>
+  <h3>Endpoints</h3>
+  <table class="table">
+    <tr><td><code>GET /api/v1/models</code></td><td>List models you can access (public, plus your private models with a token).</td></tr>
+    <tr><td><code>GET /api/v1/me</code></td><td>The account that owns the token.</td></tr>
+    <tr><td><code>GET /api/v1/users/{id}</code></td><td>Your user record.</td></tr>
+    <tr><td><code>GET /api/v1/invoices</code></td><td>Your invoices.</td></tr>
+    <tr><td><code>GET /api/v1/invoices/{id}</code></td><td>One invoice.</td></tr>
+  </table>
+  <h3>Example</h3>
+  <pre>curl -H "Authorization: Bearer hl_live_..." https://hackumass-labs.example/api/v1/models</pre>
+</section>
+{% endblock %}

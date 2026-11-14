@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ m.name }}{% endblock %}
+{% block content %}
+<section class="hero small"><p class="eyebrow">Model</p><h1>{{ m.name }}</h1><p class="lead">{{ m.description }}</p></section>
+<section class="grid3">
+  <div class="card"><h3>Size</h3><p>{{ m.size_gb }} GB</p></div>
+  <div class="card"><h3>Downloads</h3><p>{{ "{:,}".format(m.downloads) }}</p></div>
+  <div class="card"><h3>Call it</h3><pre>POST /api/v1/models/{{ m.slug }}/generate</pre></div>
+</section>
+{% endblock %}

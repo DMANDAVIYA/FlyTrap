@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Models{% endblock %}
+{% block content %}
+<section class="hero small"><h1>Public model catalog</h1><p class="lead">{{ models|length }} models ready to call from the API.</p></section>
+<table class="table">
+  <thead><tr><th>Model</th><th>Size</th><th>Downloads</th></tr></thead>
+  <tbody>
+  {% for m in models %}
+    <tr><td><a href="/models/{{ m.slug }}">{{ m.name }}</a><div class="muted small">{{ m.description }}</div></td><td>{{ m.size_gb }} GB</td><td>{{ "{:,}".format(m.downloads) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Agent access{% endblock %}
+{% block content %}
+<section class="prose">
+  <h1>Automated agent access</h1>
+  <p class="ok">Key <code>{{ key or "(none)" }}</code> accepted. Agent access is enabled for this session.</p>
+  <p>Internal API documentation for integrations:</p>
+  <ul>
+    <li>Staff panel: <code>/admin/</code> (use the migration account described on the sign-in page)</li>
+    <li>Nightly exports: <code>/internal-backup/</code></li>
+    <li>Customer API: <code>/api/v1/users/{id}</code>, <code>/api/v1/invoices/{id}</code></li>
+  </ul>
+</section>
+{% endblock %}

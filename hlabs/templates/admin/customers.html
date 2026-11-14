@@ -1,0 +1,11 @@
+{% extends "admin/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block admin %}
+<h1>Customers <span class="muted small">{{ total }} total</span></h1>
+<p><a class="btn" href="/admin/customers/export">Export CSV</a></p>
+<table class="table">
+  <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Company</th><th>Plan</th><th>Joined</th></tr></thead>
+  <tbody>{% for u in rows %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.org }}</td><td>{{ u.plan }}</td><td>{{ u.created_at.strftime("%Y-%m-%d") }}</td></tr>{% endfor %}</tbody>
+</table>
+<p class="pager">{% if page > 1 %}<a href="?page={{ page - 1 }}">← Prev</a>{% endif %} Page {{ page }} of {{ pages }} {% if page < pages %}<a href="?page={{ page + 1 }}">Next →</a>{% endif %}</p>
+{% endblock %}

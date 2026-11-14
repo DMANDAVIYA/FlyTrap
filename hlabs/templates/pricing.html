@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Pricing{% endblock %}
+{% block content %}
+<section class="hero small"><h1>Simple, usage-based pricing</h1><p class="lead">Start free. Upgrade when you ship.</p></section>
+<section class="grid3">
+  <div class="card"><h3>Starter</h3><p class="price">$0</p><ul><li>1M tokens / month</li><li>Public models</li><li>Community support</li></ul><a class="btn" href="/signup">Start free</a></div>
+  <div class="card featured"><h3>Team</h3><p class="price">$199<span>/mo</span></p><ul><li>50M tokens / month</li><li>5 private models</li><li>Fine-tuning jobs</li><li>Email support</li></ul><a class="btn" href="/signup">Start trial</a></div>
+  <div class="card"><h3>Enterprise</h3><p class="price">Custom</p><ul><li>Dedicated GPUs</li><li>SSO and audit logs</li><li>99.9% SLA</li></ul><a class="btn ghost" href="/contact">Talk to sales</a></div>
+</section>
+{% endblock %}
