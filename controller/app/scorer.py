@@ -36,8 +36,13 @@ def score(s: dict) -> Verdict:
     gap, spread = s.get("median_gap_s"), s.get("gap_spread_s")
     hit = {t["id"] for t in s.get("tripwires", [])}
     baited = bool(hit & INSTANT)
-    fast = gap is not None and gap < 0.4 and s.get("requests_total", 0) >= 8
-    reading_pace = gap is not None and 1 <= gap <= 15
+    # AI agents often send several requests per step (parallel tool calls), then stop to think:
+    # bursts at machine speed separated by pauses. Scanners stay fast the whole time.
+    pause_s = s.get("median_pause_s")
+    bursty = (s.get("pauses", 0) >= 3 and (s.get("pause_share") or 0) >= 0.15
+              and pause_s is not None and pause_s <= 30)
+    fast = gap is not None and gap < 0.4 and s.get("requests_total", 0) >= 8 and not bursty
+    reading_pace = (gap is not None and 1 <= gap <= 15) or bursty
 
     if not baited:
         if s.get("js_beacon"):
@@ -73,7 +78,9 @@ def score(s: dict) -> Verdict:
         add("scanner", 10, "went for leaked files or filled a hidden form field")
     if baited and reading_pace:
         add("ai_agent", 15, "touched bait at reading pace, not machine speed")
-    if reading_pace and (baited or not s.get("js_beacon")):  # after bait, a beacon proves nothing
+    if bursty and (baited or not s.get("js_beacon")):  # after bait, a beacon proves nothing
+        add("ai_agent", 25, f"works in bursts with thinking pauses of about {pause_s} s")
+    elif reading_pace and (baited or not s.get("js_beacon")):
         add("ai_agent", 10, f"thinking pauses of about {gap} s")
     if not s.get("js_beacon") and s.get("requests_total", 0) >= 5:
         add("ai_agent", 5, "never ran JavaScript")

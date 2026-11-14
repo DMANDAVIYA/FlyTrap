@@ -460,3 +460,26 @@ def test_raider_copies_get_names_and_separate_slots():
     for p in PERSONAS:
         used = {swarm._slot_for(copy_of(p, k)) for k in range(1, 4)}
         assert len(used) == 3, p.name   # copies of one raider never share a runner, so never share an IP
+
+
+def test_ai_agent_with_parallel_tool_calls_is_not_scanner():
+    """Bursts of requests at machine speed separated by thinking pauses: an AI agent, even with a python UA."""
+    burst = {"median_gap_s": 0.05, "gap_spread_s": 2.1, "requests_total": 40, "pauses": 10, "pause_share": 0.26,
+             "median_pause_s": 4.5, "tool_user_agent": True, "js_beacon": False,
+             "tripwires": [{"id": "T2", "event": 1}]}
+    v = score(burst)
+    assert v.label == "ai_agent" and any("bursts" in r for r in v.reasons)
+    no_ua = {**burst, "tool_user_agent": False, "tripwires": [{"id": "T4", "event": 2}]}
+    assert score(no_ua).label == "ai_agent"
+
+
+def test_steady_drone_stays_scanner():
+    drone = {"median_gap_s": 0.37, "gap_spread_s": 0.12, "requests_total": 30, "pauses": 0, "pause_share": 0.0,
+             "median_pause_s": None, "not_found": 12, "tool_user_agent": True, "js_beacon": False, "tripwires": []}
+    assert score(drone).label == "scanner"
+
+
+def test_customer_with_pauses_stays_human():
+    customer = {"js_beacon": True, "mouse_keys": 3, "assets_loaded": 4, "median_gap_s": 3.0, "gap_spread_s": 2.5,
+                "pauses": 8, "pause_share": 0.8, "median_pause_s": 3.2, "requests_total": 12, "tripwires": []}
+    assert score(customer).label == "human"
