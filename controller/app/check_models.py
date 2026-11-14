@@ -20,7 +20,9 @@ from .config import settings
 from .llm import Endpoint, LLMError
 from .raiders.personas import PERSONAS
 
-SETTINGS = {"BLUE_MODEL": settings.blue_model, "REPORT_MODEL": settings.report_model,
+SETTINGS = {"BLUE_MODEL": settings.blue_model,
+            **{f"BLUE_MODEL_{a.upper()}": os.getenv(f"BLUE_MODEL_{a.upper()}", "") for a in ("athena", "hephaestus", "cerberus")},
+            "REPORT_MODEL": settings.report_model,
             "RAIDER_MODEL": settings.raider_model,
             **{f"RAIDER_MODEL_{p.name.upper()}": os.getenv(f"RAIDER_MODEL_{p.name.upper()}", "") for p in PERSONAS}}
 

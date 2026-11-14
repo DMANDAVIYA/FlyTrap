@@ -254,3 +254,16 @@ def test_request_body_per_provider(monkeypatch):
     assert "temperature" not in bodies[0] and bodies[0]["max_tokens"] == 10            # anthropic
     assert "temperature" not in bodies[1] and bodies[1]["max_completion_tokens"] == 10  # openai
     assert bodies[2]["temperature"] == 0.2 and bodies[2]["max_tokens"] == 10            # deepseek
+
+
+def test_per_agent_model_and_meta_provider(monkeypatch):
+    from app.config import Settings
+    from app.llm import LLM
+    monkeypatch.setenv("BLUE_MODEL_ATHENA", "anthropic:claude-opus-5-5")
+    monkeypatch.delenv("BLUE_MODEL_CERBERUS", raising=False)
+    s = Settings(blue_model="gemini:gemini-3-flash-preview")
+    assert s.blue_model_for("athena") == "anthropic:claude-opus-5-5"
+    assert s.blue_model_for("cerberus") == "gemini:gemini-3-flash-preview"
+    monkeypatch.setenv("MUSE_API_KEY", "k")
+    e = LLM("meta:muse-spark-1.3").endpoints[0]
+    assert e.base == "https://api.meta.ai/v1" and e.configured

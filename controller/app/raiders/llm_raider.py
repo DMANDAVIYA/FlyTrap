@@ -54,7 +54,7 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
                 messages.append({"role": "user",
                                  "content": f"A teammate found a {item.kind} at {item.path}: {item.value}. You may use it."})
         try:
-            reply = await llm.chat(messages, tools=[TOOL], max_tokens=400)
+            reply = await llm.chat(messages, tools=[TOOL], max_tokens=1500)  # headroom for reasoning models
         except LLMError as exc:
             await emit(persona.name, f"(stepping back: {exc})")
             break
