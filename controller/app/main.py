@@ -15,6 +15,7 @@ from .context import Ctx, SwarmState
 from .db import DB
 from .gateway_client import GatewayClient
 from .llm import LLM
+from .models import chain
 from .policy import Policy
 from .raiders.personas import PERSONAS
 from .raiders.swarm import RedSwarm
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
     app.state.ctx, app.state.policy, app.state.engine, app.state.red = ctx, policy, engine, RedSwarm(ctx)
     await engine.start()
     log.info("controller ready; blue model=%s, report model=%s",
-             engine.models["athena"].label, LLM(settings.report_model).label)
+             engine.models["athena"].label, LLM(chain("clio")).label)
     yield
     await http.aclose()
 

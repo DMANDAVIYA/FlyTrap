@@ -9,6 +9,7 @@ from collections import Counter
 from .. import records
 from ..context import Ctx
 from ..llm import LLM, LLMError
+from ..models import chain
 from ..scorer import score
 
 log = logging.getLogger("controller.report")
@@ -136,7 +137,7 @@ async def build_report(ctx: Ctx, session_id: str) -> bool:
                          f"handled entirely inside Tartarus. Other customers' records exposed: "
                          f"{report['real_exposure']['other_customers_records']}.")
     report["goal"] = "customer data and credentials" if report["taken"]["records"] or report["canaries_fired"] else "reconnaissance"
-    llm = LLM(ctx.settings.report_model, timeout=90.0)
+    llm = LLM(chain("clio"), timeout=90.0)
     if llm.available:
         try:
             words = await _ai_words(llm, report)

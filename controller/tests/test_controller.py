@@ -256,14 +256,19 @@ def test_request_body_per_provider(monkeypatch):
     assert bodies[2]["temperature"] == 0.2 and bodies[2]["max_tokens"] == 10            # deepseek
 
 
-def test_per_agent_model_and_meta_provider(monkeypatch):
-    from app.config import Settings
-    from app.llm import LLM
-    monkeypatch.setenv("BLUE_MODEL_ATHENA", "anthropic:claude-opus-5-5")
-    monkeypatch.delenv("BLUE_MODEL_CERBERUS", raising=False)
-    s = Settings(blue_model="gemini:gemini-3-flash-preview")
-    assert s.blue_model_for("athena") == "anthropic:claude-opus-5-5"
-    assert s.blue_model_for("cerberus") == "gemini:gemini-3-flash-preview"
+def test_model_chains_live_in_code(monkeypatch):
+    """Every AI agent has a chain in models.py, env model settings are ignored, providers are all known."""
+    from app.llm import LLM, PROVIDERS
+    from app.models import CHAINS, chain
+    from app.raiders.personas import PERSONAS
+    from app.swarm.roles import ROLES
+    monkeypatch.setenv("BLUE_MODEL_ATHENA", "openai:gpt-4o")
+    assert chain("athena").startswith("anthropic:claude-opus-5-5")
+    assert chain("odysseus").startswith("kimi:kimi-k3.1-pro")
+    assert chain("argus") == ""                                    # code-only role
+    ai_agents = {r.name for r in ROLES if r.uses_ai} | {p.name for p in PERSONAS if p.default_mode == "ai"} | {"clio"}
+    assert ai_agents <= set(CHAINS)
+    assert {spec.split(":")[0] for models in CHAINS.values() for spec in models} <= set(PROVIDERS)
     monkeypatch.setenv("MUSE_API_KEY", "k")
     e = LLM("meta:muse-spark-1.3").endpoints[0]
     assert e.base == "https://api.meta.ai/v1" and e.configured

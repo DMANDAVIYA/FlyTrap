@@ -1,8 +1,8 @@
 """One small client for every provider, via their OpenAI-compatible chat APIs.
 
-A model setting is an ordered, comma-separated list of "provider:model" ids:
+A model chain (see models.py) is an ordered, comma-separated list of "provider:model" ids:
 
-    RAIDER_MODEL_PANDORA=qwen:qwen-plus,openrouter:qwen/qwen-plus,deepseek:deepseek-chat
+    "kimi:kimi-k3.1-pro,meta:muse-spark-1.3,deepseek:deepseek-v4-pro"
 
 - ids whose provider has no API key are skipped, so a list can name providers you
   may never get a key for;
