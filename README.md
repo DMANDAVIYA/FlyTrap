@@ -8,6 +8,40 @@ Built at HackUMass XIV.
 
 > Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor.
 
+## How it works
+
+```
+ visitors ──► Charon (gateway) ──► Olympus  (web-1, web-2, real data)
+                   │
+                   └── touched bait? ──► Tartarus (5 trap copies + backup-01 + model-vault, fake data)
+                   │
+                   ▼ every request, flip, tripwire and canary
+            event log (PostgreSQL + TimescaleDB hypertable)
+                   │
+                   ▼
+            blue swarm (7 agents) ──► actions through a policy guard ──► Charon admin API
+```
+
+1. **Charon** decides every request with plain rules in memory, so the switch adds no visible delay. The AI is never in the request path.
+2. **Tripwires** fire on things no real customer does: a robots.txt-hidden path, a leaked `.env`, a migration login in a page comment, a hidden link, a hidden form field, a note only AI agents read, a stolen token being used, record-ID walking, attack signatures.
+3. A tripped visitor is **flipped** into its own trap copy: same code, same pages, valid login, fake data. Instant flips are permanent; Charon enforces that in code.
+4. Every value of bait is **unique per visitor**, so a stolen token used anywhere names who took it and links separate visitors into one **campaign**.
+5. The **blue swarm** reads compact session summaries, decides, and acts only through tools its role holds. Drastic actions (release, global patches, lockdown, server restarts) wait for **Zeus**, a human.
+
+## The blue swarm
+
+| Agent | Job | Default model |
+|---|---|---|
+| Athena | Commander: campaigns, damage checks, lockdown requests | Claude Opus 5.5 |
+| Argus | Labels visitors human, scanner or AI agent | rules (scoring) |
+| Hephaestus | Plants unique bait, rotates keys after a real-side probe | Gemini 3 Flash |
+| Cerberus | Slows, drip-feeds, freezes, blocks trapped visitors | Meta Muse Spark 1.3 |
+| Mnemosyne | Fingerprints attackers, suggests new tripwires | rules |
+| Clio | Writes incident reports that cite event IDs | Claude Opus 5.5 |
+| Hermes | Alerts | rules |
+
+The red swarm runs Prometheus on DeepSeek V4 Pro, Pandora on Qwen 3.8 Max and Odysseus on Kimi K3.1 Pro; Icarus and Sisyphus are scripted. Every model setting is a fallback chain, and without any keys the whole system runs in rules mode.
+
 ## The cast
 
 | Name | What it is |
@@ -37,7 +71,7 @@ All database settings live in `.env` (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSW
 
 ## AI models
 
-Add the keys you have to `.env.ai` (Gemini, Anthropic, OpenAI, DeepSeek, Kimi/Moonshot, Qwen, GLM, OpenRouter), then restart the controller and test them:
+Add the keys you have to `.env.ai` (Gemini, Anthropic, OpenAI, DeepSeek, Kimi/Moonshot, Qwen, GLM, Meta, OpenRouter), then restart the controller and test them:
 
 ```bash
 docker compose up -d --force-recreate controller
@@ -63,3 +97,23 @@ Full plan and specification: [`plan/plan.md`](plan/plan.md). Coding agent brief:
 - Test attackers can reach exactly one host, our gateway, with one HTTP tool. No shell, no code execution, no files.
 - Only the controller has internet, and only to call AI APIs. Keys live in `.env.ai`, which is never committed.
 - All data is generated. No real personal data, no real provider key formats.
+
+## Tech stack
+
+Python 3.12, FastAPI, httpx, asyncpg, SQLAlchemy 2, Jinja2, Faker; PostgreSQL 18 with TimescaleDB (hypertable plus continuous aggregate); Docker Compose (19 containers, 7 networks); AI through OpenAI-compatible APIs from Anthropic, Google Gemini, Meta, DeepSeek, Moonshot (Kimi), Alibaba (Qwen) and OpenRouter.
+
+## Tests
+
+```bash
+docker build -t flytrap-gateway gateway && docker run --rm -v "$PWD/gateway/tests:/srv/tests:ro" flytrap-gateway python -m pytest -q tests
+docker build -t flytrap-controller controller && docker run --rm -v "$PWD/controller/tests:/srv/tests:ro" flytrap-controller python -m pytest -q tests
+docker build -t flytrap-hlabs hlabs && docker run --rm flytrap-hlabs python -m pytest -q
+```
+
+Gateway, controller, site and islands suites run inside their containers; `scripts/leakcheck.py` checks the live trap copies end to end.
+
+## Prior art and credits
+
+Routing attackers into decoys is not new: Bait-and-Switch (2003), Shadow Honeypots (2005), Honey-Patches (2014-2015) and Han et al.'s deployment study (2017). AI-agent honeypots exist too: Palisade Research's LLM Agent Honeypot, Beelzebub and HoneyMCP; Argus's "hidden instruction plus machine speed" signal follows Palisade's two-gate idea. Flytrap adds a same-code twin with one trap copy per attacker, evidence-backed human/scanner/AI labels, campaign linking through per-visitor bait, and a least-privilege defending swarm with human approval gates.
+
+Built entirely during HackUMass XIV. All data is generated; the company, HackUMass Labs, is fictional.
