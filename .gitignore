@@ -1,0 +1,28 @@
+# secrets: never commit
+.env
+.env.ai
+*.pem
+*.key
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+
+# runtime data
+runs/*.jsonl
+!runs/golden.jsonl
+*.db
+*.sqlite
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
