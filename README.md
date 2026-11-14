@@ -112,7 +112,8 @@ Numbers from our own runs on a single Windows laptop (Docker Desktop, 19 contain
 | Gateway throughput | peak 108 req/s, mean 86 req/s, 0 errors | 40 customers, 10 drones, raiders and 16 extra browsers at once |
 | End-to-end page latency under that load | p50 274 ms, p95 868 ms, p99 1,328 ms | mostly the site itself (Python and Postgres on the same laptop) |
 | Flip into Tartarus | 0.19 to 0.31 ms average | dash-api live stats |
-| Other customers' records served to any raider | 0 | 15-raider AI run: 15 flips, 18 canaries, 2 campaigns, 10 reports |
+| Other customers' records served to any raider | 0 | golden run: 15 AI raiders, 15 flips, 26 canaries, 14 reports |
+| Argus labels in the golden run | 15 of 15 AI raiders ai_agent, 10 of 10 customers human, drones scanner | `runs/golden.jsonl` |
 | Rolling rebuild after Zeus approves | 10 s, 58 requests during the roll, 0 failed | uptime probe every 0.2 s |
 
 ## Tests
