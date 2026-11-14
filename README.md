@@ -102,6 +102,19 @@ Full plan and specification: [`plan/plan.md`](plan/plan.md). Coding agent brief:
 
 Python 3.12, FastAPI, httpx, asyncpg, SQLAlchemy 2, Jinja2, Faker; PostgreSQL 18 with TimescaleDB (hypertable plus continuous aggregate); Docker Compose (19 containers, 7 networks); AI through OpenAI-compatible APIs from Anthropic, Google Gemini, Meta, DeepSeek and Moonshot (Kimi); Qwen, GLM and OpenRouter are supported if a key is added.
 
+## Measured on one laptop
+
+Numbers from our own runs on a single Windows laptop (Docker Desktop, 19 containers, PostgreSQL 18 on the host). Nothing here is extrapolated.
+
+| What | Result | How |
+|---|---|---|
+| Gateway decision time | p50 0.22 ms, p95 0.58 ms | `scripts/loadtest.py`, 60 s |
+| Gateway throughput | peak 108 req/s, mean 86 req/s, 0 errors | 40 customers, 10 drones, raiders and 16 extra browsers at once |
+| End-to-end page latency under that load | p50 274 ms, p95 868 ms, p99 1,328 ms | mostly the site itself (Python and Postgres on the same laptop) |
+| Flip into Tartarus | 0.19 to 0.31 ms average | dash-api live stats |
+| Other customers' records served to any raider | 0 | 15-raider AI run: 15 flips, 18 canaries, 2 campaigns, 10 reports |
+| Rolling rebuild after Zeus approves | 10 s, 58 requests during the roll, 0 failed | uptime probe every 0.2 s |
+
 ## Tests
 
 ```bash
