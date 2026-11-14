@@ -17,10 +17,15 @@ SELECT * FROM sessions
 WHERE NOT ended AND (last_seen > now() - interval '3 minutes' OR side <> 'real')
 ORDER BY last_seen DESC LIMIT 60
 """
+# Newest events per session, not overall: with a crowd and drones running, a global cap let busy
+# visitors push quiet ones out, and Argus scored raiders from fragments.
 EVENTS_SQL = """
-SELECT id, ts, session_id, kind, side, path, status, tripwire, records, payload, resp_bytes
-FROM events WHERE session_id = ANY($1) AND ts > now() - interval '15 minutes'
-ORDER BY id DESC LIMIT 6000
+SELECT e.* FROM unnest($1::text[]) AS s(session_id)
+CROSS JOIN LATERAL (
+    SELECT id, ts, session_id, kind, side, path, status, tripwire, records, payload, resp_bytes
+    FROM events WHERE events.session_id = s.session_id AND ts > now() - interval '15 minutes'
+    ORDER BY ts DESC LIMIT 400
+) e
 """
 
 
