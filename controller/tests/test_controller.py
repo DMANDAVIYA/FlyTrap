@@ -224,3 +224,33 @@ def test_base_url_override(monkeypatch):
     from app.llm import LLM
     monkeypatch.setenv("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1/")
     assert LLM("qwen:qwen-plus").endpoints[0].base == "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+
+def test_request_body_per_provider(monkeypatch):
+    """Claude 5.x and newer OpenAI models reject temperature; OpenAI wants max_completion_tokens."""
+    import json as _json
+    from app.llm import Endpoint
+    sent = {}
+
+    class FakeResp:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "OK"}}]}
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, url, json=None, headers=None):
+            sent[url] = json
+            return FakeResp()
+
+    monkeypatch.setattr("app.llm.httpx.AsyncClient", FakeClient)
+    for spec, env in (("anthropic:claude-haiku-5-5", "ANTHROPIC_API_KEY"), ("openai:gpt-5-mini", "OPENAI_API_KEY"),
+                      ("deepseek:deepseek-chat", "DEEPSEEK_API_KEY")):
+        monkeypatch.setenv(env, "k")
+        asyncio.run(Endpoint(spec, 5).chat([{"role": "user", "content": "x"}], None, 0.2, 10, False))
+    bodies = list(sent.values())
+    assert "temperature" not in bodies[0] and bodies[0]["max_tokens"] == 10            # anthropic
+    assert "temperature" not in bodies[1] and bodies[1]["max_completion_tokens"] == 10  # openai
+    assert bodies[2]["temperature"] == 0.2 and bodies[2]["max_tokens"] == 10            # deepseek
