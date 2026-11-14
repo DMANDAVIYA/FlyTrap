@@ -180,3 +180,11 @@ def test_lockdown_held_visitors_are_not_hunted():
     assert rules_mode.hephaestus(ctx, [held], []).intents == []
     assert rules_mode.cerberus(ctx, [held], []).intents == []
     assert [i.tool for i in rules_mode.hephaestus(ctx, [caught], []).intents] == ["plant_bait", "plant_bait"]
+
+
+def test_deepseek_provider_is_known():
+    from app.llm import LLM
+    llm = LLM("deepseek:deepseek-chat")
+    assert llm.provider == "deepseek" and llm.model == "deepseek-chat"
+    assert llm.base == "https://api.deepseek.com"
+    assert llm.label in ("rules", "deepseek:deepseek-chat")  # available only once the key is set

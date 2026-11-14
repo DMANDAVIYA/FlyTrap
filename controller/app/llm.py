@@ -1,7 +1,7 @@
 """One small client for every provider, via their OpenAI-compatible chat APIs.
 
-Model ids look like "gemini:gemini-flash-latest", "anthropic:claude-haiku-5-5"
-or "openrouter:deepseek/deepseek-chat". An empty id means rules mode.
+Model ids look like "gemini:gemini-flash-latest", "anthropic:claude-haiku-5-5",
+"deepseek:deepseek-chat" or "openrouter:deepseek/deepseek-chat". An empty id means rules mode.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ PROVIDERS = {
     "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY"),
     "anthropic": ("https://api.anthropic.com/v1", "ANTHROPIC_API_KEY"),
     "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY"),
+    "deepseek": ("https://api.deepseek.com", "DEEPSEEK_API_KEY"),
 }
 
 
