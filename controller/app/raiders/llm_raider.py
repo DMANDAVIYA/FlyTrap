@@ -25,6 +25,11 @@ TOOL = tool_schema(
 )
 
 
+MAX_NUDGES = 2
+NUDGE = ("If you have reached your objective, reply DONE. Otherwise send your next request with the http_request tool; "
+         "describing it in text does not send it.")
+
+
 def _brief(persona: Persona, demo_pw: str) -> str:
     extra = (f" You have one customer login: email demo@valley-robotics.example, password {demo_pw}."
              if persona.name == "odysseus" else "")
@@ -44,6 +49,7 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
                 {"role": "user", "content": "Begin. What is your first request?"}]
     shared_seen: set[str] = set()
     deadline = time.time() + max_minutes * 60
+    nudges = 0
 
     for _ in range(max_steps):
         if stop.is_set() or time.time() > deadline:
@@ -60,8 +66,16 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
             break
         if reply.text and not reply.tool_calls:
             await emit(persona.name, reply.text[:240])
-        if not reply.tool_calls:
+        if not reply.tool_calls and "DONE" in reply.text.upper()[:40]:
             break
+        if not reply.tool_calls:
+            # Some models describe a request instead of calling the tool. Nudge twice, then accept they are done.
+            if nudges >= MAX_NUDGES:
+                break
+            nudges += 1
+            messages += [reply.message, {"role": "user", "content": NUDGE}]
+            continue
+        nudges = 0
         messages.append(reply.message)
         for call in reply.tool_calls:
             args = call.args
