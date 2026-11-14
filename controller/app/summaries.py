@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import re
 import statistics
-from collections import Counter
 
+from . import records
 from .db import DB
 
 TOOL_UA = re.compile(r"python-|httpx|curl/|wget/|go-http|sqlmap|nikto|nmap|ffuf|nuclei|gobuster|aiohttp", re.I)
@@ -29,15 +29,6 @@ def visitor_text(value: str) -> str:
     return CONTROL_CHARS.sub(" ", value or "")[:120]
 
 
-def _records_count(records: list[str] | None) -> int:
-    total = 0
-    for rec in records or []:
-        _, _, ident = rec.partition(":")
-        first, sep, last = ident.partition("-")
-        total += int(last) - int(first) + 1 if sep and first.isdigit() and last.isdigit() else 1
-    return total
-
-
 def summarize(row, events: list) -> dict:
     events = sorted(events, key=lambda e: e["id"])
     requests = [e for e in events if e["kind"] == "request"]
@@ -51,11 +42,7 @@ def summarize(row, events: list) -> dict:
         page = next((e for e in reversed(requests) if e["id"] < note_hit["id"] and e["path"] == "/"), None)
         followed = {"event": note_hit["id"],
                     "seconds_after_page": round(note_hit["ts"].timestamp() - page["ts"].timestamp(), 1) if page else None}
-    taken = Counter()
-    for e in requests:
-        if e["side"] in ("trap", "blocked"):
-            for rec in e["records"] or []:
-                taken[rec.split(":")[0]] += _records_count([rec])
+    taken = records.by_type(rec for e in requests if e["side"] in ("trap", "blocked") for rec in (e["records"] or []))
     real_records = [rec for e in requests if e["side"] == "real" for rec in (e["records"] or [])]
     canaries = [{"event": e["id"], **json.loads(e["payload"] or "{}")} for e in events if e["kind"] == "canary"]
     ua = row["user_agent"] or ""

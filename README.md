@@ -12,7 +12,7 @@ Built at HackUMass XIV.
 
 | Name | What it is |
 |---|---|
-| Olympus | The real servers (web-1, web-2, db-real) |
+| Olympus | The real servers (web-1, web-2) |
 | Tartarus | The trap network: 5 trap pods and 2 fake internal machines |
 | Charon | The gateway that routes every request |
 | Zeus | The human approval button |
@@ -21,10 +21,15 @@ Built at HackUMass XIV.
 
 ## Quick start
 
+Needs Docker and a local PostgreSQL (any recent version; TimescaleDB optional).
+
 ```bash
-python scripts/init_env.py     # creates .env (random secrets) and .env.ai (add your AI keys)
+python scripts/init_env.py           # creates .env and .env.ai; set DB_PASSWORD in .env
+docker compose run --rm db-setup     # creates the flytrap and hlabs databases on your PostgreSQL
 docker compose up --build
 ```
+
+All database settings live in `.env` (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `EVENTS_DB_NAME`, `REAL_DB_NAME`). Containers reach your PostgreSQL through `host.docker.internal`, so you can browse both databases in pgAdmin. If TimescaleDB is installed, `db-setup` turns the event log into a hypertable with a continuous aggregate; otherwise it uses plain tables.
 
 - Site: http://localhost:8080
 - Dashboard API: http://localhost:8090

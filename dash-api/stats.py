@@ -73,10 +73,11 @@ SELECT tripwire, count(*) AS n FROM events
 WHERE kind = 'tripwire' AND tripwire IS NOT NULL AND ts >= $1
 GROUP BY tripwire
 """
-# Tiger Data continuous aggregate (db/init.sql stats_1m, real-time aggregation on)
+# stats_1m: a plain view, or a TimescaleDB continuous aggregate when installed
+# (db/timescale.sql). date_trunc works on both.
 SQL_REQUESTS_TOTAL = """
 SELECT coalesce(sum(n), 0) FROM stats_1m
-WHERE kind = 'request' AND bucket >= time_bucket('1 minute', $1::timestamptz)
+WHERE kind = 'request' AND bucket >= date_trunc('minute', $1::timestamptz)
 """
 
 

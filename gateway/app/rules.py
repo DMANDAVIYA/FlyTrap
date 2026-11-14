@@ -137,7 +137,7 @@ def dynamic_hits(req: RequestView, session: Session, rules: list[DynamicRule], n
     ]
 
 
-def infer_stage(path: str, method: str, set_cookie: str, status: int) -> str | None:
+def infer_stage(path: str, set_cookie: str) -> str | None:
     """Stage the request suggests (only ever moves a session forward)."""
     if "hl_admin=" in set_cookie:
         return "access"

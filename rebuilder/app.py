@@ -1,4 +1,4 @@
-"""Recreate the real servers from clean images, one at a time.
+"""Restart the real servers one at a time, keeping the site up.
 
 The only container with the Docker socket. It does exactly one fixed thing,
 only on the control network, and only when called with the admin token. No

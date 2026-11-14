@@ -29,6 +29,8 @@ def browser_ua(n: int) -> str:
     """Every simulated customer has its own user agent: they share one IP, so identical UAs would
     collapse their first cookie-less requests into one fingerprint session (and one fast 'visitor')."""
     return BROWSERS[n % len(BROWSERS)].format(b=6700 + n * 13, p=n)
+
+
 PAGES = ["/", "/pricing", "/models", "/about", "/login", "/account", "/contact"]
 ASSETS = ["/static/site.css", "/static/px.js"]
 app = FastAPI(docs_url=None, redoc_url=None)
@@ -42,9 +44,9 @@ class StartIn(BaseModel):
 
 
 async def customer(n: int, demo: bool) -> None:
-    jar = httpx.Cookies()
+    """One simulated customer: its own user agent and its own cookie jar (one client per customer)."""
     ua = browser_ua(n)
-    async with httpx.AsyncClient(base_url=GATEWAY, cookies=jar, timeout=15.0) as c:
+    async with httpx.AsyncClient(base_url=GATEWAY, timeout=15.0) as c:
         while True:
             try:
                 page = random.choice(PAGES)
@@ -58,7 +60,7 @@ async def customer(n: int, demo: bool) -> None:
             await asyncio.sleep(random.uniform(1.5, 6.0) * (0.5 if demo else 1.0))
 
 
-async def drone(n: int, demo: bool) -> None:
+async def drone(demo: bool) -> None:
     ua = "Mozilla/5.0 (compatible; scan-bot/3.1)"
     probes = ["/admin", "/wp-login.php", "/.env", "/api/v1/users/1", "/backup.zip", "/phpmyadmin", "/server-status"]
     async with httpx.AsyncClient(base_url=GATEWAY, timeout=15.0) as c:
@@ -73,11 +75,11 @@ async def drone(n: int, demo: bool) -> None:
 @app.post("/start")
 async def start(body: StartIn):
     await _stop()
-    for i in range(body.customers):
-        tasks.append(asyncio.create_task(customer(i, body.demo)))
+    for n in range(body.customers):
+        tasks.append(asyncio.create_task(customer(n, body.demo)))
         await asyncio.sleep(0.05)
-    for i in range(body.drones):
-        tasks.append(asyncio.create_task(drone(i, body.demo)))
+    for _ in range(body.drones):
+        tasks.append(asyncio.create_task(drone(body.demo)))
     return {"customers": body.customers, "drones": body.drones}
 
 

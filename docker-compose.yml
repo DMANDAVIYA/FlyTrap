@@ -1,11 +1,13 @@
-# Flytrap lab: one laptop, six networks.
+# Flytrap lab: one laptop, seven networks.
 #   front   (bridge)    host access to the site (8080) and dash-api (8090)
 #   egress  (bridge)    controller only: AI API calls
+#   dbnet   (bridge)    real servers reach the local PostgreSQL on the host
 #   edge    (internal)  raiders and crowd reach the gateway here
 #   realnet (internal)  Olympus: the real servers
-#   trapnet (internal)  Tartarus: trap pods and islands, no internet, no route to Olympus
+#   trapnet (internal)  Tartarus: trap pods and islands, no internet, no route to Olympus or the host
 #   control (internal)  control plane
-# Create .env first:  python scripts/init_env.py
+# Databases live in your local PostgreSQL. Every setting is in .env.
+# First time:  python scripts/init_env.py  (set DB_PASSWORD)  then  docker compose run --rm db-setup
 
 name: flytrap
 
@@ -14,7 +16,10 @@ x-secrets: &secrets
   BAIT_SECRET: ${BAIT_SECRET:?run python scripts/init_env.py}
 
 x-events-db: &events-db-url
-  EVENTS_DB_URL: postgresql://flytrap:${EVENTS_DB_PASSWORD:?run python scripts/init_env.py}@events-db:5432/flytrap
+  EVENTS_DB_URL: postgresql://${DB_USER:?set in .env}:${DB_PASSWORD:?set in .env}@${DB_HOST:?set in .env}:${DB_PORT:?set in .env}/${EVENTS_DB_NAME:?set in .env}
+
+x-host-db: &host-db
+  extra_hosts: ["host.docker.internal:host-gateway"]
 
 x-pod: &pod
   build: ./hlabs
@@ -28,17 +33,16 @@ x-pod-env: &pod-env
   DATABASE_URL: sqlite:////data/pod.db
 
 x-real: &real
+  <<: *host-db
   build: ./hlabs
   image: flytrap-hlabs
-  networks: [realnet]
+  networks: [realnet, dbnet]
   restart: unless-stopped
-  depends_on:
-    db-real: {condition: service_healthy}
 
 x-real-env: &real-env
   <<: *secrets
   APP_ROLE: real
-  DATABASE_URL: postgresql+psycopg://hlabs:${REAL_DB_PASSWORD:?run python scripts/init_env.py}@db-real:5432/hlabs
+  DATABASE_URL: postgresql+psycopg://${DB_USER:?set in .env}:${DB_PASSWORD:?set in .env}@${DB_HOST:?set in .env}:${DB_PORT:?set in .env}/${REAL_DB_NAME:?set in .env}
 
 x-raider: &raider
   build: ./raiders
@@ -49,6 +53,7 @@ x-raider: &raider
 networks:
   front: {}
   egress: {}
+  dbnet: {}
   edge:
     internal: true
     ipam:
@@ -64,6 +69,7 @@ networks:
 
 services:
   gateway:
+    <<: *host-db
     build: ./gateway
     image: flytrap-gateway
     environment:
@@ -86,7 +92,6 @@ services:
         ipv4_address: 172.30.0.10
         aliases: [gateway-admin]
     depends_on:
-      events-db: {condition: service_healthy}
       web-1: {condition: service_started}
       web-2: {condition: service_started}
     restart: unless-stopped
@@ -97,20 +102,6 @@ services:
   web-2:
     <<: *real
     environment: {<<: *real-env, NODE_NAME: web-2}
-
-  db-real:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: hlabs
-      POSTGRES_PASSWORD: ${REAL_DB_PASSWORD:?run python scripts/init_env.py}
-      POSTGRES_DB: hlabs
-    networks: [realnet]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hlabs -d hlabs"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-    restart: unless-stopped
 
   pod-1: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-1, NODE_NAME: hl-web-03}}
   pod-2: {<<: *pod, environment: {<<: *pod-env, POD_NAME: pod-2, NODE_NAME: hl-web-04}}
@@ -131,23 +122,24 @@ services:
     networks: [trapnet]
     restart: unless-stopped
 
-  events-db:
-    image: timescale/timescaledb:latest-pg16
+  db-setup:
+    image: postgres:16-alpine
+    profiles: [setup]
+    <<: *host-db
     environment:
-      POSTGRES_USER: flytrap
-      POSTGRES_PASSWORD: ${EVENTS_DB_PASSWORD:?run python scripts/init_env.py}
-      POSTGRES_DB: flytrap
+      DB_HOST: ${DB_HOST:?set in .env}
+      DB_PORT: ${DB_PORT:?set in .env}
+      DB_USER: ${DB_USER:?set in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?set in .env}
+      EVENTS_DB_NAME: ${EVENTS_DB_NAME:?set in .env}
+      REAL_DB_NAME: ${REAL_DB_NAME:?set in .env}
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks: [control]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U flytrap -d flytrap"]
-      interval: 3s
-      timeout: 3s
-      retries: 30
-    restart: unless-stopped
+      - ./db:/db:ro
+    entrypoint: ["sh", "/db/setup.sh"]
+    networks: [dbnet]
 
   controller:
+    <<: *host-db
     build: ./controller
     image: flytrap-controller
     environment:
@@ -161,11 +153,11 @@ services:
         required: false
     networks: [control, edge, egress]
     depends_on:
-      events-db: {condition: service_healthy}
       gateway: {condition: service_started}
     restart: unless-stopped
 
   dash-api:
+    <<: *host-db
     build: ./dash-api
     image: flytrap-dash-api
     environment:
@@ -173,8 +165,6 @@ services:
       CONTROLLER_URL: http://controller:8070
     ports: ["8090:8090"]
     networks: [control, front]
-    depends_on:
-      events-db: {condition: service_healthy}
     restart: unless-stopped
 
   raider-1: {<<: *raider, environment: {RAIDER_SLOT: raider-1}}

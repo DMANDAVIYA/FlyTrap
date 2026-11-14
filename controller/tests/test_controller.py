@@ -80,3 +80,29 @@ def test_policy_rejects_tool_outside_allowlist():
     # cerberus does not hold plant_bait
     result = asyncio.run(policy.execute("cerberus", "plant_bait", {"session": "s_1", "kind": "api_token", "where": "account"}))
     assert not result.ok and result.status == "rejected"
+
+
+def test_app_imports_cleanly():
+    """Importing the app must not fail; a bad import here would crash the container on start."""
+    import app.main  # noqa: F401
+
+
+def test_demo_password_matches_site():
+    """Same formula as hlabs/app/bait.py; value computed from the site's implementation."""
+    assert bait.demo_password("test-secret") == "WIJHRQkkrGVmp7n2"
+
+
+def test_records_counting():
+    from app import records
+    assert records.count("user:41") == 1
+    assert records.count("invoice:9001-9020") == 20
+    assert records.by_type(["user:1-500", "api_token:3", "user:900"]) == {"user": 501, "api_token": 1}
+
+
+def test_swarm_state_clear_keeps_demo_mode():
+    from app.context import SwarmState
+    s = SwarmState(demo_mode=False)
+    s.planted.add("s_1")
+    s.lockdown_requested_at = 1.0
+    s.clear()
+    assert s.demo_mode is False and not s.planted and s.lockdown_requested_at is None
