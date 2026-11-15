@@ -33,16 +33,16 @@ export function Traffic({ rps, className = "" }: { rps: { real: number; trap: nu
   };
   const band = series ? at(idx, "trap").x : 100;
   const legend = (
-        <dl className="grid grid-cols-[auto_auto_auto_auto] items-center gap-x-2.5 gap-y-1.5 rounded-2xl border border-line2/60 bg-inner px-3.5 py-2.5 text-[13px] shadow-[0_10px_30px_rgba(0,0,0,.35)]">
-          <span className="h-2 w-2 rounded-full bg-green" />
+        <dl className="grid grid-cols-[auto_auto_auto_auto] items-center gap-x-2 gap-y-0.5 rounded-xl border border-line2/60 bg-inner px-2.5 py-1.5 text-[12px] shadow-[0_8px_24px_rgba(0,0,0,.35)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-green" />
           <dt className="font-semibold">Trapped</dt>
           <dd className="text-right font-mono tabular text-green">{fmt(cur.trap)}/s</dd>
-          <dd className="text-right font-mono text-[12px] tabular text-text2">{delta("trap")}</dd>
-          <span className="h-2 w-2 rounded-full bg-text" />
+          <dd className="text-right font-mono text-[11px] tabular text-text2">{delta("trap")}</dd>
+          <span className="h-1.5 w-1.5 rounded-full bg-text" />
           <dt className="font-semibold">Real</dt>
           <dd className="text-right font-mono tabular">{fmt(cur.real)}/s</dd>
-          <dd className="text-right font-mono text-[12px] tabular text-text2">{delta("real")}</dd>
-          <dd className="col-span-4 text-[11px] text-text2">{hover !== null && series ? `${(series.length - 1 - idx) * EVERY_S} s ago · ` : "now · "}change over 30 s</dd>
+          <dd className="text-right font-mono text-[11px] tabular text-text2">{delta("real")}</dd>
+          <dd className="col-span-4 mt-0.5 text-[10.5px] text-text2">{hover !== null && series ? `${(series.length - 1 - idx) * EVERY_S} s ago · ` : "now · "}change over 30 s</dd>
         </dl>
   );
 

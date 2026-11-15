@@ -65,7 +65,7 @@ export default function Console() {
                 <Pantheon s={s} />
                 <Gateway hist={s.hist} requests={s.stats.requests_total} className="min-h-[200px] flex-1 lg:min-h-0" />
               </div>
-              <Activity s={s} picked={picked} onSelect={setPicked} onOpen={openReport} onStreams={() => openTab("Agents")}
+              <Activity s={s} picked={picked} onOpen={openReport}
                 className="h-[520px] md:col-span-2 lg:col-span-5 lg:h-auto lg:min-h-0" />
             </div>
           </>}

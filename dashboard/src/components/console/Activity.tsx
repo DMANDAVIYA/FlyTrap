@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import type { State } from "@/feed";
@@ -23,15 +22,15 @@ const Pill = ({ cls, children }: { cls: string; children: ReactNode }) => (
   <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${cls}`}>{children}</span>
 );
 const Th = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
-  <th className={`sticky top-0 z-10 whitespace-nowrap bg-inner px-3 pb-3 pt-1 font-semibold ${className}`}>{children}</th>
+  <th className={`sticky top-0 z-10 whitespace-nowrap bg-[#171717] px-3 pb-2 pt-1 text-[12px] font-semibold text-text2 ${className}`}>{children}</th>
 );
 const Empty = ({ cols, children }: { cols: number; children: ReactNode }) => (
   <tr><td colSpan={cols} className="px-3 py-6 text-center text-text2">{children}</td></tr>
 );
 
-/** The working table: trapped visitors (default), agent messages, raw requests and tracked keys, one tab each. */
-export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "" }: {
-  s: State; picked: string | null; onSelect: (sid: string) => void; onOpen: (sid: string) => void; onStreams: () => void; className?: string;
+/** The working table: trapped visitors (default; a row opens its report), agent messages, raw requests and tracked keys. */
+export function Activity({ s, picked, onOpen, className = "" }: {
+  s: State; picked: string | null; onOpen: (sid: string) => void; className?: string;
 }) {
   const [tab, setTab] = useState<Tab>("Trapped");
   const trapped = useMemo(() => Object.values(s.sessions).filter((x) => x.side !== "real")
@@ -39,7 +38,6 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
   const messages = useMemo(() => [...s.red.slice(-60), ...s.blue.slice(-60)].sort((a, b) => b.t - a.t).slice(0, 60), [s.red, s.blue]);
   const requests = useMemo(() => s.events.slice(-60).reverse(), [s.events]);
   const who = (sid: string) => s.sessions[sid]?.raider ?? short(sid);
-  const selected = picked && s.sessions[picked] ? picked : trapped[0]?.session ?? null;
   const count: Record<Tab, number> = {
     Trapped: trapped.length, Messages: s.red.length + s.blue.length, Requests: s.events.length, Trackers: s.canaries.length + s.campaigns.length,
   };
@@ -55,24 +53,24 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
         ))}
       </div>
 
-      <div role="tabpanel" aria-label={tab} className="min-h-0 flex-1 overflow-auto rounded-[18px] border border-line2/50 bg-inner px-2 pt-3 scroll-thin">
+      <div role="tabpanel" aria-label={tab} className="-mx-2 min-h-0 flex-1 overflow-auto px-2 scroll-thin">
         <table className="w-full text-left text-[13px]">
           {tab === "Trapped" && (
             <>
               <thead className="text-text"><tr className="[&>th]:border-b [&>th]:border-dashed [&>th]:border-line2"><Th>Last seen</Th><Th>Visitor</Th><Th>Where</Th><Th className="text-right">Label</Th></tr></thead>
               <tbody>
                 {trapped.slice(0, 80).map((x) => (
-                  <tr key={x.session} onClick={() => onSelect(x.session)} onDoubleClick={() => onOpen(x.session)}
-                    className={`cursor-pointer transition-colors hover:bg-text/[.03] ${selected === x.session ? "bg-text/[.06]" : ""} ${x.ended ? "opacity-55" : ""}`}>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-mono tabular text-text2">{x.last_seen ? clock(x.last_seen) : "—"}</td>
-                    <td className="px-3 py-2">
-                      <button className="block text-left font-semibold capitalize text-text" aria-pressed={selected === x.session} onClick={(e) => { e.stopPropagation(); onSelect(x.session); }}>
+                  <tr key={x.session} onClick={() => onOpen(x.session)} title="Open the incident report"
+                    className={`cursor-pointer transition-colors hover:bg-text/[.04] ${picked === x.session ? "bg-text/[.06]" : ""} ${x.ended ? "opacity-55" : ""}`}>
+                    <td className="whitespace-nowrap px-3 py-1.5 font-mono tabular text-text2">{x.last_seen ? clock(x.last_seen) : "—"}</td>
+                    <td className="px-3 py-1.5">
+                      <button className="block text-left font-semibold capitalize text-text" aria-label={`Open the report for ${x.raider ?? "this visitor"}`} onClick={(e) => { e.stopPropagation(); onOpen(x.session); }}>
                         {x.raider ?? "Unknown visitor"}
                       </button>
                       <span className="font-mono text-[11.5px] text-text2">{short(x.session)}</span>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-text2">{x.side === "blocked" ? "blocked" : x.pod ?? "tartarus"}{x.ended ? " · left" : ` · ${x.stage}`}</td>
-                    <td className="px-3 py-2.5 text-right"><Pill cls={(LABEL[x.label] ?? LABEL.unknown).cls}>{(LABEL[x.label] ?? LABEL.unknown).text}</Pill></td>
+                    <td className="whitespace-nowrap px-3 py-1.5 text-text2">{x.side === "blocked" ? "blocked" : x.pod ?? "tartarus"}{x.ended ? " · left" : ` · ${x.stage}`}</td>
+                    <td className="px-3 py-1.5 text-right"><Pill cls={(LABEL[x.label] ?? LABEL.unknown).cls}>{(LABEL[x.label] ?? LABEL.unknown).text}</Pill></td>
                   </tr>
                 ))}
                 {!trapped.length && <Empty cols={4}>{s.stats.trapped ? "No trapped visitor is active right now." : "No one trapped yet. Press Release the swarm to start the raiders."}</Empty>}
@@ -138,15 +136,6 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
         </table>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button disabled={!selected} onClick={() => selected && onOpen(selected)}
-          className="inline-flex items-center gap-3 rounded-full bg-text px-5 py-2.5 text-[14px] font-semibold text-bg shadow-[0_10px_26px_rgba(0,0,0,.45)] transition-[filter] hover:brightness-90 disabled:opacity-40">
-          Open report{selected ? ` · ${who(selected)}` : ""} <ArrowRight size={16} aria-hidden />
-        </button>
-        <button onClick={onStreams} className="inline-flex items-center gap-3 rounded-full border border-line2 px-5 py-2.5 text-[14px] text-text transition-colors hover:border-text2">
-          All streams <ArrowRight size={16} aria-hidden />
-        </button>
-      </div>
     </GlowCard>
   );
 }
