@@ -31,7 +31,7 @@ const STEPS = [
   {
     n: "06", name: "What if it reaches Olympus?",
     see: "The real site. Real pages, real login. It thinks it slipped past the trap.",
-    real: "The blue pill steps in: the defenders guarding the real site. Probing the real side, like walking other customers' record IDs, is a tripwire too, so the bot drops straight back into Tartarus. Hephaestus rotates every key it could have seen, and Athena can ask Zeus for a lockdown.",
+    real: "A warrior steps in: the defenders guarding the real site. Probing the real side, like walking other customers' record IDs, is a tripwire too, so the bot drops straight back into Tartarus. Hephaestus rotates every key it could have seen, and Athena can ask Zeus for a lockdown.",
   },
 ];
 
@@ -41,9 +41,9 @@ const BOT = [
 ];
 const SAGE = "rgb(176 210 190)";
 const GREEN = "rgb(61 255 143)";
-const BLUE = "rgb(76 141 255)"; // only the blue pill, the real site's defender
+const BLUE = "rgb(76 141 255)"; // only the warrior, the real site's defender
 
-// Step 6 plays as a loop: the bot slips into Olympus, the blue pill rotates the keys, the bot drops back into the copy.
+// Step 6 plays as a loop: the bot slips into Olympus, the warrior rotates the keys and strikes, the bot drops back into the copy.
 const ESCAPE = { duration: 5.6, times: [0, 0.2, 0.36, 0.72, 0.84, 1], repeat: Infinity, repeatDelay: 0.6, ease: "easeInOut" as const };
 
 function Temple({ color, opacity = 1 }: { color: string; opacity?: number }) {
@@ -53,6 +53,35 @@ function Temple({ color, opacity = 1 }: { color: string; opacity?: number }) {
       <path d="M252 164 H368 V172 H252 Z" />
       {[264, 289, 314, 339].map((x) => <path key={x} d={`M${x} 172 V220 M${x + 12} 172 V220`} />)}
       <path d="M248 220 H372 V229 H248 Z" />
+    </g>
+  );
+}
+
+/** A hoplite in line art: crested helmet, round shield with the Dolos Δ, sword raised toward Olympus. Feet on the floor right of the temple. */
+function Warrior({ strike }: { strike: boolean }) {
+  return (
+    <g transform="translate(402 229) scale(-1 1)" stroke={BLUE} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" fill="none"
+      style={{ filter: "drop-shadow(0 0 5px rgb(76 141 255 / .55))" }}>
+      {/* sword arm and sword, swinging from the hand */}
+      <path d="M8 -41 L17 -47" />
+      <motion.g initial={false} animate={strike ? { rotate: [0, 0, -12, -12, 62, 0] } : { rotate: 0 }}
+        transition={strike ? ESCAPE : { duration: 0 }} style={{ originX: "17px", originY: "-47px" }}>
+        <path d="M17 -49 L15.4 -61 L17.6 -74 L19.2 -61 Z" fill="rgb(76 141 255 / .25)" />
+        <path d="M13.5 -49 H20.5" />
+        <circle cx="17" cy="-45.5" r="1.3" fill={BLUE} />
+      </motion.g>
+      {/* crest and Corinthian helmet */}
+      <path d="M-8 -63 C -4 -75 9 -76 14 -63 L 9 -61 C 6 -68 -1 -69 -4 -61 Z" fill="rgb(76 141 255 / .35)" />
+      <path d="M-6 -61 C -8 -54 -8 -49 -6 -44 H 7 C 9 -50 8 -57 3 -61 Z" fill="#06101f" />
+      <path d="M-5 -54 H1 M-2 -54 V-47" />
+      {/* body, kilt and legs */}
+      <path d="M-5 -42 H8 L6 -24 H-3 Z" fill="#06101f" />
+      <path d="M-4 -24 L-5 -16 M0 -24 V-16 M3 -24 L4 -16 M6 -24 L7 -17" />
+      <path d="M-2 -16 L-4 0 M4 -16 L6 0" strokeWidth="2" />
+      {/* round shield with the Dolos mark */}
+      <circle cx="-9" cy="-30" r="13" fill="#071a30" />
+      <path d="M-11.5 -24 H-15 L-9 -36 L-3 -24 H-6.5" />
+      <circle cx="-9" cy="-21" r="1.1" fill={BLUE} stroke="none" />
     </g>
   );
 }
@@ -116,19 +145,18 @@ function Diagram({ step, still }: { step: number; still: boolean }) {
           style={{ originX: `${BOT[4].cx}px`, originY: `${BOT[4].cy}px` }} />
       ))}
 
-      {/* What if it reaches Olympus: the blue pill defends, rotates the keys, and the bot is trapped again. */}
-      <motion.g initial={false} animate={loop ? { opacity: [0, 0, 1, 1, 1, 1], scale: [0.6, 0.6, 1.1, 1, 1, 1] } : { opacity: escape ? 1 : 0, scale: 1 }}
-        transition={loop ? ESCAPE : { duration: still ? 0 : 0.4 }} style={{ originX: "398px", originY: "190px" }}>
-        <rect x="392" y="174" width="12" height="30" rx="6" fill={BLUE} stroke="rgb(190 214 255)" strokeWidth="1" transform="rotate(-25 398 189)"
-          style={{ filter: "drop-shadow(0 0 6px rgb(76 141 255 / .8))" }} />
-        <text x="398" y="219" textAnchor="middle" fill={BLUE} fontSize="8" letterSpacing="1.5" fontWeight="600" fontFamily="Montserrat Variable">BLUE PILL</text>
+      {/* What if it reaches Olympus: the warrior defends, rotates the keys and strikes; the bot is trapped again. */}
+      <motion.g initial={false} animate={loop ? { opacity: [0, 0, 1, 1, 1, 1], x: [18, 18, 0, 0, 0, 0] } : { opacity: escape ? 1 : 0, x: 0 }}
+        transition={loop ? ESCAPE : { duration: still ? 0 : 0.4 }}>
+        <Warrior strike={loop} />
+        <text x="402" y="243" textAnchor="middle" fill={BLUE} fontSize="8" letterSpacing="1.5" fontWeight="600" fontFamily="Montserrat Variable">WARRIOR</text>
       </motion.g>
-      <motion.g initial={false} animate={loop ? { opacity: [0, 0, 0, 1, 1, 0.6] } : { opacity: escape ? 1 : 0 }} transition={loop ? ESCAPE : { duration: still ? 0 : 0.4 }}>
-        <motion.g animate={loop ? { rotate: [0, 0, 0, 360, 360, 360] } : { rotate: 0 }} transition={loop ? ESCAPE : { duration: 0 }} style={{ originX: "410px", originY: "146px" }}>
-          <circle cx="410" cy="146" r="9" fill="none" stroke={BLUE} strokeWidth="1.2" strokeDasharray="40 17" />
-          <path d="M406 146h6m-1 0v3" stroke={BLUE} strokeWidth="1.4" fill="none" />
+      <motion.g initial={false} animate={loop ? { opacity: [0, 0, 0, 1, 1, 0.7] } : { opacity: escape ? 1 : 0 }} transition={loop ? ESCAPE : { duration: still ? 0 : 0.4 }}>
+        <motion.g animate={loop ? { rotate: [0, 0, 0, 360, 360, 360] } : { rotate: 0 }} transition={loop ? ESCAPE : { duration: 0 }} style={{ originX: "268px", originY: "62px" }}>
+          <circle cx="268" cy="62" r="8" fill="none" stroke={BLUE} strokeWidth="1.2" strokeDasharray="36 14" />
         </motion.g>
-        <text x="410" y="168" textAnchor="middle" fill={BLUE} fontSize="8.5" fontFamily="JetBrains Mono Variable">keys rotated</text>
+        <path d="M264.5 62h6m-1 0v2.6" stroke={BLUE} strokeWidth="1.3" fill="none" />
+        <text x="282" y="65.5" fill={BLUE} fontSize="9" fontFamily="JetBrains Mono Variable">keys rotated</text>
       </motion.g>
       <motion.text x="244" y="304" textAnchor="middle" fill={GREEN} fontSize="8.5" fontFamily="JetBrains Mono Variable" initial={false}
         animate={loop ? { opacity: [0, 0, 0, 0, 1, 1] } : { opacity: escape ? 1 : 0 }} transition={loop ? ESCAPE : { duration: still ? 0 : 0.4 }}>
