@@ -23,7 +23,7 @@ export function FlipToast({ s }: { s: State }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="flex max-w-full items-baseline gap-3 overflow-hidden whitespace-nowrap rounded-full border border-trap/60 bg-[#04140b]/95 px-5 py-2 shadow-[0_12px_32px_rgba(0,0,0,.55)]"
+            className="flex max-w-full items-baseline gap-3 overflow-hidden whitespace-nowrap rounded-full border border-trap/60 bg-bg/95 px-5 py-2 shadow-[0_12px_32px_rgba(0,0,0,.55)]"
           >
             <span className="caps text-[10.5px] font-bold text-trap">Trapped</span>
             <span className="font-semibold">{flip.raider ?? short(flip.session)}</span>

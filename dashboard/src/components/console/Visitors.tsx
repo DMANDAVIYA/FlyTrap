@@ -28,7 +28,7 @@ export function Visitors({ stats, className = "" }: { stats: StatsData; classNam
           <div className="text-right"><CardTitle>Visitors</CardTitle></div>
           <div className="flex min-h-0 flex-1 items-center justify-center">
             <div className="orb dolos-float grid aspect-square w-[min(100%,15rem)] place-items-center">
-              <span className="relative text-[clamp(2rem,3.2vw,2.75rem)] font-light tabular text-[#03140a]">{Math.round(shown).toLocaleString()}</span>
+              <span className="relative text-[clamp(2rem,3.2vw,2.75rem)] font-light tabular text-text">{Math.round(shown).toLocaleString()}</span>
             </div>
           </div>
           <p className="mt-2 text-center text-[12px] text-text2">{total ? "visitors labelled by Argus" : "Counts appear once visitors arrive"}</p>

@@ -65,8 +65,8 @@ export function Traffic({ rps, className = "" }: { rps: { real: number; trap: nu
                 <stop offset="100%" stopColor="rgb(228,240,232)" stopOpacity="0" />
               </linearGradient>
               <linearGradient id="dolos-band" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(61,255,143)" stopOpacity="0.04" />
-                <stop offset="100%" stopColor="rgb(61,255,143)" stopOpacity="0.42" />
+                <stop offset="0%" stopColor="rgb(236,236,236)" stopOpacity="0.02" />
+                <stop offset="100%" stopColor="rgb(236,236,236)" stopOpacity="0.16" />
               </linearGradient>
             </defs>
             {Array.from({ length: COLUMNS }, (_, i) => (

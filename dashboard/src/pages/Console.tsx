@@ -47,7 +47,7 @@ export default function Console() {
   };
 
   return (
-    <div className={`flex min-h-[100svh] flex-col bg-bg lg:h-[100svh] ${raw ? "tui" : ""} ${lockdown ? "outline outline-4 -outline-offset-4 outline-warn/60" : ""}`}>
+    <div className={`console-ui flex min-h-[100svh] flex-col bg-bg text-text lg:h-[100svh] ${raw ? "tui" : ""} ${lockdown ? "outline outline-4 -outline-offset-4 outline-warn/60" : ""}`}>
       <h1 className="sr-only">Dolos console</h1>
       <LockdownOverlay lock={s.lockdown} />
       <TopBar s={s} drawerOpen={open} onToggleDrawer={() => setOpen((o) => !o)} raw={raw} onToggleRaw={() => setRaw((r) => !r)} />

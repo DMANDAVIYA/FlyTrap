@@ -63,7 +63,7 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
               <tbody>
                 {trapped.slice(0, 80).map((x) => (
                   <tr key={x.session} onClick={() => onSelect(x.session)} onDoubleClick={() => onOpen(x.session)}
-                    className={`cursor-pointer transition-colors hover:bg-text/[.03] ${selected === x.session ? "bg-green/[.07]" : ""} ${x.ended ? "opacity-55" : ""}`}>
+                    className={`cursor-pointer transition-colors hover:bg-text/[.03] ${selected === x.session ? "bg-text/[.06]" : ""} ${x.ended ? "opacity-55" : ""}`}>
                     <td className="whitespace-nowrap px-3 py-2.5 font-mono tabular text-text2">{x.last_seen ? clock(x.last_seen) : "—"}</td>
                     <td className="px-3 py-2">
                       <button className="block text-left font-semibold capitalize text-text" aria-pressed={selected === x.session} onClick={(e) => { e.stopPropagation(); onSelect(x.session); }}>
@@ -128,7 +128,7 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
                   <tr key={`c${c.id}`}>
                     <td className="px-3 py-2.5 font-semibold text-green">{c.name}</td>
                     <td colSpan={2} className="px-3 py-2.5 capitalize">{c.sessions.map(who).join(" + ")}</td>
-                    <td className="px-3 py-2.5 text-right"><Pill cls="bg-green/15 text-green">Campaign</Pill></td>
+                    <td className="px-3 py-2.5 text-right"><Pill cls="bg-text/[.08] text-text">Campaign</Pill></td>
                   </tr>
                 ))}
                 {!s.canaries.length && !s.campaigns.length && <Empty cols={4}>Every key shown in Tartarus is unique to one visitor. When one is used, it names the visitor here.</Empty>}
@@ -140,7 +140,7 @@ export function Activity({ s, picked, onSelect, onOpen, onStreams, className = "
 
       <div className="mt-4 flex flex-wrap gap-3">
         <button disabled={!selected} onClick={() => selected && onOpen(selected)}
-          className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#5dffa3] to-[#16b862] px-5 py-2.5 text-[14px] font-semibold text-[#03140a] shadow-[0_10px_26px_rgba(61,255,143,.28)] transition-[filter] hover:brightness-110 disabled:opacity-40">
+          className="inline-flex items-center gap-3 rounded-full bg-text px-5 py-2.5 text-[14px] font-semibold text-bg shadow-[0_10px_26px_rgba(0,0,0,.45)] transition-[filter] hover:brightness-90 disabled:opacity-40">
           Open report{selected ? ` · ${who(selected)}` : ""} <ArrowRight size={16} aria-hidden />
         </button>
         <button onClick={onStreams} className="inline-flex items-center gap-3 rounded-full border border-line2 px-5 py-2.5 text-[14px] text-text transition-colors hover:border-text2">

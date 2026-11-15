@@ -70,11 +70,22 @@ a { text-underline-offset: 0.2em; }
 .glow-card:hover .glow-edge::after, .glow-card:focus-within .glow-edge::after,
 .glow-card:hover .glow-spot, .glow-card:focus-within .glow-spot, .glow-card:hover .glow-grid { opacity: 1; }
 
-/* The visitors orb: a lit green sphere with a glassy cap. */
-.orb { position: relative; border-radius: 9999px; background: radial-gradient(circle at 50% 64%, #6dffb0 0%, #3dff8f 34%, #17b862 70%, #0b5a31 100%);
-  box-shadow: 0 0 0 12px rgb(61 255 143 / .05), 0 0 70px rgb(61 255 143 / .32), inset 0 -22px 46px rgb(0 0 0 / .32); }
-.orb::before { content: ""; position: absolute; inset: 5% 9% 50% 9%; border-radius: 50% 50% 46% 54% / 62% 62% 38% 38%;
-  background: linear-gradient(180deg, rgb(255 255 255 / .34), rgb(255 255 255 / .02)); }
+/* Console: black first, green second. Neutral surfaces, lines and text inside the console only;
+   green stays for the trap, live states and good changes. The plain vars are re-derived because
+   :root computed them from its own channels. */
+.console-ui {
+  --bg-rgb: 5 5 5; --card-rgb: 14 14 14; --inner-rgb: 22 22 22; --line-rgb: 32 32 32; --line-2-rgb: 52 52 52;
+  --text-rgb: 236 236 236; --text-2-rgb: 150 150 150; --sage-rgb: 196 196 196;
+  --bg: rgb(var(--bg-rgb)); --line: rgb(var(--line-rgb)); --line-2: rgb(var(--line-2-rgb));
+  --text: rgb(var(--text-rgb)); --text-2: rgb(var(--text-2-rgb)); --real: rgb(var(--sage-rgb));
+}
+.console-ui .glow-card { --glow: var(--text-rgb); }
+
+/* The visitors orb: a black glass sphere, lit green at the rim. */
+.orb { position: relative; border-radius: 9999px; background: radial-gradient(circle at 50% 30%, #2b2b2b 0%, #111 46%, #000 100%);
+  box-shadow: 0 0 0 1px rgb(61 255 143 / .45), 0 0 0 12px rgb(61 255 143 / .04), 0 0 64px rgb(61 255 143 / .2), inset 0 -18px 36px rgb(61 255 143 / .14); }
+.orb::before { content: ""; position: absolute; inset: 5% 12% 54% 12%; border-radius: 50% 50% 46% 54% / 62% 62% 38% 38%;
+  background: linear-gradient(180deg, rgb(255 255 255 / .16), rgb(255 255 255 / 0)); }
 @keyframes dolos-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .dolos-float { animation: dolos-float 6s ease-in-out infinite; }
 

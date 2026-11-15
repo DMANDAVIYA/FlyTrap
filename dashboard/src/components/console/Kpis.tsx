@@ -21,7 +21,7 @@ function Tile({ icon: Icon, label, value, foot, chip, lead = false }: {
   return (
     <GlowCard label={label} className="min-h-[132px]">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:gap-3.5">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[13px] border min-[1440px]:h-12 min-[1440px]:w-12 ${lead ? "border-green bg-green text-[#03140a] shadow-[0_0_24px_rgba(61,255,143,.35)]" : "border-line2/70 bg-inner text-text"}`}>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[13px] border min-[1440px]:h-12 min-[1440px]:w-12 ${lead ? "border-text bg-text text-bg shadow-[0_0_22px_rgba(255,255,255,.12)]" : "border-line2/70 bg-inner text-text"}`}>
           <Icon size={21} strokeWidth={1.8} aria-hidden />
         </span>
         <div className="min-w-0">

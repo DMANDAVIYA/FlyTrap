@@ -15,7 +15,7 @@ Main screen, modelled on the user's reference dashboard (soft analytics cards) a
 
 THESIS: Soft, rounded analytics cards on black, lit green: the reference dashboard's calm grid carrying a live trap. A Raw switch turns the console into a terminal UI of the same feed, for operators who want every field.
 
-OWN-WORLD: Same black and green tokens as the landing page, with three console surfaces: page, card, inner panel. Montserrat sentence-case card titles and semibold readings; JetBrains Mono for times, ids, chart axes and the whole raw view. Sage = real, bright green = trapped, amber = Zeus and lockdown, red = breach only (never for a negative change).
+OWN-WORLD: Black first, green second (the user's call): neutral black page, cards and inner panels, white text and white primary controls; green only for the trap, live states and good changes; amber = Zeus and lockdown; red = breach only (never for a negative change). The landing page keeps its green-tinted blacks; the console scopes its own neutral tokens (.console-ui). Montserrat sentence-case card titles and semibold readings; JetBrains Mono for times, ids, chart axes and the whole raw view.
 
 STORY: The operator sees at a glance that containment holds (zero exposed), watches trapped traffic against real traffic, picks a trapped visitor and opens its report, and acts from one control row.
 
