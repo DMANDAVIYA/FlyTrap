@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
  *   robot.png     "Biped Robot" by Silver Ink, CC BY-SA 4.0 (credited on the page)
  *   ruins.png     "Classical Ruin Tiles" by surt, CC0: temple, gate, vial and chest are cut from it here
  * The world is 256 x 368 pixels drawn at one scale and blown up by whole multiples, so pixels stay square.
- * The knight's sheets are halved on load, so it stands about as tall as the robot.
+ * The knight's frames are shrunk to a third on load, so it stands as tall as the robot.
  * The set is toned toward the black-and-green world in the browser; the knight and the robot keep their colours.
  */
 
@@ -26,9 +26,9 @@ const ESCAPE_S = 8.4; // step 6 loop length, seconds
 // the robot hangs in the copy from LAND
 const HIT = 4.2 + 8 / 12;
 const LAND = HIT + 1.4;
-// the robot's hop at the warrior: from x0 to x1, feet h px up, so the half-size blade (24-26 px above the floor,
-// reaching x 114-145 from KNIGHT_X) crosses its middle
-const LEAP = { x0: 114, x1: 130, h: 13 };
+// the robot's hop at the warrior: from x0 to x1, feet h px up, so the third-size blade (15-16 px above the floor,
+// reaching x 136-157 from KNIGHT_X) crosses its middle
+const LEAP = { x0: 130, x1: 142, h: 4 };
 const TRAP_MID = TRAP.x + TRAP.w / 2;
 
 type Rect = [number, number, number, number];
@@ -84,36 +84,47 @@ function frame(g: CanvasRenderingContext2D, c: Clip, f: number, x: number, y: nu
 const tile = (g: CanvasRenderingContext2D, img: HTMLImageElement, r: Rect, x: number, y: number) =>
   g.drawImage(img, r[0], r[1], r[2], r[3], Math.round(x), Math.round(y), r[2], r[3]);
 
-/** Halves a pixel-art sheet: each 2x2 block becomes the mean of its solid pixels, or stays clear when mostly clear. */
-function half(img: HTMLImageElement) {
+/**
+ * Shrinks a one-row pixel-art sheet by a whole factor k, frame by frame (fw need not divide by k): each k x k block
+ * becomes the mean of its solid pixels, or stays clear when under 4/9 solid.
+ */
+function shrink(img: HTMLImageElement, fw: number, fh: number, k: number) {
   const src = document.createElement("canvas");
   src.width = img.width;
   src.height = img.height;
   const sg = src.getContext("2d")!;
   sg.drawImage(img, 0, 0);
   const a = sg.getImageData(0, 0, src.width, src.height).data;
+  const n = Math.round(img.width / fw);
+  const cw = Math.ceil(fw / k);
+  const ch = Math.ceil(fh / k);
   const c = document.createElement("canvas");
-  c.width = src.width >> 1;
-  c.height = src.height >> 1;
+  c.width = cw * n;
+  c.height = ch;
   const cg = c.getContext("2d")!;
   const im = cg.createImageData(c.width, c.height);
-  for (let y = 0; y < c.height; y++) {
-    for (let x = 0; x < c.width; x++) {
-      let n = 0;
-      let r = 0;
-      let gr = 0;
-      let b = 0;
-      for (let k = 0; k < 4; k++) {
-        const p = ((2 * y + (k >> 1)) * src.width + 2 * x + (k & 1)) * 4;
-        if (a[p + 3] < 128) continue;
-        n++;
-        r += a[p];
-        gr += a[p + 1];
-        b += a[p + 2];
+  for (let f = 0; f < n; f++) {
+    for (let y = 0; y < ch; y++) {
+      for (let x = 0; x < cw; x++) {
+        let cells = 0;
+        let m = 0;
+        let r = 0;
+        let gr = 0;
+        let b = 0;
+        for (let j = y * k; j < Math.min(fh, y * k + k); j++) {
+          for (let i = x * k; i < Math.min(fw, x * k + k); i++) {
+            cells++;
+            const p = (j * src.width + f * fw + i) * 4;
+            if (a[p + 3] < 128) continue;
+            m++;
+            r += a[p];
+            gr += a[p + 1];
+            b += a[p + 2];
+          }
+        }
+        if (m * 9 < cells * 4) continue;
+        im.data.set([r / m, gr / m, b / m, 255], (y * c.width + f * cw + x) * 4);
       }
-      if (n < 2) continue;
-      const q = (y * c.width + x) * 4;
-      im.data.set([r / n, gr / n, b / n, 255], q);
     }
   }
   cg.putImageData(im, 0, 0);
@@ -193,12 +204,12 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           left: { img: robotImg, fw: 32, fh: 32, n: 6, fps: 10, fx: 18, fy: 27, row: 3 } as Clip,
           hurt: { img: robotImg, fw: 32, fh: 32, n: 2, fps: 6, fx: 13, fy: 27, row: 4 } as Clip,
         };
-        // halved sheets, so frame sizes and feet anchors are half the source's
+        // frames at a third of the source size; the feet anchors were measured on the shrunk frames
         const knight = {
-          idle: { img: half(kIdle), fw: 50, fh: 50, n: 8, fps: 8, fx: 17, fy: 45 } as Clip,
-          run: { img: half(kRun), fw: 50, fh: 50, n: 10, fps: 12, fx: 17, fy: 49 } as Clip,
-          attack: { img: half(kAttack), fw: 90, fh: 50, n: 17, fps: 12, fx: 16, fy: 45 } as Clip,
-          power: { img: half(kPower), fw: 50, fh: 90, n: 19, fps: 12, fx: 16, fy: 84 } as Clip,
+          idle: { img: shrink(kIdle, 100, 100, 3), fw: 34, fh: 34, n: 8, fps: 8, fx: 11, fy: 29 } as Clip,
+          run: { img: shrink(kRun, 100, 100, 3), fw: 34, fh: 34, n: 10, fps: 12, fx: 11, fy: 32 } as Clip,
+          attack: { img: shrink(kAttack, 180, 100, 3), fw: 60, fh: 34, n: 17, fps: 12, fx: 10, fy: 29 } as Clip,
+          power: { img: shrink(kPower, 100, 180, 3), fw: 34, fh: 60, n: 19, fps: 12, fx: 10, fy: 55 } as Clip,
         };
 
         // ---- the set, drawn once ----------------------------------------------------------------
@@ -434,7 +445,7 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           charon: () => ({ x: 34, y: UNDER + 9 }),
           env: () => ({ x: TRAP.x + 18, y: FLOOR - 24 + vialY }),
           loot: () => ({ x: 196, y: UNDER + 40 }),
-          warrior: () => ({ x: kx, y: FLOOR - 52 }),
+          warrior: () => ({ x: kx, y: FLOOR - 36 }),
           rotated: () => ({ x: 64, y: FLOOR - 118 }),
           trapped: () => ({ x: TRAP_MID, y: UNDER + 40 }),
         };
