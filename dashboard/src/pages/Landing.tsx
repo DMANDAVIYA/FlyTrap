@@ -6,6 +6,7 @@ import { DolosMark, Wordmark } from "@/components/Logo";
 import WildHuntFooter from "@/components/ui/wild-hunt-footer";
 
 const CREDIT = "https://commons.wikimedia.org/wiki/File:Creation_of_Adam_(Michelangelo)_Detail.jpg";
+const ARBO = "https://commons.wikimedia.org/wiki/File:Peter_Nicolai_Arbo_-_The_wild_Hunt_of_Odin_-_NG.M.00258_-_National_Museum_of_Art,_Architecture_and_Design.jpg";
 
 export default function Landing() {
   const bait = `${location.protocol}//${location.hostname}:8080`;
@@ -58,21 +59,22 @@ export default function Landing() {
       <WildHuntFooter
         wordmark="DOLOS"
         image={{
-          src: "/hero/footer-hands.webp",
-          cutout: "/hero/footer-hands-cutout.webp",
-          position: "50% 50%",
-          alt: "A skeletal hand and Hermes' hand reaching for a glowing .env vial, toned green",
+          src: "/hero/footer-wild-hunt.webp",
+          cutout: "/hero/footer-wild-hunt-cutout.webp",
+          position: "50% 26%",
+          alt: "Åsgårdsreien, the Wild Hunt of Odin: riders storming across a night sky, by Peter Nicolai Arbo, 1872, toned green",
         }}
         preset="ink"
         palette={{ background: "#030604", ink: "#3dff8f" }}
+        className="dolos-footer"
         tagline="A honeypot for rogue AI · hidden inside your real website"
         sideNote="Built at HackUMass XIV · Olympus above · Tartarus below"
         columns={[
           { title: "Explore", links: [{ label: "How it works", href: "#how" }, { label: "What the bot sees", href: "#/see" }, { label: "Live console", href: "#/console" }] },
           { title: "Try it", links: [{ label: "Release the swarm", href: "#/console" }, { label: "Open the bait site", href: bait }] },
-          { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Wild Hunt, 21st.dev", href: "https://21st.dev" }] },
+          { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Arbo, The Wild Hunt", href: ARBO }] },
         ]}
-        colophon="The bot reaches for the bait; Hermes holds it out. Footer art from the Dolos team's reference image, toned green. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain, via Wikimedia Commons. ΔΟΛΟΣ, the Greek spirit of trickery."
+        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons, toned green. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
         legal="Dolos · HackUMass XIV"
         fontFamily='"Montserrat Variable", system-ui, sans-serif'
         monoFamily='"JetBrains Mono Variable", ui-monospace, monospace'
