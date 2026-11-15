@@ -1,3 +1,4 @@
+import { CardTitle, GlowCard } from "@/components/ui/glow-card";
 import type { State } from "../feed";
 import type { SessionData } from "../types";
 import { agentColor, short } from "./Panel";
@@ -13,18 +14,18 @@ function Row({ x, onPick, active }: { x: SessionData; onPick: (sid: string) => v
       <button
         onClick={() => onPick(x.session)}
         title={`${x.session}: open the incident report`}
-        className={`w-full text-left px-4 py-2.5 border-b border-line transition-colors hover:bg-text/[.04] ${active ? "bg-text/[.05]" : ""} ${x.ended ? "opacity-55" : ""}`}
+        className={`w-full border-b border-line/80 py-2.5 text-left transition-colors hover:bg-text/[.03] ${active ? "bg-text/[.05]" : ""} ${x.ended ? "opacity-55" : ""}`}
       >
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-trap" />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-trap" />
           {x.raider
-            ? <span className="expanded text-sm font-semibold capitalize" style={{ color: agentColor(x.raider) }}>{x.raider}</span>
+            ? <span className="text-sm font-semibold capitalize" style={{ color: agentColor(x.raider) }}>{x.raider}</span>
             : <span className="font-mono text-sm">{short(x.session)}</span>}
-          <span className={`ml-auto rounded-[3px] border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${LABEL_STYLE[x.label] ?? LABEL_STYLE.unknown}`}>
+          <span className={`ml-auto rounded-full border px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] ${LABEL_STYLE[x.label] ?? LABEL_STYLE.unknown}`}>
             {x.label.replace("_", " ")}
           </span>
         </div>
-        <div className="mt-1 flex gap-2 pl-4 font-mono text-[11.5px] text-text2">
+        <div className="mt-1 flex gap-2 pl-3.5 font-mono text-[11.5px] text-text2">
           {x.raider && <span>{short(x.session)}</span>}
           <span>{x.side === "blocked" ? "blocked" : x.pod ?? "tartarus"}</span>
           <span>· {x.ended ? "left" : x.stage}</span>
@@ -35,7 +36,7 @@ function Row({ x, onPick, active }: { x: SessionData; onPick: (sid: string) => v
 }
 
 /** Trapped visitors only; real visitors are counted, not listed. Click opens the report. */
-export function Sessions({ s, picked, onPick }: { s: State; picked: string | null; onPick: (sid: string) => void }) {
+export function Sessions({ s, picked, onPick, className = "" }: { s: State; picked: string | null; onPick: (sid: string) => void; className?: string }) {
   const all = Object.values(s.sessions);
   const onOlympus = all.filter((x) => !x.ended && x.side === "real").length;
   // Ended sessions stay listed (dimmed) so the list matches the Trapped count.
@@ -43,22 +44,19 @@ export function Sessions({ s, picked, onPick }: { s: State; picked: string | nul
     .sort((a, b) => Number(!!a.ended) - Number(!!b.ended) || Number(!!b.raider) - Number(!!a.raider)
       || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""));
   return (
-    <section aria-label="Trapped visitors" className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-baseline justify-between border-b border-line px-4 py-2.5">
-        <h2 className="panel-title">Trapped visitors</h2>
-        <span className="text-xs text-text2">{onOlympus} on Olympus</span>
-      </header>
+    <GlowCard label="Trapped visitors" className={className}>
+      <CardTitle right={<span className="text-xs text-text2">{onOlympus} on Olympus</span>}>Trapped visitors</CardTitle>
       {trapped.length ? (
-        <ul className="flex-1 min-h-0 overflow-y-auto scroll-thin">
+        <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1 scroll-thin">
           {trapped.slice(0, 80).map((x) => <Row key={x.session} x={x} onPick={onPick} active={picked === x.session} />)}
         </ul>
       ) : (
-        <p className="px-4 py-5 text-sm text-text2">
+        <p className="text-sm leading-relaxed text-text2">
           {s.stats.trapped
             ? "No trapped visitor is active right now. Past sessions and their reports are under Details."
             : "No one trapped yet. Press Release the swarm to start the raiders."}
         </p>
       )}
-    </section>
+    </GlowCard>
   );
 }
