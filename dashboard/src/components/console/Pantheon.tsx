@@ -27,6 +27,7 @@ export function Pantheon({ s, className = "" }: { s: State; className?: string }
                 onMouseEnter={() => setOn(name)}
                 onMouseLeave={() => setOn(null)}
                 onFocus={() => setOn(name)}
+                onClick={() => setOn(name)}
                 onBlur={() => setOn(null)}
                 aria-label={`${name}: ${ROLE[name]}, ${st}`}
                 className={`relative flex w-full flex-col items-center gap-1 rounded-xl border px-1 py-2 transition-colors ${
@@ -34,7 +35,7 @@ export function Pantheon({ s, className = "" }: { s: State; className?: string }
                 } ${st === "offline" ? "opacity-50" : ""}`}
               >
                 <Icon size={18} strokeWidth={1.7} aria-hidden />
-                <span className="w-full truncate text-center text-[10px] font-semibold capitalize">{name}</span>
+                <span className="w-full text-center text-[9.5px] font-semibold capitalize leading-tight">{name}</span>
                 {live && <span className="dolos-pulse absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-green" />}
               </button>
             </li>
@@ -44,7 +45,7 @@ export function Pantheon({ s, className = "" }: { s: State; className?: string }
       <p className="mt-auto pt-3 text-xs leading-snug text-text2" aria-live="polite">
         {on ? (
           <><span className="font-semibold capitalize text-text">{on}</span> · {ROLE[on]} · {r?.state ?? "watching"}{r?.mode === "rules" ? " (rules mode)" : ""}</>
-        ) : "Hover or tab to an agent to see its job."}
+        ) : <><span className="[@media(hover:none)]:hidden">Hover or tab to an agent to see its job.</span><span className="hidden [@media(hover:none)]:inline">Tap an agent to see its job.</span></>}
       </p>
     </GlowCard>
   );

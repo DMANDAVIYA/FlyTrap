@@ -54,25 +54,25 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
 
       <div className="ml-auto flex flex-wrap items-center gap-2">
         <button className="btn btn-trap" aria-label="Release the swarm" disabled={busy !== null} onClick={() => act("release")}>
-          <Radar size={14} aria-hidden /> <span className="hidden sm:inline">Release the swarm</span>
+          <Radar size={14} aria-hidden /> <span className="sm:hidden">Release</span><span className="hidden sm:inline">Release the swarm</span>
         </button>
         <button className="btn" aria-label="Reset Tartarus" disabled={busy !== null} onClick={() => act("reset")}>
-          <RotateCcw size={14} aria-hidden /> <span className="hidden sm:inline">Reset Tartarus</span>
+          <RotateCcw size={14} aria-hidden /> <span className="sm:hidden">Reset</span><span className="hidden sm:inline">Reset Tartarus</span>
         </button>
         <button className="btn" aria-label="Kill switch" disabled={busy !== null} onClick={() => act("stop")} title="Stop every raider, drone and the crowd">
-          <Power size={14} aria-hidden /> <span className="hidden sm:inline">Kill switch</span>
+          <Power size={14} aria-hidden /> <span className="sm:hidden">Kill</span><span className="hidden sm:inline">Kill switch</span>
         </button>
         {lock === "off" ? (
           <button className="btn btn-warn" aria-label="Lockdown" disabled={busy !== null} onClick={() => act("lockdown")}>
-            <Lock size={14} aria-hidden /> <span className="hidden sm:inline">Lockdown</span>
+            <Lock size={14} aria-hidden /> <span className="sm:hidden">Lock</span><span className="hidden sm:inline">Lockdown</span>
           </button>
         ) : (
           <button className="btn btn-ok" aria-label="End lockdown" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>
-            <LockOpen size={14} aria-hidden /> <span className="hidden sm:inline">End lockdown</span>
+            <LockOpen size={14} aria-hidden /> <span className="sm:hidden">Unlock</span><span className="hidden sm:inline">End lockdown</span>
           </button>
         )}
         <button className="btn" aria-label="Details" aria-expanded={drawerOpen} aria-controls="details" onClick={onToggleDrawer}>
-          <DrawerIcon size={14} aria-hidden /> <span className="hidden sm:inline">Details</span>
+          <DrawerIcon size={14} aria-hidden /> <span className="sm:hidden">Details</span><span className="hidden sm:inline">Details</span>
         </button>
       </div>
     </header>

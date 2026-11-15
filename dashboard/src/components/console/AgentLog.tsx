@@ -1,9 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { CardTitle, GlowCard } from "@/components/ui/glow-card";
 import type { State } from "@/feed";
-import { agentColor, clock, short } from "../Panel";
-
-const MARK: Record<string, string> = { thought: "›", action: "⚙", note: "✎", alert: "!" };
+import { KindIcon, agentColor, clock, short } from "../Panel";
 
 /** Latest lines from both swarms, newest at the bottom. The drawer holds the full streams. */
 export function AgentLog({ s, onOpen, className = "" }: { s: State; onOpen: () => void; className?: string }) {
@@ -24,7 +22,7 @@ export function AgentLog({ s, onOpen, className = "" }: { s: State; onOpen: () =
             <span className="min-w-0 [overflow-wrap:anywhere]">
               <span className="font-semibold uppercase" style={{ color: agentColor(it.agent) }}>{it.agent}</span>
               {it.session && it.session !== "-" && <span className="text-text2"> [{short(it.session)}]</span>}
-              <span className={it.kind === "alert" ? "text-warn" : "text-text2"}> {MARK[it.kind]} </span>
+               <KindIcon kind={it.kind} className={it.kind === "alert" ? "text-warn" : "text-text2"} /> 
               <span className="text-text/90">{it.text}</span>
             </span>
           </div>

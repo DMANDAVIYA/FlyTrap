@@ -1,4 +1,13 @@
+import { MessageSquare, PenLine, TriangleAlert, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
+
+const KIND_ICON = { thought: MessageSquare, action: Wrench, note: PenLine, alert: TriangleAlert };
+
+/** Drawn icon for a log line kind, at the stroke weight the rest of the UI uses. */
+export function KindIcon({ kind, className = "" }: { kind: string; className?: string }) {
+  const Icon = KIND_ICON[kind as keyof typeof KIND_ICON] ?? MessageSquare;
+  return <Icon size={11} strokeWidth={1.8} aria-label={kind} className={`inline-block -translate-y-px ${className}`} />;
+}
 
 export function Panel({ title, right, children, className = "", bodyClass = "" }: {
   title: string; right?: ReactNode; children: ReactNode; className?: string; bodyClass?: string;

@@ -40,7 +40,7 @@ export function Drawer({ s, open, tab, onTab, onClose, picked, onPick }: {
           className="absolute inset-y-0 right-0 z-40 flex w-[min(560px,100%)] flex-col border-l border-line2 bg-bg shadow-[-24px_0_48px_rgba(0,0,0,.55)]"
         >
           <div className="flex items-center border-b border-line">
-          <div role="tablist" aria-label="Details" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2">
+          <div role="tablist" aria-label="Details" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2 [mask-image:linear-gradient(to_right,black_82%,transparent)] sm:[mask-image:none]">
             {TABS.map((t) => (
               <button
                 key={t}
