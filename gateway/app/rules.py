@@ -129,6 +129,14 @@ def not_found_hit(session: Session, status: int, now: float) -> Hit | None:
     return None
 
 
+def forbidden_object_hit(session: Session, path: str, status: int) -> Hit | None:
+    """The real site refused a customer or invoice record: someone reaching for another customer's data.
+    One refusal puts the visitor under review (Argus moves known AI agents), a second one flips it."""
+    if status != 403 or session.trapped or not ENUMERABLE.match(path):
+        return None
+    return Hit("T13", False, 35, f"refused another customer's record: {path}")
+
+
 def dynamic_hits(req: RequestView, session: Session, rules: list[DynamicRule], now: float) -> list[Hit]:
     return [
         Hit(r.rule_id, r.action == "flip", r.score, "approved rule")

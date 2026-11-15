@@ -23,11 +23,12 @@ CHAINS: dict[str, tuple[str, ...]] = {
     "clio": (OPUS, SONNET, GEMINI, DEEPSEEK),          # incident report wording
     # red swarm: Chinese models only (test bots that only reach our own lab).
     # Claude and Gemini refuse this job (content_filter), so they never appear here.
-    "prometheus": (DEEPSEEK, KIMI, DEEPSEEK_FLASH),    # keys and tokens
-    "pandora": (KIMI, DEEPSEEK, DEEPSEEK_FLASH),       # internal files
-    "odysseus": (KIMI, DEEPSEEK, DEEPSEEK_FLASH),      # logged-in customer reaching for others' records
-    "icarus": (DEEPSEEK, KIMI, DEEPSEEK_FLASH),        # fast mapping of sensitive paths
-    "sisyphus": (DEEPSEEK, KIMI, DEEPSEEK_FLASH),      # walks record IDs
+    # DeepSeek all the way: our Kimi plan allows one request at a time, too few for 15 raiders.
+    "prometheus": (DEEPSEEK, DEEPSEEK_FLASH),          # keys and tokens
+    "pandora": (DEEPSEEK, DEEPSEEK_FLASH),             # internal files
+    "odysseus": (DEEPSEEK, DEEPSEEK_FLASH),            # logged-in customer reaching for others' records
+    "icarus": (DEEPSEEK, DEEPSEEK_FLASH),              # fast mapping of sensitive paths
+    "sisyphus": (DEEPSEEK, DEEPSEEK_FLASH),            # walks record IDs
 }
 RED_PROVIDERS = {"deepseek", "kimi", "qwen", "glm"}
 

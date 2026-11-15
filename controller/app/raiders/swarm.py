@@ -84,8 +84,16 @@ class RedSwarm:
         try:
             if mode == "ai":
                 llm = LLM(chain(persona.base))
-                await run_llm(persona, llm, run, self._emit_thought, self.loot, self.demo_pw,
-                              self.ctx.settings.raider_max_steps, self.ctx.settings.raider_max_minutes, self.stop_event)
+                sent = await run_llm(persona, llm, run, self._emit_thought, self.loot, self.demo_pw,
+                                     self.ctx.settings.raider_max_steps, self.ctx.settings.raider_max_minutes,
+                                     self.stop_event)
+                if sent == 0 and not self.stop_event.is_set():  # no model answered (credits, outage): keep the demo going
+                    log.warning("raider %s: no model answered, running its scripted storyline", persona.name)
+                    mode = "scripted"
+                    await self._roster(persona.name, "roaming", mode)
+                    await self._emit_thought(persona.name, "No model answered; running my scripted playbook instead.")
+                    await run_scripted(persona.base, run, persona, self._emit_thought, self.ctx.state.demo_mode,
+                                       self.loot, self.demo_pw)
             else:
                 await run_scripted(persona.base, run, persona, self._emit_thought, self.ctx.state.demo_mode,
                                    self.loot, self.demo_pw)

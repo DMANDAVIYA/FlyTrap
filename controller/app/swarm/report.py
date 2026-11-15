@@ -41,6 +41,7 @@ RECOMMEND = {
     "T7": "Keep the AI-only note: it separates AI agents from people cleanly",
     "T10": "Score record-ID walking earlier (approve Mnemosyne's enumeration rule)",
     "T12": "Flip known scripting-tool user agents on the first request",
+    "T13": "Keep treating refused access to another customer's record as a tripwire",
 }
 
 

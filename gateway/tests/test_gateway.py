@@ -118,3 +118,19 @@ def test_r2_scored_flip_needs_approval():
             await gw.route(s, "real", "test", approval_id=None)
         await gw.client.aclose()
     asyncio.run(run())
+
+
+def test_refused_customer_record_is_a_tripwire():
+    """T13: the real site refusing a customer or invoice record means someone reached for another customer."""
+    s, now = session(), time.time()
+    hit = rules.forbidden_object_hit(s, "/api/v1/users/2", 403)
+    assert hit and hit.tripwire == "T13" and not hit.instant and hit.score == 35
+    assert rules.forbidden_object_hit(s, "/api/v1/invoices/9001", 403).tripwire == "T13"
+    assert rules.forbidden_object_hit(s, "/api/v1/users/2", 200) is None      # allowed: own record
+    assert rules.forbidden_object_hit(s, "/admin", 403) is None               # not a customer record
+    s.add_risk(hit.score, now)
+    assert s.risk < 60                                                        # one refusal: review, no flip
+    s.add_risk(hit.score, now)
+    assert s.risk >= 60                                                       # second refusal crosses the flip line
+    s.side = "trap"
+    assert rules.forbidden_object_hit(s, "/api/v1/users/3", 403) is None      # already trapped

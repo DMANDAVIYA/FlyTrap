@@ -6,6 +6,7 @@ and an `action` event, so the dashboard shows the guard working.
 
 from __future__ import annotations
 
+import json
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
@@ -28,6 +29,16 @@ QUIET_TOOLS = {"post_note", "alert", "write_report"}  # logged through their own
 # the swarm-wide cap; every call still has a per-agent, per-tool, per-target cap.
 CHEAP_TOOLS = {"label_session", "post_note", "alert"}
 SWARM_PER_MIN, PER_TARGET_PER_MIN, CHEAP_PER_TARGET_PER_MIN = 120, 3, 10
+
+
+def rate_key(args: dict) -> str:
+    """What a per-target cap counts against: the session, or for session-less tools the rule itself,
+    so two different rule suggestions don't use up each other's budget."""
+    if args.get("session"):
+        return str(args["session"])
+    if args.get("rule"):
+        return "rule:" + json.dumps(args["rule"], sort_keys=True, default=str)[:200]
+    return "-"
 
 
 @dataclass
@@ -74,7 +85,7 @@ class Policy:
         tool = TOOLS.get(name)
         if tool is None:
             return await self._log(actor, name, args, reason, evidence, "rejected", f"unknown tool {name}")
-        if name not in ALLOWLIST.get(actor, set()):
+        if name not in ALLOWLIST.get(actor.split("-", 1)[0], set()):  # cerberus-2 holds cerberus's tools
             return await self._log(actor, name, args, reason, evidence, "rejected", f"{actor} does not hold {name}")
         missing = [k for k in tool.required if k not in args or args[k] in (None, "", [])]
         if missing:
@@ -83,7 +94,7 @@ class Policy:
             ok, why = await tool.guard(self.ctx, args)
             if not ok:
                 return await self._log(actor, name, args, reason, evidence, "rejected", why)
-        if not self._rate_ok(actor, name, session):
+        if not self._rate_ok(actor, name, rate_key(args)):
             return await self._log(actor, name, args, reason, evidence, "rejected", "rate limit")
         needs_zeus = bool(tool.approval_kind) and tool.approval_if(args) and actor != "zeus"
         if needs_zeus:

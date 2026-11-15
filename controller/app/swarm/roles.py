@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+from ..config import settings
 from ..context import Ctx
 from ..llm import LLM, LLMError
 from ..policy import ALLOWLIST
@@ -29,12 +30,27 @@ class Role:
     job: str
     interval_s: float
     uses_ai: bool  # False: code-only role (rules mode always)
+    scope: str | None = None  # a trap pod ("pod-2"), "olympus" (visitors never trapped), or None (everything)
+
+    @property
+    def base(self) -> str:
+        """The agent kind: 'cerberus-2' -> 'cerberus'. Tools, models and rules are per kind."""
+        return self.name.split("-", 1)[0]
+
+    def covers(self, session: dict) -> bool:
+        if self.scope is None:
+            return True
+        if self.scope == "olympus":
+            return not session.get("pod")
+        return session.get("pod") == self.scope
 
     def prompt(self) -> str:
-        return f"You are {self.name.capitalize()}, the {self.title}. {self.job} {SHARED}"
+        where = (f" You work only on {self.scope}; other agents cover the rest." if self.scope and self.scope != "olympus"
+                 else " You work only on visitors still on the real site." if self.scope else "")
+        return f"You are {self.base.capitalize()}, the {self.title}.{where} {self.job} {SHARED}"
 
 
-ROLES = [
+BASE_ROLES = [
     Role("athena", "commander", "Read the other agents' notes, link sessions into campaigns when evidence connects them, "
          "check damage when a session probed the real servers (Olympus), and ask Zeus for drastic actions.", 5, True),
     Role("argus", "watcher", "Label every visitor human, scanner or ai_agent with reasons and evidence, and quarantine "
@@ -47,16 +63,32 @@ ROLES = [
     Role("clio", "historian", "Write the incident report when a session reaches exfiltration or goes quiet.", 4, False),
     Role("hermes", "messenger", "Raise alerts for canaries, real-side probes, lockdown and approvals waiting for Zeus.", 1, False),
 ]
+PER_POD = {"hephaestus", "cerberus"}  # one per trap pod, so every pod has its own builder and guard
+
+
+def build_roles(pods: list[str]) -> list[Role]:
+    roles = []
+    for role in BASE_ROLES:
+        if role.name not in PER_POD:
+            roles.append(role)
+            continue
+        if role.name == "hephaestus":  # key rotation for visitors who probed Olympus and were never trapped
+            roles.append(replace(role, scope="olympus"))
+        roles += [replace(role, name=f"{role.name}-{i}", scope=pod) for i, pod in enumerate(pods, 1)]
+    return roles
+
+
+ROLES = build_roles(settings.trap_pods)
 BY_NAME = {r.name: r for r in ROLES}
 
 
 def rules_plan(ctx: Ctx, role: Role, sessions: list[dict], events: list) -> Plan:
-    return RULES[role.name](ctx, sessions, events)
+    return RULES[role.base](ctx, sessions, events)
 
 
 async def ai_plan(ctx: Ctx, role: Role, llm: LLM, sessions: list[dict], events: list) -> Plan:
     """One model call with only this role's tools. Raises LLMError on any failure."""
-    tools = [TOOLS[n].schema() for n in sorted(ALLOWLIST[role.name])]
+    tools = [TOOLS[n].schema() for n in sorted(ALLOWLIST[role.base])]
     context = {
         "sessions": [{k: v for k, v in s.items() if k not in ("real_records_served",)} for s in sessions[:8]],
         "new_events": [{"id": e["id"], "kind": e["kind"], "session": e["session_id"], "payload": e["payload"]}

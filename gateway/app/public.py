@@ -139,9 +139,9 @@ def _beacon_payload(body: bytes | None) -> dict:
 
 
 def _after_response(gw: Gateway, session: Session, path: str, status: int, set_cookie: str, now: float) -> None:
-    hit = rules.not_found_hit(session, status, now)
-    if hit:
-        _apply_hits(gw, session, [hit], 0.0, now)
+    hits = [h for h in (rules.not_found_hit(session, status, now), rules.forbidden_object_hit(session, path, status)) if h]
+    if hits:
+        _apply_hits(gw, session, hits, 0.0, now)
     if session.trapped:
         stage = rules.infer_stage(path, set_cookie)
         if stage and session.advance_stage(stage):
