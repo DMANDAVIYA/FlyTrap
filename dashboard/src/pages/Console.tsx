@@ -55,7 +55,7 @@ export default function Console() {
       {/* overflow-x-clip: the drawer slides in from the right edge without widening the page. */}
       <main className="relative flex min-h-0 flex-1 flex-col overflow-x-clip">
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 scroll-thin sm:p-5 lg:overflow-y-auto">
-          {raw ? <RawConsole s={s} picked={picked} onPick={openReport} /> : <>
+          {raw ? <RawConsole s={s} picked={picked} onPick={openReport} onDetails={() => openTab("Agents")} onExit={() => setRaw(false)} /> : <>
             <Approvals s={s} />
             <div className={`grid min-h-0 flex-1 grid-cols-1 gap-4 ${GRID}`}>
               <Traffic rps={s.rps} className="min-h-[360px] md:col-span-2 lg:col-span-6 lg:min-h-0" />

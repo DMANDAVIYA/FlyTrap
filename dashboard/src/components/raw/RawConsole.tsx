@@ -3,6 +3,7 @@ import { control, type State } from "@/feed";
 import { BLUE, RED, ROLE, type SessionData, type StreamItem } from "@/types";
 import { clock, short } from "../Panel";
 import { useStick } from "../Streams";
+import { CommandLine } from "./CommandLine";
 
 /*
  * Raw view: every field of the live feed as a terminal UI, attackers left and defenders right.
@@ -174,7 +175,9 @@ function Roster({ title, names, idle, tone, s }: { title: string; names: readonl
   );
 }
 
-export function RawConsole({ s, picked, onPick }: { s: State; picked: string | null; onPick: (sid: string) => void }) {
+export function RawConsole({ s, picked, onPick, onDetails, onExit }: {
+  s: State; picked: string | null; onPick: (sid: string) => void; onDetails: () => void; onExit: () => void;
+}) {
   const st = s.stats;
   const series = s.rps.slice(-40);
   const max = Math.max(1, ...series.map((d) => Math.max(d.real, d.trap)));
@@ -266,6 +269,8 @@ export function RawConsole({ s, picked, onPick }: { s: State; picked: string | n
           </div>
         </section>
       </div>
+
+      <CommandLine s={s} onReport={onPick} onDetails={onDetails} onExit={onExit} />
 
       <footer className="flex flex-wrap gap-x-4 border-t border-line pt-2 text-text2">
         <span className={s.connected ? "text-green" : ""}>ws {s.connected ? "live" : "offline"}</span>
