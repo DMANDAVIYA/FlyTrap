@@ -78,7 +78,7 @@ a { text-underline-offset: 0.2em; }
 .dolos-ring { animation: dolos-ring 1.2s cubic-bezier(.4, 0, .2, 1) both; }
 
 /* Wild Hunt footer: tone the painting and its riders into the black-and-green world (component untouched). */
-.dolos-footer .whf-picture img { filter: grayscale(1) contrast(1.12) brightness(.92) sepia(.55) hue-rotate(78deg) saturate(1.7); }
+.dolos-footer .whf-picture img:not(.whf-cutout) { filter: grayscale(1) contrast(1.12) brightness(.92) sepia(.55) hue-rotate(78deg) saturate(1.7); }
 
 /* Incident report markdown */
 .md h1 { font-size: 20px; font-weight: 650; margin: 0 0 8px; } .md h2, .md h3 { font-size: 15px; font-weight: 650; margin: 14px 0 6px; color: var(--text); }

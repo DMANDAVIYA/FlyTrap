@@ -74,7 +74,7 @@ export default function Landing() {
           { title: "Try it", links: [{ label: "Release the swarm", href: "#/console" }, { label: "Open the bait site", href: bait }] },
           { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Arbo, The Wild Hunt", href: ARBO }] },
         ]}
-        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons, toned green. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
+        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons; the sky toned green, the riders in their own colours. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
         legal="Dolos · HackUMass XIV"
         fontFamily='"Montserrat Variable", system-ui, sans-serif'
         monoFamily='"JetBrains Mono Variable", ui-monospace, monospace'
