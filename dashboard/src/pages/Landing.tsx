@@ -3,8 +3,12 @@ import { useEffect } from "react";
 import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { DolosMark, Wordmark } from "@/components/Logo";
+import WildHuntFooter from "@/components/ui/wild-hunt-footer";
+
+const CREDIT = "https://commons.wikimedia.org/wiki/File:Creation_of_Adam_(Michelangelo)_Detail.jpg";
 
 export default function Landing() {
+  const bait = `${location.protocol}//${location.hostname}:8080`;
   useEffect(() => {
     document.title = "Dolos · a honeypot for rogue AI";
   }, []);
@@ -49,16 +53,30 @@ export default function Landing() {
             <a href="#/see" className="btn !px-5 !py-3">See what the bot sees <ArrowRight size={14} aria-hidden /></a>
           </div>
         </div>
-        <footer className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-5 pb-10 text-[13px] text-text2 sm:px-8">
-          <span className="flex items-center gap-2.5 text-text"><DolosMark size={20} /><Wordmark className="text-[12px]" /></span>
-          <span><span className="font-display text-base tracking-[0.12em]">ΔΟΛΟΣ</span>, the Greek spirit of trickery.</span>
-          <span>
-            Hands: Michelangelo, <i>The Creation of Adam</i> (detail), public domain, via{" "}
-            <a className="underline decoration-line2 hover:text-text" href="https://commons.wikimedia.org/wiki/File:Creation_of_Adam_(Michelangelo)_Detail.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>
-          </span>
-          <span className="md:ml-auto">Built at HackUMass XIV</span>
-        </footer>
       </section>
+
+      <WildHuntFooter
+        wordmark="DOLOS"
+        image={{
+          src: "/hero/footer-hands.webp",
+          cutout: "/hero/footer-hands-cutout.webp",
+          position: "50% 50%",
+          alt: "A skeletal hand and Hermes' hand reaching for a glowing .env vial, toned green",
+        }}
+        preset="ink"
+        palette={{ background: "#030604", ink: "#3dff8f" }}
+        tagline="A honeypot for rogue AI · hidden inside your real website"
+        sideNote="Built at HackUMass XIV · Olympus above · Tartarus below"
+        columns={[
+          { title: "Explore", links: [{ label: "How it works", href: "#how" }, { label: "What the bot sees", href: "#/see" }, { label: "Live console", href: "#/console" }] },
+          { title: "Try it", links: [{ label: "Release the swarm", href: "#/console" }, { label: "Open the bait site", href: bait }] },
+          { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Wild Hunt, 21st.dev", href: "https://21st.dev" }] },
+        ]}
+        colophon="The bot reaches for the bait; Hermes holds it out. Footer art from the Dolos team's reference image, toned green. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain, via Wikimedia Commons. ΔΟΛΟΣ, the Greek spirit of trickery."
+        legal="Dolos · HackUMass XIV"
+        fontFamily='"Montserrat Variable", system-ui, sans-serif'
+        monoFamily='"JetBrains Mono Variable", ui-monospace, monospace'
+      />
     </main>
   );
 }

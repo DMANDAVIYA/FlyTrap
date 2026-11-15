@@ -1,0 +1,4 @@
+{
+  "prompt": "Origin: reference artwork supplied by the user in this session (640x640 PNG: a skeletal hand and a human hand reaching for a vial). Processing in a canvas: cropped to the hands, vial label replaced with .env, toned black-to-green, upscaled 2.5x, green glow added behind the vial. Cut-out keeps Hermes' hand and the vial (luminance key, right of the bot's claws) so only the bot's hand dissolves.",
+  "createdAt": "2026-11-15T04:03:47.310Z"
+}
