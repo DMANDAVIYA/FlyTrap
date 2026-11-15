@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@fontsource-variable/mona-sans/wdth.css";
+import "@fontsource-variable/montserrat";
+import "@fontsource-variable/sofia-sans-extra-condensed";
 import "@fontsource-variable/jetbrains-mono";
 import "./index.css";
 import App from "./App";

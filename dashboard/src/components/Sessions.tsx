@@ -3,8 +3,8 @@ import type { SessionData } from "../types";
 import { agentColor, short } from "./Panel";
 
 const LABEL_STYLE: Record<string, string> = {
-  ai_agent: "bg-trap/15 text-[#ffb3c0] border-trap/50", scanner: "bg-warn/10 text-warn border-warn/40",
-  human: "bg-real/10 text-real border-real/40", unknown: "text-text2 border-line2",
+  ai_agent: "bg-trap/10 text-trap border-trap/45", scanner: "text-real border-real/40",
+  human: "text-text2 border-line2", unknown: "text-text2/70 border-line",
 };
 
 function Row({ x, onPick, active }: { x: SessionData; onPick: (sid: string) => void; active: boolean }) {

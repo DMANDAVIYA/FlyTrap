@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Approvals } from "@/components/Approvals";
 import { Counters } from "@/components/Counters";
 import { Drawer, type Tab } from "@/components/Drawer";
-import { LiveMap } from "@/components/LiveMap";
+import { FlipToast } from "@/components/FlipToast";
 import { LockdownOverlay } from "@/components/Lockdown";
 import { Sessions } from "@/components/Sessions";
 import { TopBar } from "@/components/TopBar";
@@ -32,7 +32,7 @@ export default function Console() {
       <TopBar s={s} drawerOpen={open} onToggleDrawer={() => setOpen((o) => !o)} />
       {/* overflow-x-clip: the drawer slides in from the right edge without widening the page. */}
       <div className="relative grid min-h-0 flex-1 overflow-x-clip grid-rows-[minmax(360px,1fr)_auto] lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <LiveMap s={s} />
+        <FlipToast s={s} />
         <aside className="flex min-h-0 flex-col border-t border-line lg:border-t-0 lg:border-l" aria-label="Containment">
           <Counters stats={s.stats} />
           <Approvals s={s} />

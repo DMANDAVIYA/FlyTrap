@@ -28,7 +28,7 @@ export function Counters({ stats }: { stats: StatsData }) {
   const exposed = stats.real_records_exposed;
   return (
     <section aria-label="Vitals" className="border-b border-line">
-      <Vital big label="Real records exposed" value={String(exposed)} color={exposed ? "var(--trap)" : "var(--ok)"}
+      <Vital big label="Real records exposed" value={String(exposed)} color={exposed ? "var(--breach)" : "var(--ok)"}
         note={exposed ? "Real customer records were served on Olympus" : "Not one real customer record has left Olympus"} />
       <div className="grid grid-cols-2 border-t border-line divide-x divide-line">
         <Vital label="Trapped" value={String(stats.trapped)} color="var(--trap)" note={`${stats.active_sessions ?? 0} active sessions`} />

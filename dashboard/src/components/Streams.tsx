@@ -32,8 +32,8 @@ function Line({ it }: { it: StreamItem }) {
       <span className="font-semibold uppercase mr-1" style={{ color: agentColor(it.agent) }}>{it.agent}</span>
       {it.session && it.session !== "-" && <span className="text-text2 mr-1" title={it.session}>[{short(it.session)}]</span>}
       <span className="text-text2 mr-1">{MARK[it.kind]}</span>
-      <span className={rejected ? "text-trap line-through decoration-trap/40" : pending ? "text-warn" : "text-text"}>{it.text}</span>
-      {rejected && <span className="ml-2 text-[11px] text-trap no-underline">policy guard</span>}
+      <span className={rejected ? "text-text2 line-through decoration-text2/50" : pending ? "text-warn" : "text-text"}>{it.text}</span>
+      {rejected && <span className="ml-2 text-[11px] text-text2 no-underline">policy guard</span>}
       {pending && <span className="ml-2 text-[11px] text-warn">awaiting Zeus</span>}
     </div>
   );

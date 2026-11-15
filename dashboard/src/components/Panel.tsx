@@ -16,9 +16,10 @@ export function Panel({ title, right, children, className = "", bodyClass = "" }
 
 export const agentColor = (agent: string) =>
   ({
-    athena: "#c9b8ff", argus: "#7fd4ff", hephaestus: "#ffb36b", cerberus: "#ff8a8a", mnemosyne: "#b8e986",
-    clio: "#f5d76e", hermes: "#9ef0e0", zeus: "#ffffff", charon: "#93a3af",
-    prometheus: "#ff6b4a", pandora: "#ff4fa3", odysseus: "#ffa94d", icarus: "#ff4747", sisyphus: "#d97757",
+    // Defenders in greens, raiders in neutral greys: the log stays black and green.
+    athena: "#e4f0e8", argus: "#9fe8c3", hephaestus: "#c8dc8f", cerberus: "#5fd39a", mnemosyne: "#b3c7bb",
+    clio: "#d6e6a6", hermes: "#3dff8f", zeus: "#ffffff", charon: "#8aa293",
+    prometheus: "#d9dfdb", pandora: "#c3cbc6", odysseus: "#d9dfdb", icarus: "#c3cbc6", sisyphus: "#aeb7b1",
   })[agent] ?? "#93a3af";
 
 export const sideColor = (side?: string | null) => (side === "trap" || side === "blocked" ? "var(--trap)" : "var(--real)");

@@ -1,11 +1,6 @@
 import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DolosMark, Wordmark } from "@/components/Logo";
-import { Scramble } from "@/components/Scramble";
-import type { PillId } from "@/components/three/Pills";
-import RainingLetters from "@/components/ui/modern-animated-hero-section";
-
-const Pills = lazy(() => import("@/components/three/Pills"));
 
 // Plain-words version of the README's five steps. No numbers it does not state.
 const STEPS = [
@@ -36,47 +31,12 @@ const STEPS = [
   },
 ];
 
-function PillChoice({ id, href, title, line, hint, active, onHover }: {
-  id: PillId; href: string; title: string; line: string; hint: string; active: boolean; onHover: (p: PillId | null) => void;
-}) {
-  const blue = id === "blue";
-  const Icon = blue ? ArrowUpRight : ArrowRight;
-  return (
-    <a
-      href={href}
-      target={blue ? "_blank" : undefined}
-      rel={blue ? "noopener" : undefined}
-      onMouseEnter={() => onHover(id)}
-      onMouseLeave={() => onHover(null)}
-      onFocus={() => onHover(id)}
-      onBlur={() => onHover(null)}
-      className={`flex flex-col items-center text-center rounded-[3px] border px-3 py-3 sm:px-5 transition-colors ${
-        blue
-          ? active ? "border-real bg-real/10" : "border-real/35"
-          : active ? "border-trap bg-trap/10" : "border-trap/45"
-      }`}
-    >
-      <span className={`font-mono text-[11px] font-bold uppercase tracking-[0.24em] ${blue ? "text-real" : "text-trap"}`}>{title}</span>
-      <span className="mt-1.5 expanded text-base sm:text-lg font-semibold leading-tight">{line}</span>
-      <span className="mt-1 text-sm text-text2 hidden sm:inline-flex items-center gap-1">
-        {hint} <Icon size={14} aria-hidden />
-      </span>
-    </a>
-  );
-}
-
 export default function Landing() {
-  const [hover, setHover] = useState<PillId | null>(null);
   const bait = `${location.protocol}//${location.hostname}:8080`;
 
   useEffect(() => {
     document.title = "Dolos · a honeypot for rogue AI";
   }, []);
-
-  const pick = (p: PillId) => {
-    if (p === "red") location.hash = "#/console";
-    else window.open(bait, "_blank", "noopener");
-  };
 
   return (
     <main>
@@ -93,35 +53,15 @@ export default function Landing() {
         </nav>
       </header>
 
-      <RainingLetters phrases={["DOLOS", "ΔΟΛΟΣ"]} label="Dolos">
-        <p className="mt-7 max-w-[30ch] text-center expanded font-semibold text-[clamp(1.25rem,2.6vw,1.75rem)] leading-[1.2] text-balance">
-          A honeypot for rogue AI that hides inside your real website.
-        </p>
-        <p className="mt-4 max-w-[52ch] text-center text-text2 text-[15px] sm:text-base leading-relaxed text-balance">
-          Bots that touch the bait are quietly moved into a perfect copy of the site, filled with fake data. They never find out.
-        </p>
-
-        <div className="mt-6 w-[min(720px,94vw)]">
-          <div className="relative h-[190px] sm:h-[230px]">
-            <Suspense fallback={null}>
-              <Pills hovered={hover} onHover={setHover} onPick={pick} />
-            </Suspense>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-6">
-            <PillChoice id="blue" href={bait} title="Blue pill" line="Stay in the illusion" hint="See the site as a bot does"
-              active={hover === "blue"} onHover={setHover} />
-            <PillChoice id="red" href="#/console" title="Red pill" line="See the truth" hint="Open the live console"
-              active={hover === "red"} onHover={setHover} />
-          </div>
-        </div>
-
-        <a href="#how" className="mt-12 flex flex-col items-center gap-1 text-[11px] uppercase tracking-[0.24em] text-text2 hover:text-text transition-colors">
-          How it works <ChevronDown size={16} aria-hidden />
-        </a>
-      </RainingLetters>
+      <section className="flex min-h-[100svh] flex-col items-center justify-center px-5 text-center">
+        <h1 className="font-display text-[clamp(6rem,20vw,16rem)] font-[200] leading-none tracking-[0.06em]">DOLOS</h1>
+        <p className="mt-6 max-w-[36ch] text-lg">A honeypot for rogue AI that hides inside your real website.</p>
+        <a href="#/console" className="btn btn-trap mt-8">Open the console <ArrowRight size={14} aria-hidden /></a>
+        <a href="#how" className="caps mt-12 flex flex-col items-center gap-1 text-[10.5px] text-text2 hover:text-text">How it works <ChevronDown size={16} aria-hidden /></a>
+      </section>
 
       <section id="how" className="mx-auto max-w-6xl px-5 sm:px-8 pt-20 pb-24 scroll-mt-4">
-        <h2 className="expanded font-semibold text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.02] tracking-[-0.02em]">How it works</h2>
+        <h2 className="font-semibold text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.02] tracking-[-0.02em]">How it works</h2>
         <p className="mt-5 max-w-[56ch] text-lg leading-relaxed text-text2">
           One website, two worlds. Every step has two sides: what the attacker sees, and what really happens.
         </p>
@@ -134,21 +74,21 @@ export default function Landing() {
         <ol className="mt-8 md:mt-0">
           {STEPS.map((s) => (
             <li key={s.name} className="grid md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-10 gap-y-3 border-t border-line py-8">
-              <h3 className="expanded font-semibold text-xl sm:text-2xl leading-tight">{s.name}</h3>
-              <p className="text-[17px] leading-relaxed text-[#c9dcff]">
+              <h3 className="font-semibold text-xl sm:text-2xl leading-tight">{s.name}</h3>
+              <p className="text-[17px] leading-relaxed text-real">
                 <span className="md:hidden mr-2 text-[11px] font-bold uppercase tracking-[0.2em] text-real">They see</span>
                 {s.see}
               </p>
-              <p className="font-mono text-[15px] leading-relaxed text-[#ffc2cc] md:border-l md:border-line md:pl-10">
+              <p className="font-mono text-[15px] leading-relaxed text-text md:border-l md:border-line md:pl-10">
                 <span className="md:hidden mr-2 text-[11px] font-bold uppercase tracking-[0.2em] text-trap">Really</span>
-                <Scramble text={s.real} onView />
+                {s.real}
               </p>
             </li>
           ))}
         </ol>
         <div className="border-t border-line pt-12">
-          <p className="expanded font-semibold text-[clamp(1.5rem,3.4vw,2.6rem)] leading-[1.12] max-w-[30ch]">
-            The bot leaves with a full bag of fake data. <span className="text-matrix">Real records exposed: zero.</span>
+          <p className="font-semibold text-[clamp(1.5rem,3.4vw,2.6rem)] leading-[1.12] max-w-[30ch]">
+            The bot leaves with a full bag of fake data. <span className="text-green">Real records exposed: zero.</span>
           </p>
         </div>
       </section>
@@ -156,7 +96,7 @@ export default function Landing() {
       <section className="border-t border-line">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24 flex flex-col md:flex-row md:items-end justify-between gap-10">
           <div>
-            <h2 className="expanded font-semibold text-[clamp(2.25rem,5.5vw,4.25rem)] leading-none tracking-[-0.02em]">Take the red pill.</h2>
+            <h2 className="font-semibold text-[clamp(2.25rem,5.5vw,4.25rem)] leading-none tracking-[-0.02em]">Take the red pill.</h2>
             <p className="mt-5 max-w-[50ch] text-lg leading-relaxed text-text2">
               Release the test raiders and watch each one fall into Tartarus while real visitors stay on Olympus.
             </p>
