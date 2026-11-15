@@ -1,4 +1,48 @@
-/** The bait: a small glass vial of `.env`, glowing green. Pure SVG, sized by its parent. */
+// The bait: a pixel-art vial of `.env`, glowing green, on a 16 x 25 grid (one cell = 5 units). Sized by its parent.
+// o glass edge, h highlight, g glass, L/l/d liquid light/mid/dark, b label, k label ink, c/C cork, s rim
+const ROWS = [
+  "......cCCc......",
+  ".....cCCCCc.....",
+  ".....cccccc.....",
+  ".....ssssss.....",
+  "......ohgo......",
+  "......ohgo......",
+  "......ohgo......",
+  ".....ohhggo.....",
+  "....ohgggggo....",
+  "...ohgggggggo...",
+  "..ohgggggggggo..",
+  "..ohgggggggggo..",
+  "..ohLLLLLLLLLo..",
+  "..ohlllllllldo..",
+  "..ohbbbbbbbbbo..",
+  "..ohbkkkkkkbbo..",
+  "..ohbbbbbbbbbo..",
+  "..ohlllllllldo..",
+  "..ohlLlllllldo..",
+  "..ohlllllllldo..",
+  "..ohllllllLldo..",
+  "..ohlllllllldo..",
+  "..oglllllllldo..",
+  "...oddddddddo...",
+  "....oooooooo....",
+];
+const PAL: Record<string, string> = {
+  o: "#9fc4af", h: "#deeed6", g: "#16301f", L: "#7dffb6", l: "#2fd27a", d: "#13924b",
+  b: "#deeed6", k: "#0b1f13", c: "#9a6a3c", C: "#c08a52", s: "#b0d2be",
+};
+// one rect per run of same-colour cells in a row
+const RUNS = ROWS.flatMap((row, y) => {
+  const out: { ch: string; x: number; y: number; n: number }[] = [];
+  for (let x = 0; x < row.length; ) {
+    let n = 1;
+    while (row[x + n] === row[x]) n++;
+    if (PAL[row[x]]) out.push({ ch: row[x], x, y, n });
+    x += n;
+  }
+  return out;
+});
+
 export function Vial({ className = "", glow = false }: { className?: string; glow?: boolean }) {
   return (
     <svg viewBox="0 0 80 140" className={className} aria-hidden>
@@ -7,30 +51,14 @@ export function Vial({ className = "", glow = false }: { className?: string; glo
           <stop offset="0%" stopColor="#3dff8f" stopOpacity={glow ? 0.55 : 0.32} />
           <stop offset="100%" stopColor="#3dff8f" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="vial-liquid" x1="0" x2="1">
-          <stop offset="0%" stopColor="#1fb862" />
-          <stop offset="45%" stopColor="#5dffa6" />
-          <stop offset="100%" stopColor="#139a4e" />
-        </linearGradient>
-        <linearGradient id="vial-cap" x1="0" x2="1">
-          <stop offset="0%" stopColor="#6f8a7a" />
-          <stop offset="50%" stopColor="#dbe9df" />
-          <stop offset="100%" stopColor="#56705f" />
-        </linearGradient>
       </defs>
       <circle cx="40" cy="82" r="40" fill="url(#vial-halo)" />
-      {/* cap and crimp */}
-      <rect x="25" y="8" width="30" height="16" rx="4" fill="url(#vial-cap)" />
-      <rect x="28" y="23" width="24" height="8" rx="2" fill="#9db3a5" />
-      {/* glass */}
-      <path d="M30 31h20v8c8 3 12 8 12 16v62c0 7-5 12-12 12H30c-7 0-12-5-12-12V55c0-8 4-13 12-16Z" fill="rgba(200,255,225,.08)" stroke="rgba(220,255,235,.55)" strokeWidth="1.5" />
-      {/* liquid */}
-      <path d="M20.5 70h39v47c0 5.5-4 9.5-9.5 9.5h-20c-5.5 0-9.5-4-9.5-9.5Z" fill="url(#vial-liquid)" opacity={glow ? 1 : 0.9} />
-      {/* label */}
-      <rect x="19" y="78" width="42" height="26" rx="2" fill="#e8f3ec" />
-      <text x="40" y="96" textAnchor="middle" fontFamily="JetBrains Mono Variable, monospace" fontWeight="800" fontSize="14" fill="#04140b">.env</text>
-      {/* glass highlight */}
-      <path d="M25 50v62" stroke="rgba(255,255,255,.55)" strokeWidth="2.5" strokeLinecap="round" />
+      <g shapeRendering="crispEdges">
+        {RUNS.map((r) => (
+          <rect key={`${r.x}-${r.y}`} x={r.x * 5} y={r.y * 5 + 8} width={r.n * 5} height={5}
+            fill={glow && r.ch === "l" ? "#5dffa6" : PAL[r.ch]} />
+        ))}
+      </g>
     </svg>
   );
 }
