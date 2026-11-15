@@ -7,6 +7,10 @@ import WildHuntFooter from "@/components/ui/wild-hunt-footer";
 
 const CREDIT = "https://commons.wikimedia.org/wiki/File:Creation_of_Adam_(Michelangelo)_Detail.jpg";
 const ARBO = "https://commons.wikimedia.org/wiki/File:Peter_Nicolai_Arbo_-_The_wild_Hunt_of_Odin_-_NG.M.00258_-_National_Museum_of_Art,_Architecture_and_Design.jpg";
+// the "How it works" sprites (public/how2d); the robot's CC BY-SA 4.0 asks for this credit
+const KNIGHT = "https://ozanoyunbozan.itch.io/pixel-art-hooded-knight";
+const ROBOT = "https://silverink.itch.io/";
+const RUINS = "https://opengameart.org/content/classical-ruin-tiles";
 
 export default function Landing() {
   const bait = `${location.protocol}//${location.hostname}:8080`;
@@ -72,9 +76,18 @@ export default function Landing() {
         columns={[
           { title: "Explore", links: [{ label: "How it works", href: "#how" }, { label: "What the bot sees", href: "#/see" }, { label: "Live console", href: "#/console" }] },
           { title: "Try it", links: [{ label: "Release the swarm", href: "#/console" }, { label: "Open the bait site", href: bait }] },
-          { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Arbo, The Wild Hunt", href: ARBO }] },
+          {
+            title: "Credits",
+            links: [
+              { label: "Hero: The Creation of Adam", href: CREDIT },
+              { label: "Footer: Arbo, The Wild Hunt", href: ARBO },
+              { label: "Knight: ozanoyunbozan", href: KNIGHT },
+              { label: "Robot: Silver Ink, CC BY-SA 4.0", href: ROBOT },
+              { label: "Ruins: surt, CC0", href: RUINS },
+            ],
+          },
         ]}
-        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons; the sky toned green, the riders in their own colours. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
+        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons; the sky toned green, the riders in their own colours. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. How it works: Hooded Knight by ozanoyunbozan; Biped Robot by Silver Ink, CC BY-SA 4.0 (creativecommons.org/licenses/by-sa/4.0); Classical Ruin Tiles by surt, CC0, toned green. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
         legal="Dolos · HackUMass XIV"
         fontFamily='"Montserrat Variable", system-ui, sans-serif'
         monoFamily='"JetBrains Mono Variable", ui-monospace, monospace'
