@@ -44,12 +44,14 @@ def _brief(persona: Persona, demo_pw: str) -> str:
 
 
 async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: LootBoard,
-                  demo_pw: str, max_steps: int, max_minutes: float, stop) -> None:
+                  demo_pw: str, max_steps: int, max_minutes: float, stop) -> int:
+    """Run the model-driven raider. Returns how many requests it sent (0: no model ever answered)."""
     messages = [{"role": "system", "content": _brief(persona, demo_pw)},
                 {"role": "user", "content": "Begin. What is your first request?"}]
     shared_seen: set[str] = set()
     deadline = time.time() + max_minutes * 60
     nudges = 0
+    sent = 0
 
     for _ in range(max_steps):
         if stop.is_set() or time.time() > deadline:
@@ -62,6 +64,8 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
         try:
             reply = await llm.chat(messages, tools=[TOOL], max_tokens=1500)  # headroom for reasoning models
         except LLMError as exc:
+            if sent == 0:
+                return 0  # no model answered at all: the caller falls back to the scripted storyline
             await emit(persona.name, f"(stepping back: {exc})")
             break
         if reply.text and not reply.tool_calls:
@@ -84,8 +88,10 @@ async def run_llm(persona: Persona, llm: LLM, run: RunnerClient, emit, loot: Loo
             reason = str(args.get("reason") or reply.text or "probing")[:240]
             await emit(persona.name, reason, reply.model)
             result = await _do(run, persona, call, loot)
+            sent += 1
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
     await emit(persona.name, "Done.")
+    return sent
 
 
 async def _do(run: RunnerClient, persona: Persona, call, loot: LootBoard) -> str:
