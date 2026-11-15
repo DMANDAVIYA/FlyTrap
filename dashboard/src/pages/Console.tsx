@@ -24,12 +24,13 @@ export default function Console() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("Agents");
   const lockdown = s.lockdown.state !== "off";
-  // Raw view: the same feed as a terminal UI. Remembered per browser; storage can be unavailable.
+  // Raw view: the same feed as a terminal UI, and the default. The switch is remembered per browser under a new key,
+  // since the old "dolos.view" saved "cards" on every visit; storage can be unavailable.
   const [raw, setRaw] = useState(() => {
-    try { return localStorage.getItem("dolos.view") === "raw"; } catch { return false; }
+    try { return localStorage.getItem("dolos.console-view") !== "cards"; } catch { return true; }
   });
   useEffect(() => {
-    try { localStorage.setItem("dolos.view", raw ? "raw" : "cards"); } catch { /* private mode */ }
+    try { localStorage.setItem("dolos.console-view", raw ? "raw" : "cards"); } catch { /* private mode */ }
   }, [raw]);
 
   useEffect(() => {
