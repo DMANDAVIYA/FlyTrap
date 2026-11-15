@@ -52,8 +52,8 @@ export function Drawer({ s, open, tab, onTab, onClose, picked, onPick }: {
                 }`}
               >
                 {t}
-                {!!badge[t] && <span className="ml-1.5 font-mono text-[11px] text-matrix">{badge[t]}</span>}
-                {t === tab && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-matrix" />}
+                {!!badge[t] && <span className="ml-1.5 font-mono text-[11px] text-green">{badge[t]}</span>}
+                {t === tab && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-green" />}
               </button>
             ))}
           </div>
