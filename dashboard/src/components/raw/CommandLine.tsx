@@ -179,8 +179,8 @@ export function CommandLine({ s, onReport, onDetails, onExit }: {
     }
   };
 
+  // focus shows on the box border, the way a terminal pane lights up, not as a ring around the input
   return (
-    {/* focus shows on the box border, the way a terminal pane lights up, not as a ring around the input */}
     <section aria-label="Command line" className="relative flex min-h-0 flex-col border border-line2 pt-2.5 focus-within:border-green/60">
       <h3 className="absolute -top-[0.7em] left-2 whitespace-nowrap bg-bg px-1 text-[11px] font-normal leading-none">
         <span className="text-text2">[ </span><span className="text-green">command</span><span className="text-text2"> · help · : to focus ]</span>
