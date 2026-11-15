@@ -2,25 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dolos world: phosphor black, blue = what looks real (Olympus), red = the trap (Tartarus). */
+/* Channels feed Tailwind's opacity modifiers (bg-trap/10); the plain vars serve inline styles and canvas. */
 :root {
-  --bg: #07090c; --panel: #0e1217; --line: #1e2730; --text: #e6edf2; --text-2: #93a3af;
-  --real: #9ec3d9; --trap: #ff4747; --warn: #ffb020; --ok: #54d69a;
+  --bg-rgb: 3 6 4; --panel-rgb: 7 16 11; --line-rgb: 19 33 26; --line-2-rgb: 34 56 44;
+  --text-rgb: 223 247 232; --text-2-rgb: 134 165 147;
+  --matrix-rgb: 0 255 102; --real-rgb: 76 141 255; --trap-rgb: 255 51 85; --warn-rgb: 255 176 32;
+  --bg: rgb(var(--bg-rgb)); --panel: rgb(var(--panel-rgb)); --line: rgb(var(--line-rgb)); --line-2: rgb(var(--line-2-rgb));
+  --text: rgb(var(--text-rgb)); --text-2: rgb(var(--text-2-rgb));
+  --matrix: rgb(var(--matrix-rgb)); --real: rgb(var(--real-rgb)); --trap: rgb(var(--trap-rgb)); --warn: rgb(var(--warn-rgb)); --ok: var(--matrix);
+  --rain: #3b5446;
+  color-scheme: dark;
 }
-html, body, #root { height: 100%; }
-body { background: var(--bg); color: var(--text); font-family: "Chakra Petch", system-ui, sans-serif; font-size: 16px; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
-.panel-title { font-family: "Chakra Petch", sans-serif; letter-spacing: .14em; text-transform: uppercase; font-size: 12px; color: var(--text-2); }
-.scroll-thin::-webkit-scrollbar { width: 6px; } .scroll-thin::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-.stripes { background: repeating-linear-gradient(-45deg, rgba(255,176,32,.18) 0 14px, transparent 14px 28px); }
-.btn { font-family: "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--line); background: #121820; color: var(--text); transition: border-color .15s, background .15s; }
-.btn:hover { border-color: var(--text-2); }
+html { background: var(--bg); scroll-behavior: smooth; }
+html, body, #root { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--text); font-family: "Mona Sans Variable", system-ui, sans-serif; font-size: 16px;
+  -webkit-font-smoothing: antialiased; caret-color: var(--matrix);
+}
+::selection { background: var(--matrix); color: #021006; }
+:focus-visible { outline: 2px solid var(--matrix); outline-offset: 2px; border-radius: 2px; }
+a { text-underline-offset: 0.2em; }
+.tabular { font-variant-numeric: tabular-nums; }
+.expanded { font-stretch: 125%; }
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 6px; } .scroll-thin::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+
+/* Console panels: flat, separated by hairlines rather than boxed. */
+.panel { background: var(--bg); }
+.panel-title { font-family: "Mona Sans Variable", sans-serif; font-stretch: 112%; letter-spacing: .14em; text-transform: uppercase; font-size: 11px; font-weight: 600; color: var(--text-2); }
+.stripes { background: repeating-linear-gradient(-45deg, rgba(255,176,32,.2) 0 14px, transparent 14px 28px); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; font-family: "Mona Sans Variable", sans-serif; font-stretch: 112%;
+  text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 3px;
+  border: 1px solid var(--line-2); background: transparent; color: var(--text); transition: border-color .15s, background-color .15s, color .15s;
+}
+.btn:hover { border-color: var(--text-2); background: rgba(223,247,232,.04); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn-trap { border-color: rgba(255,71,71,.6); color: #ffd1d1; background: rgba(255,71,71,.12); }
-.btn-warn { border-color: rgba(255,176,32,.6); color: #ffe2a8; background: rgba(255,176,32,.1); }
-.btn-ok { border-color: rgba(84,214,154,.5); color: #c9f5e0; background: rgba(84,214,154,.08); }
-.md h1 { font-size: 20px; margin: 0 0 8px; } .md h2, .md h3 { font-size: 16px; margin: 12px 0 6px; color: var(--text); }
-.md p { margin: 6px 0; color: var(--text); } .md strong { color: #fff; }
+.btn-trap { border-color: rgba(255,51,85,.65); color: #ffd3da; background: rgba(255,51,85,.12); }
+.btn-trap:hover { border-color: var(--trap); background: rgba(255,51,85,.2); }
+.btn-warn { border-color: rgba(255,176,32,.6); color: #ffe2a8; background: rgba(255,176,32,.08); }
+.btn-warn:hover { border-color: var(--warn); background: rgba(255,176,32,.16); }
+.btn-ok { border-color: rgba(0,255,102,.45); color: #c6ffdc; background: rgba(0,255,102,.07); }
+.btn-ok:hover { border-color: var(--ok); background: rgba(0,255,102,.13); }
+
+/* Raining letters (components/ui/modern-animated-hero-section.tsx) */
+.rain-glyph {
+  position: absolute; left: 0; top: 0; font-family: "JetBrains Mono Variable", monospace; font-size: 1.8rem; line-height: 1; font-weight: 300;
+  color: var(--rain); opacity: .4; will-change: transform; transition: color .1s, opacity .1s, text-shadow .1s, scale .1s;
+}
+.rain-glyph.on { color: var(--matrix); opacity: 1; font-weight: 700; scale: 1.25; text-shadow: 0 0 8px rgba(255,255,255,.8), 0 0 12px rgba(255,255,255,.4); }
+.dud { color: var(--matrix); opacity: .7; }
+
+/* Incident report markdown */
+.md h1 { font-size: 20px; font-weight: 650; margin: 0 0 8px; } .md h2, .md h3 { font-size: 15px; font-weight: 650; margin: 14px 0 6px; color: var(--text); }
+.md p { margin: 6px 0; color: var(--text); line-height: 1.55; } .md strong { color: #fff; }
 .md table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; } .md td, .md th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
-.md code { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--warn); }
+.md code { font-family: "JetBrains Mono Variable", monospace; font-size: 12.5px; color: var(--warn); }
 .md ul { padding-left: 18px; list-style: disc; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

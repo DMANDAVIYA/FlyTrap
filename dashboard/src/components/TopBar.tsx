@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { Lock, LockOpen, PanelRightClose, PanelRightOpen, Power, Radar, RotateCcw } from "lucide-react";
+import { useState } from "react";
 import { control, type State } from "../feed";
-import { BLUE } from "../types";
-import { agentColor } from "./Panel";
+import { DolosMark, Wordmark } from "./Logo";
+import { Scramble } from "./Scramble";
 
-export function TopBar({ s }: { s: State }) {
-  const [now, setNow] = useState(new Date());
+export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen: boolean; onToggleDrawer: () => void }) {
   const [busy, setBusy] = useState<string | null>(null);
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   const act = async (action: string, body: Record<string, unknown> = {}) => {
     setBusy(action);
@@ -20,50 +16,54 @@ export function TopBar({ s }: { s: State }) {
   const lock = s.lockdown.state;
   const status = breached ? "Containment breached" : lock === "on" ? "Lockdown active" : lock === "countdown" ? "Lockdown pending" : "Containment holding";
   const statusColor = breached ? "var(--trap)" : lock !== "off" ? "var(--warn)" : "var(--ok)";
+  const DrawerIcon = drawerOpen ? PanelRightClose : PanelRightOpen;
 
   return (
-    <header className="panel flex items-center gap-5 px-4 py-2.5">
-      <div className="flex items-center gap-3">
-        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden>
-          <path d="M3 16 A13 13 0 0 1 29 16" fill="none" stroke="var(--trap)" strokeWidth="3" />
-          <path d="M3 16 A13 13 0 0 0 29 16" fill="none" stroke="var(--real)" strokeWidth="3" />
-          <circle cx="16" cy="16" r="3" fill="var(--text)" />
-        </svg>
-        <div>
-          <div className="font-display font-bold tracking-[.2em] text-lg leading-none">FLYTRAP</div>
-          <div className="text-[11px] text-text2 tracking-widest uppercase">HackUMass Labs · containment console</div>
-        </div>
+    <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line px-4 py-2.5">
+      <a href="#/" className="flex items-center gap-2.5" aria-label="Dolos home">
+        <DolosMark />
+        <Wordmark className="text-[15px]" />
+        <span className="text-text2 text-sm">console</span>
+      </a>
+
+      <div className="flex items-center gap-2 pl-5 border-l border-line">
+        <span className={`h-2.5 w-2.5 rounded-full ${breached || lock !== "off" ? "animate-pulse" : ""}`} style={{ background: statusColor }} />
+        <span className="font-mono text-[13px] font-bold uppercase tracking-[0.14em]" style={{ color: statusColor }}>
+          <Scramble text={status} />
+        </span>
       </div>
 
-      <div className="flex items-center gap-2 pl-4 border-l border-line">
-        <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: statusColor }} />
-        <span className="font-display font-semibold uppercase tracking-widest" style={{ color: statusColor }}>{status}</span>
+      <div className="flex items-center gap-3 text-xs">
+        <span className="flex items-center gap-1.5" style={{ color: s.connected ? "var(--ok)" : "var(--trap)" }}>
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "currentColor" }} />
+          {s.connected ? "live" : "offline"}
+        </span>
+        {s.replay.active && <span className="rounded-[3px] bg-warn/15 px-2 py-1 font-mono font-bold tracking-[0.14em] text-warn">REPLAY · {s.replay.run}</span>}
+        {s.mode && s.mode !== "live" && <span className="rounded-[3px] border border-line px-2 py-1 text-text2">{s.mode}</span>}
       </div>
 
-      <div className="flex items-center gap-2 pl-4 border-l border-line" aria-label="Blue swarm status">
-        {BLUE.map((a) => {
-          const r = s.roster[a];
-          const offline = r?.state === "offline";
-          return (
-            <div key={a} title={`${a}: ${r?.state ?? "watching"}${r?.mode ? ` (${r.mode})` : ""}`} className="flex flex-col items-center">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: offline ? "#3a4450" : agentColor(a), boxShadow: r?.state === "acting" ? `0 0 10px ${agentColor(a)}` : "none" }} />
-              <span className="text-[10px] uppercase tracking-wider text-text2 mt-0.5">{a.slice(0, 4)}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="ml-auto flex items-center gap-2">
-        {s.replay.active && <span className="px-2 py-1 text-xs rounded bg-warn/20 text-warn font-display tracking-widest">REPLAY · {s.replay.run}</span>}
-        {s.mode && s.mode !== "live" && <span className="px-2 py-1 text-xs rounded border border-line text-text2">{s.mode}</span>}
-        <span className="text-xs" style={{ color: s.connected ? "var(--ok)" : "var(--trap)" }}>{s.connected ? "● live" : "● offline"}</span>
-        <button className="btn btn-trap" disabled={busy !== null} onClick={() => act("release")}>Release the swarm</button>
-        <button className="btn" disabled={busy !== null} onClick={() => act("reset")}>Reset Tartarus</button>
-        <button className="btn" disabled={busy !== null} onClick={() => act("stop")} title="Kill switch: stop every raider, drone and the crowd">Kill switch</button>
-        {lock === "off"
-          ? <button className="btn btn-warn" disabled={busy !== null} onClick={() => act("lockdown")}>Lockdown</button>
-          : <button className="btn btn-ok" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>End lockdown</button>}
-        <time className="font-display text-xl tabular-nums pl-3 border-l border-line">{now.toLocaleTimeString([], { hour12: false })}</time>
+      <div className="ml-auto flex flex-wrap items-center gap-2">
+        <button className="btn btn-trap" disabled={busy !== null} onClick={() => act("release")}>
+          <Radar size={14} aria-hidden /> Release the swarm
+        </button>
+        <button className="btn" disabled={busy !== null} onClick={() => act("reset")}>
+          <RotateCcw size={14} aria-hidden /> Reset Tartarus
+        </button>
+        <button className="btn" disabled={busy !== null} onClick={() => act("stop")} title="Stop every raider, drone and the crowd">
+          <Power size={14} aria-hidden /> Kill switch
+        </button>
+        {lock === "off" ? (
+          <button className="btn btn-warn" disabled={busy !== null} onClick={() => act("lockdown")}>
+            <Lock size={14} aria-hidden /> Lockdown
+          </button>
+        ) : (
+          <button className="btn btn-ok" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>
+            <LockOpen size={14} aria-hidden /> End lockdown
+          </button>
+        )}
+        <button className="btn ml-1" aria-expanded={drawerOpen} aria-controls="details" onClick={onToggleDrawer}>
+          <DrawerIcon size={14} aria-hidden /> Details
+        </button>
       </div>
     </header>
   );

@@ -5,7 +5,7 @@ export function Panel({ title, right, children, className = "", bodyClass = "" }
 }) {
   return (
     <section className={`panel flex flex-col min-h-0 ${className}`}>
-      <header className="flex items-center justify-between px-3 py-2 border-b border-line">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-line">
         <h2 className="panel-title">{title}</h2>
         {right}
       </header>

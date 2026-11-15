@@ -1,10 +1,10 @@
 import type { State } from "../feed";
 import { Panel, agentColor, short } from "./Panel";
 
-export function Loot({ s }: { s: State }) {
+export function Loot({ s, className = "" }: { s: State; className?: string }) {
   const raiderOf = (sid: string) => s.sessions[sid]?.raider ?? null;
   return (
-    <Panel title="Trackers & campaigns" className="col-span-4" bodyClass="overflow-y-auto scroll-thin">
+    <Panel title="Trackers & campaigns" className={className} bodyClass="overflow-y-auto scroll-thin">
       <div className="p-3 space-y-2">
         {s.campaigns.map((c) => (
           <div key={c.id} className="rounded border border-trap/50 bg-trap/10 p-2.5">

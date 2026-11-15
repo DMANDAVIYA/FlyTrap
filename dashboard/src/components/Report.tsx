@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import type { State } from "../feed";
 import { Panel, short } from "./Panel";
 
-export function Report({ s, picked, onPick }: { s: State; picked: string | null; onPick: (sid: string) => void }) {
+export function Report({ s, picked, onPick, className = "" }: { s: State; picked: string | null; onPick: (sid: string) => void; className?: string }) {
   const ids = Object.keys(s.reports);
   const current = picked && (ids.includes(picked) || s.sessions[picked]) ? picked : ids[ids.length - 1] ?? null;
   const [md, setMd] = useState<string | null>(null);
@@ -18,7 +18,7 @@ export function Report({ s, picked, onPick }: { s: State; picked: string | null;
   }, [current, s.reports]);
 
   return (
-    <Panel title="Incident report · Clio" className="col-span-6" bodyClass="overflow-y-auto scroll-thin"
+    <Panel title="Incident report · Clio" className={className} bodyClass="overflow-y-auto scroll-thin"
       right={
         <div className="flex gap-1 items-center">
           {ids.slice(-5).map((id) => (

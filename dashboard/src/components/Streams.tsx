@@ -39,10 +39,10 @@ function Line({ it }: { it: StreamItem }) {
   );
 }
 
-export function Stream({ title, items, color, empty }: { title: string; items: StreamItem[]; color: string; empty: string }) {
+export function Stream({ title, items, color, empty, className = "" }: { title: string; items: StreamItem[]; color: string; empty: string; className?: string }) {
   const ref = useStick(items.length);
   return (
-    <Panel title={title} className="col-span-4" right={<span className="w-2 h-2 rounded-full" style={{ background: color }} />}>
+    <Panel title={title} className={className} right={<span className="w-2 h-2 rounded-full" style={{ background: color }} />}>
       <div ref={ref} className="h-full overflow-y-auto scroll-thin">
         {items.map((it, i) => <Line key={i} it={it} />)}
         {!items.length && <p className="p-4 text-text2 text-sm">{empty}</p>}

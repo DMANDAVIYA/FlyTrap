@@ -3,13 +3,17 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        bg: "var(--bg)", panel: "var(--panel)", line: "var(--line)", text: "var(--text)", text2: "var(--text-2)",
-        real: "var(--real)", trap: "var(--trap)", warn: "var(--warn)", ok: "var(--ok)",
-      },
+      // rgb channels so opacity modifiers (border-trap/50) work.
+      colors: Object.fromEntries(
+        [["bg", "bg"], ["panel", "panel"], ["line", "line"], ["line2", "line-2"], ["text", "text"], ["text2", "text-2"],
+          ["real", "real"], ["trap", "trap"], ["warn", "warn"], ["ok", "matrix"], ["matrix", "matrix"]]
+          .map(([name, v]) => [name, `rgb(var(--${v}-rgb) / <alpha-value>)`]),
+      ),
+      borderColor: { DEFAULT: "rgb(var(--line-rgb) / <alpha-value>)" },
       fontFamily: {
-        display: ['"Chakra Petch"', "system-ui", "sans-serif"],
-        mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
+        sans: ['"Mona Sans Variable"', "system-ui", "sans-serif"],
+        display: ['"Mona Sans Variable"', "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono Variable"', "ui-monospace", "monospace"],
       },
     },
   },

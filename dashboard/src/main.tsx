@@ -1,9 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@fontsource/chakra-petch/400.css";
-import "@fontsource/chakra-petch/600.css";
-import "@fontsource/chakra-petch/700.css";
-import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource-variable/mona-sans/wdth.css";
+import "@fontsource-variable/jetbrains-mono";
 import "./index.css";
 import App from "./App";
 
