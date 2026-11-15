@@ -1,4 +1,4 @@
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 
 // The pixel-art scene loads only when this section comes near; the SVG diagram stands in until then,
@@ -198,23 +198,61 @@ function Step({ i, onActive }: { i: number; onActive: (i: number) => void }) {
   );
 }
 
-/** Six steps in normal page flow; the pinned diagram follows the bot as each step comes into view. */
+/** Desktop: one step of the list beside the pinned scene. Only the step in play is open; the rest are dimmed titles. */
+function Chapter({ i, active }: { i: number; active: boolean }) {
+  const s = STEPS[i];
+  return (
+    <div className={`border-l-2 py-4 pl-6 transition-[opacity,border-color] duration-300 ${active ? "border-green" : "border-line2 opacity-[.35]"}`}>
+      <h3 className="flex items-baseline gap-3 font-display text-[clamp(1.6rem,2.3vw,2.1rem)] font-[300] uppercase leading-none tracking-[0.03em]">
+        <span className="font-[150] text-green/70">{s.n}</span>
+        {s.name}
+      </h3>
+      {/* always in the DOM, so screen readers get every step; only the open one has height */}
+      <motion.div className="overflow-hidden" initial={false} animate={active ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
+        <dl className="max-w-[46ch] space-y-4 pt-4">
+          <div>
+            <dt className="caps text-[10.5px] font-semibold text-real">They see</dt>
+            <dd className="mt-1.5 text-[16px] leading-relaxed text-text/85">{s.see}</dd>
+          </div>
+          <div>
+            <dt className="caps text-[10.5px] font-semibold text-green">What really happens</dt>
+            <dd className="mt-1.5 text-[16px] leading-relaxed">{s.real}</dd>
+          </div>
+        </dl>
+      </motion.div>
+    </div>
+  );
+}
+
+/**
+ * Desktop: a tall track with a pinned panel, the step list beside the scene, the step following how far the track has
+ * scrolled. Phones and reduced motion: the six steps in normal page flow, each setting the step as it comes into view.
+ */
 export function HowItWorks() {
   const still = !!useReducedMotion();
   const [step, setStep] = useState(0);
   const stage = useRef<HTMLDivElement>(null);
+  const track = useRef<HTMLDivElement>(null);
   const near = useInView(stage, { once: true, margin: "600px 0px 600px 0px" });
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const live = ready && !failed;
+  const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (still || !matchMedia("(min-width: 1024px)").matches) return; // phones step with the stacked articles
+    setStep(Math.min(STEPS.length - 1, Math.floor(v * STEPS.length)));
+  });
   return (
     <section id="how" aria-labelledby="how-title" className="relative mx-auto max-w-6xl scroll-mt-4 px-5 pt-24 sm:px-8">
       <h2 id="how-title" className="font-display text-[clamp(3.25rem,8vw,7rem)] font-[200] uppercase leading-[.85] tracking-[0.03em]">How it works</h2>
       <p className="mt-5 max-w-[56ch] text-lg leading-relaxed text-text2">
         One website, two worlds. Follow the bot from the front door to the trap, and see what happens if it slips past. Every step has two sides: what it sees, and what really happens.
       </p>
-      <div className="mt-10 grid gap-x-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div ref={stage} className={`${still ? "" : "sticky top-0 z-10"} -mx-5 h-[42svh] border-b border-line bg-bg/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:order-2 lg:top-[11svh] lg:mx-0 lg:h-[78svh] lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}>
+      <div ref={track} className={`mt-10 ${still ? "" : "lg:h-[460vh]"}`}>
+      <div className={still ? "" : "lg:sticky lg:top-0 lg:flex lg:h-[100dvh] lg:items-center"}>
+      <div className="grid w-full gap-x-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
+        <div ref={stage} className={`${still ? "" : "sticky top-0 z-10 lg:static"} -mx-5 h-[42svh] border-b border-line bg-bg/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:order-2 lg:mx-0 lg:h-[78svh] lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}>
           <div className="relative h-full w-full">
             {/* The SVG keeps the accessible description; once the pixel scene is up it only hides. */}
             <div className={`h-full w-full transition-opacity duration-700 ${live ? "opacity-0" : ""}`}>
@@ -229,9 +267,16 @@ export function HowItWorks() {
             )}
           </div>
         </div>
-        <div className="lg:order-1">
+        {!still && (
+          <div className="hidden lg:order-1 lg:flex lg:flex-col lg:gap-1">
+            {STEPS.map((_, i) => <Chapter key={i} i={i} active={i === step} />)}
+          </div>
+        )}
+        <div className={still ? "lg:order-1" : "lg:hidden"}>
           {STEPS.map((_, i) => <Step key={i} i={i} onActive={setStep} />)}
         </div>
+      </div>
+      </div>
       </div>
     </section>
   );
