@@ -52,7 +52,7 @@ export function Traffic({ rps, stats, className = "" }: {
 
       {series ? (
         <>
-          <div className="relative mt-4 min-h-[90px] flex-1 cursor-crosshair" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+          <div className="relative mt-3 min-h-[44px] flex-1 cursor-crosshair" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" role="img"
               aria-label={`Requests per second over the last ${(series.length - 1) * EVERY_S} seconds: trapped ${latest.trap}, real ${latest.real} now`}>
               <defs>
@@ -82,7 +82,7 @@ export function Traffic({ rps, stats, className = "" }: {
               </div>
             )}
           </div>
-          <div className="mt-2 flex justify-between text-[11px] text-text2">
+          <div className="mt-1.5 flex shrink-0 justify-between text-[11px] leading-none text-text2">
             <span>{(series.length - 1) * EVERY_S}s ago</span>
             <span className="flex items-center gap-4">
               <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-green" />trapped</span>

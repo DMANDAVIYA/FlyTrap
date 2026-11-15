@@ -24,8 +24,8 @@ export function AgentLog({ s, onOpen, className = "" }: { s: State; onOpen: () =
             <span className="min-w-0 [overflow-wrap:anywhere]">
               <span className="font-semibold uppercase" style={{ color: agentColor(it.agent) }}>{it.agent}</span>
               {it.session && it.session !== "-" && <span className="text-text2"> [{short(it.session)}]</span>}
-              <span className="text-text2"> {MARK[it.kind]} </span>
-              <span className={it.kind === "alert" ? "text-warn" : "text-text/90"}>{it.text}</span>
+              <span className={it.kind === "alert" ? "text-warn" : "text-text2"}> {MARK[it.kind]} </span>
+              <span className="text-text/90">{it.text}</span>
             </span>
           </div>
         ))}
