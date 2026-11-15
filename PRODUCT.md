@@ -37,8 +37,11 @@ Classic honeypots sit to the side and hope to be found. Dolos stands in front of
 ## Brand Commitments
 
 - Name: **Dolos** (Greek ΔΟΛΟΣ, the spirit of trickery). Never on anything an attacker can reach.
-- The user pinned a Matrix world: raining letters hero (21st.dev component), red pill and blue pill as Three.js objects, a 3D live map of what the traps really are, Motion for React.
-- Colour meaning is fixed across surfaces: blue = what looks real (Olympus, the illusion the attacker believes), red = the trap (Tartarus, the truth).
+- World pinned by the user (second round, replaces the Matrix world): Greek gods, with Hermes, trickster and guide of souls to the underworld, as the defending AI agent. Black and green shades only.
+- Type pinned by the user from 2016.makemepulse.com: Montserrat for UI and copy (wide uppercase tracking for labels), an ultra-condensed display face standing in for Univers Ultra Condensed (Sofia Sans Extra Condensed, which also carries the Greek letters).
+- Landing hero pinned by the user's reference image: two hands reaching toward one object on black (a Creation of Adam composition). Here the object is the bait, a glowing `.env` vial; the hands come from Michelangelo's public-domain fresco.
+- Console model pinned by the user: an interactive bento grid with cursor-following glow cards, reading only real feed data.
+- Colour meaning across surfaces: sage = what looks real (Olympus), bright green = the trap (Tartarus) and the primary action, amber = Zeus and lockdown, red = "containment breached" only.
 
 ## Evidence on Hand
 
@@ -55,4 +58,4 @@ Classic honeypots sit to the side and hope to be found. Dolos stands in front of
 
 ## Accessibility & Inclusion
 
-Respect `prefers-reduced-motion` (rain, scramble and 3D motion freeze). Every 3D action has a real focusable button beside it.
+Respect `prefers-reduced-motion`: hero motion, the glyph hand and the how-it-works animation freeze; content stays visible. Every pointer effect has a keyboard equivalent.

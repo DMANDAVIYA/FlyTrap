@@ -2,27 +2,27 @@
 version: 1
 slug: "dashboard-src-pages-console-tsx"
 primary_target: "dashboard/src/pages/Console.tsx"
-related_targets: ["dashboard/src/components/three/TrapMap.tsx"]
+related_targets: ["dashboard/src/components/ui/glow-card.tsx"]
 ---
 
 # Console
 
 Scope: `dashboard/src/pages/Console.tsx` (route `#/console`). Mode: Operate.
-User: the demo operator on a laptop at the judging table. Task: release the swarm, watch visitors fall into Tartarus, approve Zeus actions, hit lockdown or the kill switch, open a trapped session's incident report.
-Information on the main screen only: 3D trap map, three vitals (real records exposed, visitors trapped, flip time), trapped-session list, Zeus approvals when one waits, controls, breach/lockdown/replay state. Everything else (agent streams, trackers and campaigns, incident report, roster, replay) lives in a right-hand drawer with tabs.
+User: the demo operator on a laptop at the judging table. Task: release the swarm, watch visitors get trapped, approve Zeus actions, hit lockdown or the kill switch, open a trapped session's incident report.
+Main screen, a bento of glow cards and nothing more: vitals (real records exposed, trapped, flip time), live real-vs-trapped traffic, the agent log, visitor types, trapped visitors, the pantheon of defenders, Zeus approvals when one waits. Always visible: lockdown overlay, breach status, kill switch, lockdown button, REPLAY badge. Incident report, trackers, roster, full agent streams and replay live in the right-hand drawer. Every card reads the real feed; empty states say what fills them.
 
 ## Direction contract
 
-THESIS: A minimal containment console whose hero is the trap made visible: a 3D cross-section with Olympus above a glass floor and Tartarus, its mirrored red copy, below it, connected by Charon's trapdoor. Refuses the default wall of equal panels.
+THESIS: A calm bento of live readings lit by a torch: the cursor carries a green glow across card borders and faces. Refuses a wall of equal panels and any 3D or terminal costume.
 
-OWN-WORLD: Same phosphor-black ground and tokens as the landing page; Mona Sans for labels, JetBrains Mono tabular numerals for data. Blue = real traffic and Olympus, red = trapped traffic and Tartarus, amber = Zeus and lockdown, phosphor green = containment holding. Hairline borders, no cards inside cards.
+OWN-WORLD: Same black and green tokens as the landing page. Montserrat wide capitals for card titles and controls, Sofia Sans Extra Condensed for the big numerals that do not tick, JetBrains Mono tabular figures for live data and the log. Sage = real, bright green = trapped, amber = Zeus and lockdown, red = breach only. Rounded cards with a hairline border; no boxes inside cards.
 
-STORY: The operator sees at a glance that containment holds (zero exposed), watches each new visitor travel through Charon and either reach Olympus or drop through the trapdoor, and acts from one control row.
+STORY: The operator sees at a glance that containment holds (zero exposed), watches trapped traffic rise against real traffic, reads Hermes' messages, and acts from one control row.
 
-FIRST VIEWPORT: Top bar: Dolos mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details toggle. Body: map at roughly three quarters width, full height; right rail with the three vitals stacked, approvals when pending, then trapped sessions. Flip banner over the map.
+FIRST VIEWPORT: Top bar: mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details. Bento on a four-column grid: vitals and traffic across the first row, trapped visitors, visitor types and the agent log below, the pantheon closing the grid. A Zeus card leads the grid while an approval waits.
 
-FORM: Pinned by the user brief (3D live map of what the traps are, minimal data), position 1 of 1. seed: none (unavailable)
+FORM: Pinned by the user brief (interactive bento with glow cards, Greek theme), position 1 of 1. seed: none (unavailable)
 
-Signature move: visitors as particles that fall through the trapdoor into the mirrored copy; the trapped pod pulses red on each flip.
+Signature move: torch-light glow that follows the pointer across cards; the trapped line glows on the traffic chart.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
