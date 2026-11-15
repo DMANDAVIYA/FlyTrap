@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "montserrat",
+        "createdAt": "2026-11-15T02:45:50.715Z",
+        "reason": "user confirmed: take the font from 2016.makemepulse.com, which sets its UI in Montserrat"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "src/index.css"
+        ],
+        "createdAt": "2026-11-15T02:45:50.734Z",
+        "reason": "sanctioned by the user's pasted bento component (cursor-masked grid inside GlowCard), which the user named as the console's model"
+      }
+    ]
+  }
+}
