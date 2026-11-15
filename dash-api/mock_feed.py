@@ -1,7 +1,12 @@
-"""Mock dash-api: the SAME HTTP/WS API on port 8090, no database, looping storyline.
+"""Mock dash-api: the SAME HTTP/WS API on port 8090, no database.
 
-    python mock_feed.py                  # 127.0.0.1:8090
+By default it replays real recorded runs from mock_runs/*.jsonl.gz (made from a db-backup
+by backup_runs.py, see mock_replay.py). Without run files, or with --story, it plays the
+scripted storyline instead.
+
+    python mock_feed.py                  # 127.0.0.1:8090, recorded runs
     python mock_feed.py --host 0.0.0.0 --speed 1.5 --no-record
+    python mock_feed.py --story          # the scripted storyline
 
 Controls act on the mock: release restarts the story now, stop is the kill
 switch (raiders and crowd stop), reset clears Tartarus and waits for release,
@@ -24,6 +29,7 @@ from api import create_app
 from hub import Hub
 from mapper import envelope
 from mirror import Mirror
+from mock_replay import ReplayBackend
 from mock_story import Story
 from mock_world import BLUE_MODES, RAIDER_MODES, World
 
@@ -190,11 +196,14 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8090")))
     parser.add_argument("--speed", type=float, default=float(os.environ.get("MOCK_SPEED", "1.0")))
     parser.add_argument("--no-record", action="store_true", help="do not write runs/*.jsonl")
+    parser.add_argument("--story", action="store_true", help="play the scripted storyline, not the recorded runs")
     args = parser.parse_args()
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"),
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
     runs_dir = Path(os.environ.get("RUNS_DIR", HERE / "runs"))
-    app = create_app(MockBackend(speed=args.speed), runs_dir, record=not args.no_record)
+    recorded = sorted(Path(os.environ.get("MOCK_RUNS", HERE / "mock_runs")).glob("*.jsonl.gz"))
+    backend = MockBackend(speed=args.speed) if args.story or not recorded else ReplayBackend(recorded, speed=args.speed)
+    app = create_app(backend, runs_dir, record=not args.no_record)
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

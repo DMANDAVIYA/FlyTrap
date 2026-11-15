@@ -798,7 +798,7 @@ Load test: 40 customers + 10 drones + 5 raiders; record requests/second, p50 and
 
 ### 5.9 dash-api and dashboard (P4)
 
-dash-api LISTENs on `events_new`, reads new rows, maps them to WebSocket messages (6.8), broadcasts. Records every outgoing message with timestamp to `runs/<run_id>.jsonl`. Replay streams a run back in the same format (1x or 4x). `mock_feed.py` emits a realistic scripted storyline so the dashboard can be built before the backend exists.
+dash-api LISTENs on `events_new`, reads new rows, maps them to WebSocket messages (6.8), broadcasts. Records every outgoing message with timestamp to `runs/<run_id>.jsonl`. Replay streams a run back in the same format (1x or 4x). `mock_feed.py` replays real recorded runs from `dash-api/mock_runs/` (made from a db backup by `backup_runs.py`), or with `--story` emits a realistic scripted storyline, so the dashboard works with no backend.
 
 Dashboard: "doomsday containment console". Tokens: `--bg #07090C --panel #0E1217 --line #1E2730 --text #E6EDF2 --text-2 #93A3AF --real #9EC3D9 --trap #FF4747 --warn #FFB020 --ok #54D69A`. Fonts: Chakra Petch (headings, numbers), IBM Plex Mono (agent streams). One big motion moment: jaws snap shut on a flip (two arcs close over 150 ms, red ring flash, label "s_7f3a trapped by T3"). Warning stripes only during lockdown. Avoid the green hacker-terminal look. Respect `prefers-reduced-motion`.
 
