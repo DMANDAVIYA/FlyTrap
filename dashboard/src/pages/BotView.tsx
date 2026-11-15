@@ -1,12 +1,10 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { DolosMark, Wordmark } from "@/components/Logo";
 import { CompareFlow, STEPS } from "@/components/see/CompareFlow";
 
 /** "See what the bot sees": one window, two worlds, a bar to drag between them. */
 export default function BotView() {
-  const bait = `${location.protocol}//${location.hostname}:8080`;
-
   useEffect(() => {
     document.title = "Dolos · what the bot sees";
   }, []);
@@ -44,7 +42,6 @@ export default function BotView() {
 
         <div className="mt-14 flex flex-wrap items-center gap-3 border-t border-line pt-10">
           <a href="#/console" className="btn btn-trap !px-5 !py-3">Watch it live in the console <ArrowRight size={14} aria-hidden /></a>
-          <a href={bait} target="_blank" rel="noopener" className="btn !px-5 !py-3">Open the bait site <ArrowUpRight size={14} aria-hidden /></a>
         </div>
       </section>
     </main>
