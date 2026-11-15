@@ -71,7 +71,7 @@ def hephaestus(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
                      session=sid, kind="cloud_key", where="env")
         if _real_probe(s) and sid not in ctx.state.rotated:
             plan.think(sid, f"{_short(sid)} touched Olympus while logged in. Revoking that account's keys and sessions.")
-            plan.act("rotate_keys", "it may have seen this user's tokens on the real side", session=sid)
+            plan.must("rotate_keys", "it may have seen customers' tokens on the real side", session=sid)
             ctx.state.rotated.add(sid)
     return plan
 
@@ -185,7 +185,7 @@ def athena(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
                          evidence=[e["id"]])
         if e["kind"] == "lockdown" and p.get("state") == "on":
             plan.think("-", "Lockdown is on. Asking Zeus to restart Olympus's servers one at a time, keeping the site up.")
-            plan.act("request_rebuild", "Restart Olympus's servers one at a time", [e["id"]],
+            plan.must("request_rebuild", "Restart Olympus's servers one at a time", [e["id"]],
                      reason="Restart Olympus's servers one at a time")
     for s in sessions:
         sid = s["session"]
@@ -198,13 +198,13 @@ def athena(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
             plan.note(sid, f"Damage check: {others} other customers exposed{f' ({named})' if named else ''}; "
                            f"own account {f'#{own}' if own else 'none'}. Their keys are being rotated.",
                       [t["event"] for t in s["tripwires"]][:3])
-            plan.act("virtual_patch", "stop this session walking record IDs anywhere", [t["event"] for t in s["tripwires"]][:3],
+            plan.must("virtual_patch", "stop this session walking record IDs anywhere", [t["event"] for t in s["tripwires"]][:3],
                      session=sid, pattern=ENUM_PATTERN, scope="session", ttl_min=120)
     recent_probes = [s for s in sessions if _real_probe(s)]
     if len(recent_probes) >= 2 and ctx.state.lockdown_requested_at is None:
         ctx.state.lockdown_requested_at = time.time()
         plan.think("-", f"{len(recent_probes)} sessions went for Olympus within minutes. Requesting lockdown; Zeus has 10 seconds to cancel.")
-        plan.act("request_lockdown", "two or more sessions reached the real side", [s["last_event"] for s in recent_probes],
+        plan.must("request_lockdown", "two or more sessions reached the real side", [s["last_event"] for s in recent_probes],
                  reason="Two or more sessions probed Olympus within 5 minutes")
     trapped = sum(1 for s in sessions if _trapped(s))
     real = sum(1 for s in sessions if s["side"] == "real" and s.get("label") in ("ai_agent", "scanner"))

@@ -134,3 +134,20 @@ def test_refused_customer_record_is_a_tripwire():
     assert s.risk >= 60                                                       # second refusal crosses the flip line
     s.side = "trap"
     assert rules.forbidden_object_hit(s, "/api/v1/users/3", 403) is None      # already trapped
+
+
+def test_lockdown_holds_go_home_but_bait_touchers_stay():
+    async def run():
+        gw = Gateway(Settings())
+        held, thief = session(), Session(session_id="s_thief", fingerprint="fp2", src_ip="172.31.0.8", user_agent="x")
+        for s in (held, thief):
+            gw.store.load(s)
+            gw.flip(s, "lockdown", "lockdown", 0.2, time.time())
+        gw.upgrade_hold(thief, "T2", "instant")                 # touched a secret file while held
+        gw._on_lockdown("off", {})
+        assert held.side == "real" and held.pod is None and held.flip_kind is None
+        assert thief.side == "trap" and thief.flip_kind == "instant"
+        with pytest.raises(RuleError, match="R1"):
+            await gw.route(thief, "real", "test", approval_id=1)
+        await gw.client.aclose()
+    asyncio.run(run())

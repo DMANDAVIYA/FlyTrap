@@ -122,6 +122,9 @@ def _apply_hits(gw: Gateway, session: Session, hits: list[rules.Hit], gw_ms: flo
         gw.writer.emit("tripwire", session.session_id, side=session.side, pod=session.pod, tripwire=hit.tripwire,
                        payload={"score": hit.score, "instant": hit.instant, "risk": risk, "detail": hit.detail})
         if session.trapped:
+            if session.flip_kind == "lockdown" and (hit.instant or session.risk >= gw.settings.risk_flip):
+                gw.upgrade_hold(session, hit.tripwire, ("fingerprint" if hit.tripwire == "R6" else "instant")
+                                if hit.instant else "scored")
             continue
         if hit.instant:
             kind = "fingerprint" if hit.tripwire == "R6" else "instant"
