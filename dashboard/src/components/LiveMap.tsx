@@ -27,7 +27,7 @@ export function LiveMap({ s }: { s: State }) {
         <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-trap" />trapped → Tartarus</span>
         <span className="font-mono tabular">{s.flips} flips</span>
       </div>
-      <p className="pointer-events-none absolute right-4 bottom-4 text-[11px] text-text2/70">Drag to orbit · scroll to zoom</p>
+      <p className="pointer-events-none absolute right-4 bottom-4 hidden sm:block text-[11px] text-text2/70">Drag to orbit · scroll to zoom</p>
 
       <AnimatePresence>
         {flip && (

@@ -26,7 +26,7 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
         <span className="text-text2 text-sm">console</span>
       </a>
 
-      <div className="flex items-center gap-2 pl-5 border-l border-line">
+      <div className="flex items-center gap-2 sm:pl-5 sm:border-l border-line">
         <span className={`h-2.5 w-2.5 rounded-full ${breached || lock !== "off" ? "animate-pulse" : ""}`} style={{ background: statusColor }} />
         <span className="font-mono text-[13px] font-bold uppercase tracking-[0.14em]" style={{ color: statusColor }}>
           <Scramble text={status} />
@@ -43,26 +43,26 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
       </div>
 
       <div className="ml-auto flex flex-wrap items-center gap-2">
-        <button className="btn btn-trap" disabled={busy !== null} onClick={() => act("release")}>
-          <Radar size={14} aria-hidden /> Release the swarm
+        <button className="btn btn-trap" aria-label="Release the swarm" disabled={busy !== null} onClick={() => act("release")}>
+          <Radar size={14} aria-hidden /> <span className="hidden sm:inline">Release the swarm</span>
         </button>
-        <button className="btn" disabled={busy !== null} onClick={() => act("reset")}>
-          <RotateCcw size={14} aria-hidden /> Reset Tartarus
+        <button className="btn" aria-label="Reset Tartarus" disabled={busy !== null} onClick={() => act("reset")}>
+          <RotateCcw size={14} aria-hidden /> <span className="hidden sm:inline">Reset Tartarus</span>
         </button>
-        <button className="btn" disabled={busy !== null} onClick={() => act("stop")} title="Stop every raider, drone and the crowd">
-          <Power size={14} aria-hidden /> Kill switch
+        <button className="btn" aria-label="Kill switch" disabled={busy !== null} onClick={() => act("stop")} title="Stop every raider, drone and the crowd">
+          <Power size={14} aria-hidden /> <span className="hidden sm:inline">Kill switch</span>
         </button>
         {lock === "off" ? (
-          <button className="btn btn-warn" disabled={busy !== null} onClick={() => act("lockdown")}>
-            <Lock size={14} aria-hidden /> Lockdown
+          <button className="btn btn-warn" aria-label="Lockdown" disabled={busy !== null} onClick={() => act("lockdown")}>
+            <Lock size={14} aria-hidden /> <span className="hidden sm:inline">Lockdown</span>
           </button>
         ) : (
-          <button className="btn btn-ok" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>
-            <LockOpen size={14} aria-hidden /> End lockdown
+          <button className="btn btn-ok" aria-label="End lockdown" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>
+            <LockOpen size={14} aria-hidden /> <span className="hidden sm:inline">End lockdown</span>
           </button>
         )}
-        <button className="btn ml-1" aria-expanded={drawerOpen} aria-controls="details" onClick={onToggleDrawer}>
-          <DrawerIcon size={14} aria-hidden /> Details
+        <button className="btn ml-1" aria-label="Details" aria-expanded={drawerOpen} aria-controls="details" onClick={onToggleDrawer}>
+          <DrawerIcon size={14} aria-hidden /> <span className="hidden sm:inline">Details</span>
         </button>
       </div>
     </header>

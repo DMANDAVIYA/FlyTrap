@@ -27,7 +27,7 @@ function Line({ it }: { it: StreamItem }) {
   const pending = it.kind === "action" && it.status === "pending_approval";
   const alert = it.kind === "alert";
   return (
-    <div className={`px-3 py-1.5 font-mono text-[13px] leading-snug border-b border-line/50 ${alert ? "bg-warn/10" : ""}`}>
+    <div className={`px-3 py-1.5 font-mono text-[13px] leading-snug [overflow-wrap:anywhere] border-b border-line/50 ${alert ? "bg-warn/10" : ""}`}>
       <span className="text-text2 mr-2 tabular-nums">{clock(it.t)}</span>
       <span className="font-semibold uppercase mr-1" style={{ color: agentColor(it.agent) }}>{it.agent}</span>
       {it.session && it.session !== "-" && <span className="text-text2 mr-1" title={it.session}>[{short(it.session)}]</span>}

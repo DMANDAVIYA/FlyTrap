@@ -30,7 +30,8 @@ export default function Console() {
     <div className={`flex h-[100svh] min-h-[620px] flex-col bg-bg ${lockdown ? "outline outline-4 outline-warn/60 -outline-offset-4" : ""}`}>
       <LockdownOverlay lock={s.lockdown} />
       <TopBar s={s} drawerOpen={open} onToggleDrawer={() => setOpen((o) => !o)} />
-      <div className="relative grid min-h-0 flex-1 grid-rows-[minmax(360px,1fr)_auto] lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+      {/* overflow-x-clip: the drawer slides in from the right edge without widening the page. */}
+      <div className="relative grid min-h-0 flex-1 overflow-x-clip grid-rows-[minmax(360px,1fr)_auto] lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_360px]">
         <LiveMap s={s} />
         <aside className="flex min-h-0 flex-col border-t border-line lg:border-t-0 lg:border-l" aria-label="Containment">
           <Counters stats={s.stats} />

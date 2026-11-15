@@ -53,7 +53,11 @@ export function Sessions({ s, picked, onPick }: { s: State; picked: string | nul
           {trapped.slice(0, 80).map((x) => <Row key={x.session} x={x} onPick={onPick} active={picked === x.session} />)}
         </ul>
       ) : (
-        <p className="px-4 py-5 text-sm text-text2">No one trapped yet. Press Release the swarm to start the raiders.</p>
+        <p className="px-4 py-5 text-sm text-text2">
+          {s.stats.trapped
+            ? "No trapped visitor is active right now. Past sessions and their reports are under Details."
+            : "No one trapped yet. Press Release the swarm to start the raiders."}
+        </p>
       )}
     </section>
   );

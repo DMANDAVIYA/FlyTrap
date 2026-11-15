@@ -39,25 +39,27 @@ export function Drawer({ s, open, tab, onTab, onClose, picked, onPick }: {
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
           className="absolute inset-y-0 right-0 z-40 flex w-[min(560px,100%)] flex-col border-l border-line2 bg-bg shadow-[-24px_0_48px_rgba(0,0,0,.55)]"
         >
-          <div role="tablist" aria-label="Details" className="flex items-center gap-1 border-b border-line px-2">
+          <div className="flex items-center border-b border-line">
+          <div role="tablist" aria-label="Details" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2">
             {TABS.map((t) => (
               <button
                 key={t}
                 role="tab"
                 aria-selected={t === tab}
                 onClick={() => onTab(t)}
-                className={`relative px-3 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                className={`relative shrink-0 px-3 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                   t === tab ? "text-text" : "text-text2 hover:text-text"
                 }`}
               >
                 {t}
                 {!!badge[t] && <span className="ml-1.5 font-mono text-[11px] text-matrix">{badge[t]}</span>}
-                {t === tab && <span className="absolute inset-x-3 -bottom-px h-0.5 bg-matrix" />}
+                {t === tab && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-matrix" />}
               </button>
             ))}
-            <button aria-label="Close details" onClick={onClose} className="ml-auto rounded-[3px] p-2 text-text2 hover:text-text">
-              <X size={16} aria-hidden />
-            </button>
+          </div>
+          <button aria-label="Close details" onClick={onClose} className="mx-1 shrink-0 rounded-[3px] p-2 text-text2 hover:text-text">
+            <X size={16} aria-hidden />
+          </button>
           </div>
 
           <div role="tabpanel" className="flex min-h-0 flex-1 flex-col">
