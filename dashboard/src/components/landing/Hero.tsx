@@ -90,14 +90,16 @@ export function Hero() {
         <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-text2">
           The bot reaches for the bait. Hermes hands it a perfect copy of your site, full of fake data. It never finds out.
         </p>
-        <a href="#how" aria-label="Scroll to how it works"
-          className="mt-8 grid h-11 w-11 place-items-center rounded-full border border-line2 text-text2 transition-colors hover:border-green/60 hover:text-green">
-          <motion.span className="grid place-items-center" animate={still ? undefined : { y: [0, 5, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
-            <ArrowDown size={18} aria-hidden />
-          </motion.span>
-        </a>
       </motion.div>
+
+      {/* scroll cue, pinned to the bottom of the first screen */}
+      <a href="#how" aria-label="Scroll to how it works"
+        className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 p-2 text-text2 transition-colors hover:text-green">
+        <motion.span className="block" animate={still ? undefined : { y: [0, 6, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
+          <ArrowDown size={22} aria-hidden />
+        </motion.span>
+      </a>
     </section>
   );
 }
