@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import time
-from collections import Counter
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
@@ -101,18 +100,25 @@ async def plant_bait(ctx: Ctx, a: dict) -> tuple[bool, str]:
     return True, f"planted {kind} in {where}"
 
 
+MAX_ROTATIONS = 50  # per session; a bigger leak is a lockdown-and-rebuild event, not a key-by-key one
+
+
 async def rotate_keys(ctx: Ctx, a: dict) -> tuple[bool, str]:
-    user_ids = Counter(
-        int(rec.split(":")[1]) for rec in _summary(ctx, a).get("real_records_served", [])
-        if rec.startswith("user:") and rec.split(":")[1].isdigit()
-    )
-    if not user_ids:
-        return False, "no real-side login seen for this session"
-    user_id = user_ids.most_common(1)[0][0]
-    ok, data = await ctx.gw.rotate(user_id, a.get("reason", ""))
-    if ok:
+    """Revoke tokens and sessions of the account the visitor used and of every customer whose data it was served."""
+    s = _summary(ctx, a)
+    users = ([s["real_own_user"]] if s.get("real_own_user") else []) + list(s.get("real_other_users") or [])
+    if not users:
+        return False, "no real-side customer data seen for this session"
+    done, failed = [], []
+    for user_id in users[:MAX_ROTATIONS]:
+        ok, _ = await ctx.gw.rotate(user_id, a.get("reason", ""))
+        (done if ok else failed).append(user_id)
+    if done:
         ctx.state.rotated.add(a["session"])
-    return ok, data.get("error", f"revoked tokens and sessions for user {user_id}")
+    msg = f"revoked tokens and sessions for {len(done)} customers: " + ", ".join(f"#{i}" for i in done[:20])
+    if failed:
+        msg += f"; failed for {', '.join(f'#{i}' for i in failed[:10])}"
+    return bool(done) and not failed, msg
 
 
 async def set_pace(ctx: Ctx, a: dict) -> tuple[bool, str]:

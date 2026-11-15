@@ -28,14 +28,14 @@ def _trapped(s: dict) -> bool:
 
 
 def _real_probe(s: dict) -> bool:
-    return s.get("flip_kind") in ("scored", "blue") and bool(s.get("real_records_served"))
+    """Olympus served this visitor another customer's data, or it was moved off Olympus after being served records."""
+    return bool(s.get("real_other_users")) or (
+        s.get("flip_kind") in ("scored", "blue") and bool(s.get("real_records_served")))
 
 
-def _exposure(s: dict) -> tuple[str | None, int]:
-    """(own user record, count of OTHER customers' user records Olympus served this session)."""
-    users = Counter(r for r in s.get("real_records_served", []) if r.startswith("user:"))
-    own = users.most_common(1)[0][0] if users else None
-    return own, sum(n for r, n in users.items() if r != own)
+def _exposure(s: dict) -> tuple[int | None, int]:
+    """(own customer id, number of OTHER customers whose records Olympus served this session)."""
+    return s.get("real_own_user"), len(s.get("real_other_users") or [])
 
 
 def argus(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
@@ -194,7 +194,9 @@ def athena(ctx: Ctx, sessions: list[dict], events: list) -> Plan:
             own, others = _exposure(s)
             plan.think(sid, f"Damage check {_short(sid)}: Olympus served it {len(s['real_records_served'])} records, "
                             f"{'only its own account' if not others else f'{others} from other customers'}. {others} other customers exposed.")
-            plan.note(sid, f"Damage check: {others} other customers' records exposed; own account {own or 'none'}.",
+            named = ", ".join(f"#{i}" for i in (s.get("real_other_users") or [])[:20])
+            plan.note(sid, f"Damage check: {others} other customers exposed{f' ({named})' if named else ''}; "
+                           f"own account {f'#{own}' if own else 'none'}. Their keys are being rotated.",
                       [t["event"] for t in s["tripwires"]][:3])
             plan.act("virtual_patch", "stop this session walking record IDs anywhere", [t["event"] for t in s["tripwires"]][:3],
                      session=sid, pattern=ENUM_PATTERN, scope="session", ttl_min=120)
