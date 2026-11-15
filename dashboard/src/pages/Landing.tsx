@@ -62,11 +62,9 @@ export default function Landing() {
           src: "/hero/footer-wild-hunt.webp",
           cutout: "/hero/footer-wild-hunt-cutout.webp",
           position: "50% 26%",
-          alt: "Åsgårdsreien, the Wild Hunt of Odin: riders storming across a night sky, by Peter Nicolai Arbo, 1872, toned green",
+          alt: "Åsgårdsreien, the Wild Hunt of Odin: riders storming across a night sky, by Peter Nicolai Arbo, 1872",
         }}
-        preset="ink"
-        palette={{ background: "#030604", ink: "#3dff8f" }}
-        className="dolos-footer"
+        preset="vermilion"
         tagline="A honeypot for rogue AI · hidden inside your real website"
         sideNote="Built at HackUMass XIV · Olympus above · Tartarus below"
         columns={[
@@ -74,7 +72,7 @@ export default function Landing() {
           { title: "Try it", links: [{ label: "Release the swarm", href: "#/console" }, { label: "Open the bait site", href: bait }] },
           { title: "Credits", links: [{ label: "Hero: The Creation of Adam", href: CREDIT }, { label: "Footer: Arbo, The Wild Hunt", href: ARBO }] },
         ]}
-        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons, toned green. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
+        colophon="Painting: Peter Nicolai Arbo, Åsgårdsreien (The Wild Hunt of Odin), 1872. National Museum, Oslo. Public domain, via Wikimedia Commons. Hero hands: Michelangelo, The Creation of Adam (c. 1512), public domain. Footer design: Wild Hunt, 21st.dev. ΔΟΛΟΣ, the Greek spirit of trickery."
         legal="Dolos · HackUMass XIV"
         fontFamily='"Montserrat Variable", system-ui, sans-serif'
         monoFamily='"JetBrains Mono Variable", ui-monospace, monospace'

@@ -41,6 +41,7 @@ Classic honeypots sit to the side and hope to be found. Dolos stands in front of
 - Type pinned by the user from 2016.makemepulse.com: Montserrat for UI and copy (wide uppercase tracking for labels), an ultra-condensed display face standing in for Univers Ultra Condensed (Sofia Sans Extra Condensed, which also carries the Greek letters).
 - Landing hero pinned by the user's reference image: two hands reaching toward one object on black (a Creation of Adam composition). Here the object is the bait, a glowing `.env` vial; the hands come from Michelangelo's public-domain fresco.
 - Console model pinned by the user: an interactive bento grid with cursor-following glow cards, reading only real feed data.
+- Footer pinned by the user to the 21st.dev Wild Hunt reference: vermilion field, cream ink, Arbo's painting in its own colours. The one place red is decorative.
 - Colour meaning across surfaces: sage = what looks real (Olympus), bright green = the trap (Tartarus) and the primary action, amber = Zeus and lockdown, red = "containment breached" only.
 
 ## Evidence on Hand
