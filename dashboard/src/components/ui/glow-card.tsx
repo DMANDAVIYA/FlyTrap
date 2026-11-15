@@ -1,39 +1,20 @@
-// Adapted from 21st.dev "interactive-tech-stack-bento-grid-with-hover-effects": the GlowCard shell,
-// useAnimatedNumber and toSmoothPath. Dolos changes: the pointer position is written to CSS custom
-// properties through a ref (no React state per mousemove, so live charts inside never re-render on
-// hover), styles live in index.css (.glow-*), and the accent comes from the black-and-green tokens.
+// The card every console panel sits in, plus useAnimatedNumber and toSmoothPath (adapted from 21st.dev
+// "interactive-tech-stack-bento-grid-with-hover-effects"). The shell is the 21st.dev spotlight card
+// (spotlight-card.tsx): a border light that follows the pointer, brand green, amber for Zeus.
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { GlowCard as Spotlight } from "./spotlight-card";
 
 export const cx = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(" ");
 
-/** A card whose border, spotlight and fine grid follow the pointer. `glow` is an "r g b" token var. */
+/** A console card. `glow` names a token var; "var(--warn-rgb)" turns the light amber for Zeus. */
 export function GlowCard({ className = "", glow, label, children }: {
   className?: string; glow?: string; label?: string; children: ReactNode;
 }) {
-  const ref = useRef<HTMLElement>(null);
-  const move = (x: number, y: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--x", `${x - r.left}px`);
-    el.style.setProperty("--y", `${y - r.top}px`);
-  };
   return (
-    <section
-      ref={ref}
-      aria-label={label}
-      onPointerMove={(e) => move(e.clientX, e.clientY)}
-      className={cx("glow-card", className)}
-      style={glow ? ({ "--glow": glow } as CSSProperties) : undefined}
-    >
-      <div aria-hidden className="glow-edge" />
-      <div aria-hidden className="glow-face">
-        <div className="glow-spot" />
-        <div className="glow-grid" />
-      </div>
-      <div className="relative z-10 flex h-full min-h-0 flex-col p-5">{children}</div>
-    </section>
+    <Spotlight customSize glowColor={glow?.includes("warn") ? "amber" : "dolos"} className={cx("min-h-0 !gap-0 !p-0", className)}>
+      <section aria-label={label} className="glow-card relative z-10 flex h-full min-h-0 min-w-0 flex-col p-5">{children}</section>
+    </Spotlight>
   );
 }
 

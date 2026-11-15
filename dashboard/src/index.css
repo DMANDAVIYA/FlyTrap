@@ -53,33 +53,16 @@ a { text-underline-offset: 0.2em; }
 .btn-ok { border-color: rgba(61,255,143,.45); color: #c9ffdf; background: rgba(61,255,143,.07); }
 .btn-ok:hover { border-color: var(--green); background: rgba(61,255,143,.13); }
 
-/* Glow cards (components/ui/glow-card.tsx): border, spotlight and grid follow --x/--y set from the pointer. */
-.glow-card { --x: 50%; --y: -200px; --glow: var(--green-rgb); position: relative; border-radius: 24px; isolation: isolate; min-height: 0; }
-.glow-edge { position: absolute; inset: 0; border-radius: inherit; background: rgb(var(--line-2-rgb) / .45); }
-.glow-edge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0; transition: opacity .5s;
-  background: radial-gradient(260px circle at var(--x) var(--y), rgb(var(--glow) / .9), transparent 70%); }
-.glow-face { position: absolute; inset: 1px; border-radius: 23px; overflow: hidden; background: rgb(var(--card-rgb)); }
-.glow-spot, .glow-grid { position: absolute; inset: 0; opacity: 0; transition: opacity .5s; }
-.glow-spot { background: radial-gradient(400px circle at var(--x) var(--y), rgb(var(--glow) / .1), transparent 65%); }
-.glow-grid {
-  background-image: linear-gradient(rgb(var(--glow) / .07) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--glow) / .07) 1px, transparent 1px);
-  background-size: 26px 26px;
-  -webkit-mask-image: radial-gradient(220px circle at var(--x) var(--y), black, transparent 75%);
-  mask-image: radial-gradient(220px circle at var(--x) var(--y), black, transparent 75%);
-}
-.glow-card:hover .glow-edge::after, .glow-card:focus-within .glow-edge::after,
-.glow-card:hover .glow-spot, .glow-card:focus-within .glow-spot, .glow-card:hover .glow-grid { opacity: 1; }
 
 /* Console: black first, green second. Neutral surfaces, lines and text inside the console only;
    green stays for the trap, live states and good changes. The plain vars are re-derived because
    :root computed them from its own channels. */
 .console-ui {
-  --bg-rgb: 5 5 5; --card-rgb: 14 14 14; --inner-rgb: 22 22 22; --line-rgb: 32 32 32; --line-2-rgb: 52 52 52;
+  --bg-rgb: 5 5 5; --card-rgb: 14 14 14; --inner-rgb: 28 28 28; --line-rgb: 32 32 32; --line-2-rgb: 52 52 52;
   --text-rgb: 236 236 236; --text-2-rgb: 150 150 150; --sage-rgb: 196 196 196;
   --bg: rgb(var(--bg-rgb)); --line: rgb(var(--line-rgb)); --line-2: rgb(var(--line-2-rgb));
   --text: rgb(var(--text-rgb)); --text-2: rgb(var(--text-2-rgb)); --real: rgb(var(--sage-rgb));
 }
-.console-ui .glow-card { --glow: var(--text-rgb); }
 
 /* The visitors orb: a black glass sphere, lit green at the rim. */
 .orb { position: relative; border-radius: 9999px; background: radial-gradient(circle at 50% 30%, #2b2b2b 0%, #111 46%, #000 100%);
