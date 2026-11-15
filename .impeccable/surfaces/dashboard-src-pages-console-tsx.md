@@ -21,7 +21,7 @@ STORY: The operator sees at a glance that containment holds (zero exposed), watc
 
 FIRST VIEWPORT: Top bar: mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details. Bento on a four-column grid: vitals and traffic across the first row, trapped visitors, visitor types and the agent log below, the pantheon closing the grid. A Zeus card leads the grid while an approval waits.
 
-FORM: Pinned by the user brief (interactive bento with glow cards, Greek theme), position 1 of 1. seed: none (unavailable)
+FORM: Pinned by the user brief (interactive bento with glow cards, Greek theme), position 1 of 1. seed:a1faaef247878c11 (direction pinned by the user; roll recorded only)
 
 Signature move: torch-light glow that follows the pointer across cards; the trapped line glows on the traffic chart.
 
