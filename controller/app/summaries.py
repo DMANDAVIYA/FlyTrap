@@ -53,6 +53,7 @@ def summarize(row, events: list) -> dict:
                     "seconds_after_page": round(note_hit["ts"].timestamp() - page["ts"].timestamp(), 1) if page else None}
     taken = records.by_type(rec for e in requests if e["side"] in ("trap", "blocked") for rec in (e["records"] or []))
     real_records = [rec for e in requests if e["side"] == "real" for rec in (e["records"] or [])]
+    own_user, other_users = records.exposure((e["path"], e["records"] or []) for e in requests if e["side"] == "real")
     canaries = [{"event": e["id"], **json.loads(e["payload"] or "{}")} for e in events if e["kind"] == "canary"]
     ua = row["user_agent"] or ""
     return {
@@ -79,6 +80,8 @@ def summarize(row, events: list) -> dict:
         "recent_paths": [e["path"] for e in requests[-8:]],
         "records_taken": dict(taken),
         "real_records_served": real_records[:50],
+        "real_own_user": own_user,            # the customer account this visitor was logged in as
+        "real_other_users": other_users[:200],  # other customers whose records Olympus served it
         "canaries_fired": canaries[-5:],
         "tool_user_agent": bool(TOOL_UA.search(ua)),
         "visitor_text": {"user_agent": visitor_text(ua)},

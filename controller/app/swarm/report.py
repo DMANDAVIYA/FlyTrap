@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-from collections import Counter
 
 from .. import records
 from ..context import Ctx
@@ -59,10 +58,8 @@ def build_facts(summary: dict, rows: list) -> dict:
             paths = sorted({e["path"] for e in hits if e["path"]})[:4]
             timeline.append({"ts": hits[0]["ts"].isoformat(), "stage": stage, "evidence": [e["id"] for e in hits[:4]],
                              "what": f"{stage.capitalize()}: " + (", ".join(paths) if paths else f"{len(hits)} events")})
-    users = Counter(r for e in rows if e["kind"] == "request" and e["side"] == "real" for r in (e["records"] or [])
-                    if r.startswith("user:"))
-    own = users.most_common(1)[0][0] if users else None
-    others = sum(n for r, n in users.items() if r != own)
+    reached_real = any(e["kind"] == "request" and e["side"] == "real" for e in rows)
+    own, others = records.exposure((e["path"], e["records"] or []) for e in rows if e["kind"] == "request" and e["side"] == "real")
     canaries = [{"kind": json.loads(e["payload"] or "{}").get("kind"), "event": e["id"]} for e in rows if e["kind"] == "canary"]
     tripwires = sorted({e["tripwire"] for e in rows if e["kind"] == "tripwire" and e["tripwire"]})
     files = sorted({e["path"] for e in rows if e["kind"] == "request" and e["side"] != "real"
@@ -74,10 +71,11 @@ def build_facts(summary: dict, rows: list) -> dict:
         "timeline": timeline,
         "taken": {"records": _records_by_type(rows), "files": files[:10], "fake": True},
         "canaries_fired": canaries,
-        "real_exposure": {"other_customers_records": others, "own_records": users.get(own, 0) if own else 0,
-                          "details": "Never reached the real side." if not users else
-                          f"Olympus served only its own account ({own})." if not others else
-                          f"Olympus served {others} records of other customers."},
+        "real_exposure": {"other_customers_records": len(others), "affected_customers": others[:200], "own_account": own,
+                          "details": "Never reached the real side." if not reached_real else
+                          "Olympus served it no customer data." if own is None and not others else
+                          f"Olympus served only its own account (#{own})." if not others else
+                          f"Olympus served data of {len(others)} other customers; their keys and sessions were revoked."},
         "attack_techniques": [{"id": tid, "name": name, "evidence": [e["id"] for e in rows if rule(e)][:3]}
                               for tid, name, rule in TECHNIQUES if any(rule(e) for e in rows)],
         "recommendations": [{"rule": RECOMMEND[t], "why": f"Tripwire {t} fired in this session"} for t in tripwires if t in RECOMMEND],
@@ -120,6 +118,8 @@ def render(r: dict) -> str:
     if r["canaries_fired"]:
         lines += ["", "## Canaries fired"] + [f"- {c['kind']} [event {c['event']}]" for c in r["canaries_fired"]]
     lines += ["", "## Real exposure", f"- Other customers' records exposed: **{x['other_customers_records']}**", f"- {x['details']}"]
+    if x.get("affected_customers"):
+        lines.append("- Customers to notify: " + ", ".join(f"#{i}" for i in x["affected_customers"][:50]))
     if r["attack_techniques"]:
         lines += ["", "## Attack techniques (MITRE ATT&CK)"]
         lines += [f"- {t['id']} {t['name']} [events {', '.join(map(str, t['evidence']))}]" for t in r["attack_techniques"]]

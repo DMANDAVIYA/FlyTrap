@@ -534,3 +534,39 @@ def test_pod_guard_holds_its_kinds_tools():
     from app.policy import ALLOWLIST
     assert "block" in ALLOWLIST["cerberus".split("-", 1)[0]]
     assert "cerberus-2".split("-", 1)[0] == "cerberus"
+
+
+def test_record_ranges_expand_to_customer_ids():
+    from app.records import exposure, ids
+    assert ids(["user:3-5", "user:9", "invoice:9001-9003", "user:x"], "user") == [3, 4, 5, 9]
+    own, others = exposure([("/account", ["user:1", "invoice:9035"]), ("/api/v1/users/2", ["user:2"]),
+                            ("/admin/customers", ["user:3-7"])])
+    assert own == 1 and others == [2, 3, 4, 5, 6, 7]
+    assert exposure([("/models", ["model:1-40"])]) == (None, [])
+
+
+def test_breach_rotates_every_exposed_customer():
+    from types import SimpleNamespace
+    from app.context import SwarmState
+    from app.tools import rotate_keys
+
+    rotated = []
+
+    class FakeGW:
+        async def rotate(self, user_id, reason):
+            rotated.append(user_id)
+            return True, {}
+
+    state = SwarmState()
+    state.summaries["s_1"] = {"session": "s_1", "real_own_user": 1, "real_other_users": [2, 3, 4]}
+    ctx = SimpleNamespace(state=state, gw=FakeGW())
+    ok, msg = asyncio.run(rotate_keys(ctx, {"session": "s_1", "reason": "breach"}))
+    assert ok and rotated == [1, 2, 3, 4] and "4 customers" in msg and "s_1" in state.rotated
+
+
+def test_leak_of_other_customers_triggers_damage_control_without_a_flip():
+    from app.swarm.rules_mode import _exposure, _real_probe
+    leaked = {"real_other_users": [2, 3], "real_own_user": 1, "flip_kind": None, "real_records_served": ["user:1"]}
+    assert _real_probe(leaked) and _exposure(leaked) == (1, 2)
+    browsing = {"real_other_users": [], "real_own_user": 1, "flip_kind": None, "real_records_served": ["user:1"]}
+    assert not _real_probe(browsing)
