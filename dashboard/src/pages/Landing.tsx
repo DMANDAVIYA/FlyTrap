@@ -31,7 +31,6 @@ export default function Landing() {
           </a>
           <div className="flex items-center gap-6 sm:gap-8">
             <a href="#how" className="caps hidden text-[10.5px] text-text2 transition-colors hover:text-text sm:inline">How it works</a>
-            <a href="#/console" className="btn btn-trap">Console <ArrowRight size={13} aria-hidden /></a>
           </div>
         </nav>
       </header>
