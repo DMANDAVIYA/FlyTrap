@@ -575,7 +575,13 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
             op[k] = damp(op[k], shown[k], 7, dt);
             const p = anchors[k]();
             const sx = (ox + p.x * z) / dpr;
-            const sy = (oy + p.y * z) / dpr;
+            let sy = (oy + p.y * z) / dpr;
+            if (k === "olympus" || k === "tartarus") {
+              // on a short stage the temple names land past the top or bottom: pull them in, as one line
+              const tight = sy < 24 || sy > el.clientHeight - 24;
+              node.toggleAttribute("data-tight", tight);
+              if (tight && sy > -40 && sy < el.clientHeight + 40) sy = clamp(sy, 10, el.clientHeight - 10);
+            }
             const inside = sx > 30 && sx < el.clientWidth - 30 && sy > 8 && sy < el.clientHeight - 8;
             node.style.opacity = inside && op[k] > 0.01 ? op[k].toFixed(3) : "0";
             node.style.transform = `translate(-50%, -50%) translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px)`;
@@ -620,11 +626,11 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
     <div ref={host} aria-hidden className="absolute inset-0 overflow-hidden">
       <div ref={mark("olympus")} className={base}>
         <div className="caps text-[11px] font-semibold text-real">Olympus</div>
-        <div className="mt-1 text-[11px] text-text2">the real site</div>
+        <div className="mt-1 text-[11px] text-text2 [[data-tight]_&]:hidden">the real site</div>
       </div>
       <div ref={mark("tartarus")} className={base}>
         <div className="caps text-[11px] font-semibold text-green">Tartarus</div>
-        <div className="mt-1 text-[11px] text-text2">the copy · fake data</div>
+        <div className="mt-1 text-[11px] text-text2 [[data-tight]_&]:hidden">the copy · fake data</div>
       </div>
       <div ref={mark("charon")} className={`${base} caps rounded-full bg-bg/80 px-2.5 py-1 text-[10px] text-text2`}>Charon</div>
       <div ref={mark("env")} className={`${base} rounded-full border border-green/60 bg-bg/85 px-2 py-0.5 font-mono text-[11px] text-green`}>.env</div>
