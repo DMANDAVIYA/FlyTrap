@@ -264,9 +264,9 @@ def test_model_chains_live_in_code(monkeypatch):
     from app.swarm.roles import ROLES
     monkeypatch.setenv("BLUE_MODEL_ATHENA", "openai:gpt-4o")
     assert chain("athena").startswith("anthropic:claude-opus-5-5")
-    assert chain("odysseus").startswith("kimi:kimi-k3.1-pro")
+    assert chain("odysseus").startswith("deepseek:deepseek-v4-pro")
     assert chain("argus") == ""                                    # code-only role
-    ai_agents = {r.name for r in ROLES if r.uses_ai} | {p.name for p in PERSONAS if p.default_mode == "ai"} | {"clio"}
+    ai_agents = {r.base for r in ROLES if r.uses_ai} | {p.name for p in PERSONAS if p.default_mode == "ai"} | {"clio"}
     assert ai_agents <= set(CHAINS)
     assert {spec.split(":")[0] for models in CHAINS.values() for spec in models} <= set(PROVIDERS)
     from app.models import RED_PROVIDERS
@@ -483,3 +483,54 @@ def test_customer_with_pauses_stays_human():
     customer = {"js_beacon": True, "mouse_keys": 3, "assets_loaded": 4, "median_gap_s": 3.0, "gap_spread_s": 2.5,
                 "pauses": 8, "pause_share": 0.8, "median_pause_s": 3.2, "requests_total": 12, "tripwires": []}
     assert score(customer).label == "human"
+
+
+def test_raider_reports_zero_when_no_model_answers():
+    """If every model fails before the first request, run_llm returns 0 so the swarm can run the script instead."""
+    from types import SimpleNamespace
+    from app.llm import LLMError
+    from app.raiders.llm_raider import run_llm
+
+    class DeadLLM:
+        async def chat(self, *a, **k):
+            raise LLMError("all models failed: HTTP 402 insufficient balance")
+
+    thoughts = []
+
+    async def emit(*a):
+        thoughts.append(a[1])
+
+    persona = SimpleNamespace(name="prometheus", base="prometheus", objective="test", user_agent="ua")
+    sent = asyncio.run(run_llm(persona, DeadLLM(), None, emit, LootBoard(), "pw", 10, 1, asyncio.Event()))
+    assert sent == 0 and thoughts == []
+
+
+def test_different_rule_suggestions_do_not_share_a_rate_limit():
+    from app.policy import rate_key
+    a = rate_key({"rule": {"action": "flip", "ua_contains": "python-requests"}})
+    b = rate_key({"rule": {"action": "flip", "path_prefix": "/internal-backup"}})
+    assert a != b and a.startswith("rule:")
+    assert rate_key({"session": "s_1", "rule": {"x": 1}}) == "s_1"
+    assert rate_key({}) == "-"
+
+
+def test_every_pod_has_its_own_guard_and_builder():
+    from app.swarm.roles import ROLES, build_roles
+    roles = build_roles(["pod-1", "pod-2", "pod-3", "pod-4", "pod-5"])
+    names = [r.name for r in roles]
+    assert len(roles) == 16 and "cerberus" not in names and "hephaestus" in names
+    for pod in ("pod-1", "pod-5"):
+        guards = [r.name for r in roles if r.covers({"pod": pod}) and r.base == "cerberus"]
+        builders = [r.name for r in roles if r.covers({"pod": pod}) and r.base == "hephaestus"]
+        assert len(guards) == 1 and len(builders) == 1, (pod, guards, builders)
+    real_side = [r.name for r in roles if r.base == "hephaestus" and r.covers({"pod": None})]
+    assert real_side == ["hephaestus"]                       # rotations for visitors never trapped
+    assert all(r.covers({"pod": "pod-3"}) for r in roles if r.scope is None)
+    assert "pod-2" in next(r for r in roles if r.name == "cerberus-2").prompt()
+    assert len(ROLES) == 16
+
+
+def test_pod_guard_holds_its_kinds_tools():
+    from app.policy import ALLOWLIST
+    assert "block" in ALLOWLIST["cerberus".split("-", 1)[0]]
+    assert "cerberus-2".split("-", 1)[0] == "cerberus"
