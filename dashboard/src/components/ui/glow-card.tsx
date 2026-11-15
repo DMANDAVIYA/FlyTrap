@@ -40,8 +40,8 @@ export function GlowCard({ className = "", glow, label, children }: {
 export function CardTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="panel-title">{children}</h2>
-      {right}
+      <h3 className="panel-title min-w-0 truncate">{children}</h3>
+      {right && <div className="shrink-0 whitespace-nowrap">{right}</div>}
     </div>
   );
 }

@@ -9,7 +9,7 @@ related_targets: ["dashboard/src/components/ui/glow-card.tsx"]
 
 Scope: `dashboard/src/pages/Console.tsx` (route `#/console`). Mode: Operate.
 User: the demo operator on a laptop at the judging table. Task: release the swarm, watch visitors get trapped, approve Zeus actions, hit lockdown or the kill switch, open a trapped session's incident report.
-Main screen, a bento of glow cards and nothing more: vitals (real records exposed, trapped, flip time), live real-vs-trapped traffic, the agent log, visitor types, trapped visitors, the pantheon of defenders, Zeus approvals when one waits. Always visible: lockdown overlay, breach status, kill switch, lockdown button, REPLAY badge. Incident report, trackers, roster, full agent streams and replay live in the right-hand drawer. Every card reads the real feed; empty states say what fills them.
+Main screen, split in two sides by the user's request: attackers on the left (live real-vs-trapped traffic, trapped visitors, raider messages, what they took), defenders on the right (vitals: real records exposed, trapped, flip time; the pantheon; visitor types as Argus labels them; defender messages; Zeus approvals when one waits). Always visible: lockdown overlay, breach status, kill switch, lockdown button, REPLAY badge. Incident report, trackers, roster, full agent streams and replay live in the right-hand drawer. Every card reads the real feed; empty states say what fills them.
 
 ## Direction contract
 
@@ -19,7 +19,7 @@ OWN-WORLD: Same black and green tokens as the landing page. Montserrat wide capi
 
 STORY: The operator sees at a glance that containment holds (zero exposed), watches trapped traffic rise against real traffic, reads Hermes' messages, and acts from one control row.
 
-FIRST VIEWPORT: Top bar: mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details. Bento on a four-column grid: vitals and traffic across the first row, trapped visitors, visitor types and the agent log below, the pantheon closing the grid. A Zeus card leads the grid while an approval waits.
+FIRST VIEWPORT: Top bar: mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details. Two mirrored sides under a hairline seam, each with its own heading and one-line summary. Attackers (bright green heading): traffic across the top, trapped visitors down the outer left edge, raider messages and what they took beside it. Defenders (sage heading): vitals across the top, the defender log down the outer right edge, pantheon and visitor types beside it. A Zeus card leads the defenders' side while an approval waits.
 
 FORM: Pinned by the user brief (interactive bento with glow cards, Greek theme), position 1 of 1. seed:a1faaef247878c11 (direction pinned by the user; roll recorded only)
 
