@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { GlyphHand } from "./GlyphHand";
 import { Vial } from "./Vial";
@@ -90,10 +90,13 @@ export function Hero() {
         <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-text2">
           The bot reaches for the bait. Hermes hands it a perfect copy of your site, full of fake data. It never finds out.
         </p>
-        <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <a href="#/console" className="btn btn-trap !px-5 !py-3">Open the console <ArrowRight size={14} aria-hidden /></a>
-          <a href="#/see" className="btn !px-5 !py-3">See what the bot sees <ArrowRight size={14} aria-hidden /></a>
-        </div>
+        <a href="#how" aria-label="Scroll to how it works"
+          className="mt-8 grid h-11 w-11 place-items-center rounded-full border border-line2 text-text2 transition-colors hover:border-green/60 hover:text-green">
+          <motion.span className="grid place-items-center" animate={still ? undefined : { y: [0, 5, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
+            <ArrowDown size={18} aria-hidden />
+          </motion.span>
+        </a>
       </motion.div>
     </section>
   );
