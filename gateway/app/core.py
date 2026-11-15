@@ -181,4 +181,25 @@ class Gateway:
         return len(ended)
 
     def _on_lockdown(self, state: str, info: dict) -> None:
-        self.writer.emit("lockdown", payload={"state": state, **info})
+        released = self.release_lockdown_holds() if state == "off" else 0
+        self.writer.emit("lockdown", payload={"state": state, **info, **({"released": released} if state == "off" else {})})
+
+    def release_lockdown_holds(self) -> int:
+        """Lockdown is over: visitors held only because of it go back to Olympus. Anyone who touched
+        bait while held was already upgraded to a normal flip (see upgrade_hold) and stays (R1)."""
+        released = 0
+        for s in self.store.active():
+            if s.side == "trap" and s.flip_kind == "lockdown":
+                if s.pod:
+                    self.pods.release(s.pod, s.session_id)
+                s.side, s.pod, s.flipped_by, s.flip_kind, s.ladder = "real", None, None, None, "watch"
+                self.store.touch(s)
+                released += 1
+        return released
+
+    def upgrade_hold(self, session: Session, tripwire: str, kind: str) -> None:
+        """A lockdown-held visitor tripped a wire inside the trap: it now counts as flipped for that reason."""
+        if session.flip_kind != "lockdown":
+            return
+        session.flipped_by, session.flip_kind = tripwire, kind
+        self.store.touch(session)

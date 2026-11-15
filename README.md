@@ -26,7 +26,7 @@ Built at HackUMass XIV.
 2. **Tripwires** fire on things no real customer does: a robots.txt-hidden path, a leaked `.env`, a migration login in a page comment, a hidden link, a hidden form field, a note only AI agents read, a stolen token being used, record-ID walking, the real site refusing another customer's record, attack signatures.
 3. A tripped visitor is **flipped** into its own trap copy: same code, same pages, valid login, fake data. Instant flips are permanent; Charon enforces that in code.
 4. Every value of bait is **unique per visitor**, so a stolen token used anywhere names who took it and links separate visitors into one **campaign**.
-5. The **blue swarm** reads compact session summaries, decides, and acts only through tools its role holds. Drastic actions (release, global patches, lockdown, server restarts) wait for **Zeus**, a human.
+5. The **blue swarm** reads compact session summaries, decides, and acts only through tools its role holds. Drastic actions (release, global patches, lockdown, server restarts) wait for **Zeus**, a human. Breach-response steps (lockdown request, server restart request, key rotation for every exposed customer, damage patch) are required playbook steps: a model can add actions but cannot drop them. When a lockdown ends, visitors held only by the lockdown return to Olympus; anyone who touched bait while held stays trapped.
 
 ## The blue swarm
 

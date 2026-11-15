@@ -570,3 +570,16 @@ def test_leak_of_other_customers_triggers_damage_control_without_a_flip():
     assert _real_probe(leaked) and _exposure(leaked) == (1, 2)
     browsing = {"real_other_users": [], "real_own_user": 1, "flip_kind": None, "real_records_served": ["user:1"]}
     assert not _real_probe(browsing)
+
+
+def test_required_playbook_steps_survive_an_ai_plan():
+    from app.swarm.plan import Plan, merge_plans
+    rules = Plan()
+    rules.must("request_rebuild", "lockdown is on", [1], reason="restart one at a time")
+    rules.act("post_note", "status", session=None)
+    ai = Plan(model="anthropic:claude-opus-5-5")
+    ai.act("post_note", "I would rather just write a note", session=None)
+    merged = merge_plans(ai, rules)
+    assert [i.tool for i in merged.intents] == ["post_note", "request_rebuild"]   # AI kept, required step added
+    talk_only = merge_plans(Plan(), rules)
+    assert [i.tool for i in talk_only.intents] == ["request_rebuild", "post_note"]  # model only talked: defaults

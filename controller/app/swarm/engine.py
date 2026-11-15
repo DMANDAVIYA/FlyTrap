@@ -16,6 +16,7 @@ from ..llm import LLM, LLMError
 from ..models import chain
 from ..policy import Policy
 from ..summaries import active_summaries
+from .plan import merge_plans
 from .roles import ROLES, Role, ai_plan, rules_plan
 
 log = logging.getLogger("controller.swarm")
@@ -97,10 +98,7 @@ class Engine:
             await self.set_roster(role, "thinking", mode="ai")
             targets = [s for s in sessions if any(i.args.get("session") == s["session"] for i in plan.intents)] or sessions[:4]
             try:
-                ai = await ai_plan(self.ctx, role, llm, targets, events)
-                if not ai.intents:  # the model only talked: keep its words, keep the safe default actions
-                    ai.intents, ai.notes = plan.intents, plan.notes
-                plan, mode = ai, "ai"
+                plan, mode = merge_plans(await ai_plan(self.ctx, role, llm, targets, events), plan), "ai"
             except LLMError as exc:
                 log.warning("%s fell back to rules mode: %s", role.name, exc)
         for session, text in plan.thoughts:
