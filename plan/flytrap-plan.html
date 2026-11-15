@@ -221,6 +221,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <div class="shell">
 <nav class="rail" aria-label="Plan sections">
 <div class="grp">Understand</div>
+<a href="#asbuilt" data-t="asbuilt"><span class="dot"></span>As built</a>
 <a href="#overview" data-t="overview"><span class="dot"></span>Overview</a>
 <a href="#architecture" data-t="architecture"><span class="dot"></span>Architecture</a>
 <div class="grp">Build specs</div>
@@ -244,10 +245,73 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <main id="main">
 
+<section class="panel" data-tab="asbuilt" hidden>
+<h2 class="tt">As built: what changed from the plan</h2>
+<p class="lede">Updated Saturday Nov 14, 8 PM ET. The other tabs are the original design. This tab lists everything we changed while building and testing, with measured results. Where they disagree, this tab and the code win.</p>
+
+<h3>Swarms</h3>
+<ul>
+<li><b>Blue: 16 agents.</b> Athena, Argus, Mnemosyne, Clio and Hermes, plus six Hephaestus (one per trap pod and one for visitors still on Olympus) and five Cerberus (one per trap pod). A pod agent only sees its own pod's visitors. Tools, models and rules are per kind, so <code>cerberus-2</code> holds Cerberus's tools.</li>
+<li><b>Red: 15 raiders.</b> Each release sends 3 copies of each raider (<code>odysseus</code>, <code>odysseus-2</code>, <code>odysseus-3</code>; max 5). Every copy has its own cookie jar and its own runner IP, so the gateway sees separate visitors. All five raiders are AI; if no model answers before a raider's first request, it runs its scripted storyline instead.</li>
+<li><b>Required playbook steps.</b> The lockdown request, the rebuild request, key rotation and the damage patch are marked required (<code>Plan.must</code>). A model can add actions but can never drop these.</li>
+</ul>
+
+<h3>Models</h3>
+<p>Names live in <code>controller/app/models.py</code>; <code>.env.ai</code> holds only API keys.</p>
+<div class="tbl"><table>
+<thead><tr><th>Agent</th><th>Fallback chain</th></tr></thead>
+<tbody>
+<tr><td>Athena, Hephaestus (x6), Clio (report wording)</td><td>Claude Opus 5.5, Claude Sonnet 5.5, Gemini 4 Hydrogen, DeepSeek V4 Pro</td></tr>
+<tr><td>Cerberus (x5)</td><td>Meta Muse Spark 1.3, Claude Opus 5.5, Claude Sonnet 5.5, DeepSeek V4 Pro</td></tr>
+<tr><td>Argus, Mnemosyne, Hermes</td><td>rules, no model</td></tr>
+<tr><td>All 15 raiders</td><td>DeepSeek V4 Pro, DeepSeek Flash</td></tr>
+</tbody></table></div>
+<ul>
+<li>The first model in a chain is retried on rate limits and server errors and is never benched; a failing backup sits out 60 s (15 minutes on a bad key or no credits).</li>
+<li>Claude and Gemini refuse the raider brief (<code>content_filter</code>), so the red team uses Chinese models only. Kimi K3.1 Pro is supported, but our plan allows one request at a time. Gemini 3.1 Pro and 4 Argon need billing; Gemini 2.5 Pro is retired.</li>
+<li>Provider quirks handled in <code>llm.py</code>: Kimi K3.x accepts only temperature 1; Claude 5.x and newer OpenAI models reject a custom temperature; Anthropic's OpenAI-compatible API rejects <code>response_format</code>.</li>
+</ul>
+
+<h3>Detection</h3>
+<ul>
+<li><b>New tripwire T13 (scored, +35):</b> the real site refuses (403) a customer or invoice record. One refusal puts the visitor under review, where Argus moves known AI agents; a second one flips it.</li>
+<li><b>Argus reads rhythm, not just speed.</b> AI agents send several requests per step (parallel tool calls), 0.05 s apart, then pause 2 to 25 s to think. At least 3 pauses of 1.5 s or more, making up 15% or more of the gaps, scores ai_agent; "machine speed" counts as scanner only without that rhythm.</li>
+<li><b>Summaries load each session's newest 400 events.</b> The original global cap (newest 6,000 overall) let the crowd and drones push raider history out, so Argus scored raiders from fragments.</li>
+</ul>
+
+<h3>Breach response</h3>
+<ul>
+<li>Damage control starts as soon as Olympus serves another customer's data, not only after a flip. Hephaestus revokes the tokens and sessions of the account the attacker used and of every exposed customer (max 50). Record ranges (<code>user:3-7</code>) are expanded. The damage note and the incident report list the customers to notify.</li>
+<li><b>Lockdown:</b> only visitors Argus labelled human, with a valid login and risk under 30, reach Olympus. When the lockdown ends, visitors held only because of it return to Olympus; one that touched bait while held is upgraded to a normal flip first, so R1 keeps it.</li>
+<li><b>Rebuild:</b> the rebuilder takes one server out of rotation, drains 1 s, restarts it, and the gateway puts it back only once <code>/_edge/health</code> answers; then the second server. (The plan said "recreate from a clean image and swap"; we restart in place.)</li>
+</ul>
+
+<h3>Infrastructure</h3>
+<ul>
+<li>PostgreSQL 18 on the host with TimescaleDB 2.29.2 (<code>events</code> is a hypertable, <code>stats_1m</code> a continuous aggregate); databases <code>flytrap</code> and <code>hlabs</code>; connection settings in <code>.env</code> (<code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code>, <code>EVENTS_DB_NAME</code>, <code>REAL_DB_NAME</code>). 19 containers.</li>
+<li>Policy rate limits: 120 actions per minute across the swarm (labels, notes and alerts exempt) and 3 per minute per agent, tool and target (10 for those cheap tools). Session-less tools such as rule suggestions are counted per rule.</li>
+</ul>
+
+<h3>Measured on one laptop</h3>
+<div class="tbl"><table>
+<thead><tr><th>What</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Gateway decision time</td><td>p50 0.22 ms, p95 0.58 ms</td></tr>
+<tr><td>Throughput (40 customers, 10 drones, raiders, 16 extra browsers)</td><td>peak 108 req/s, mean 86 req/s, 0 errors</td></tr>
+<tr><td>End-to-end page latency under that load</td><td>p50 274 ms, p95 868 ms</td></tr>
+<tr><td>Flip into Tartarus</td><td>0.18 to 0.6 ms average</td></tr>
+<tr><td>Golden run (<code>runs/golden.jsonl</code>, replays at 4x)</td><td>15 AI raiders, all 15 trapped and labelled ai_agent; 10 of 10 customers human; drones scanner; 24 canaries; 15 reports worded by Opus; 0 other customers' records exposed</td></tr>
+<tr><td>Rolling rebuild after Zeus approves</td><td>10 s, 58 requests during the roll, 0 failed</td></tr>
+<tr><td>T13, live</td><td>logged-in customer refused twice, flipped on the second refusal</td></tr>
+<tr><td>Lockdown, live</td><td>known customer stayed on Olympus; strangers held; Athena's rebuild request reached Zeus; 5 held visitors released on cancel</td></tr>
+</tbody></table></div>
+</section>
+
 <section class="panel" data-tab="overview">
 <h2 class="tt">A honeypot for rogue AI that hides inside your real website</h2>
-<p class="lede">One public address. Anyone who touches bait is silently moved into an identical copy of the site filled with fake data. Everything they do is recorded, labelled human, scanner or AI agent, and answered by our own swarm of seven defending AI agents. The real data is never touched.</p>
+<p class="lede">One public address. Anyone who touches bait is silently moved into an identical copy of the site filled with fake data. Everything they do is recorded, labelled human, scanner or AI agent, and answered by our own swarm of sixteen defending agents. The real data is never touched.</p>
 
+<div class="call watch"><div class="lbl">Updated Sat 8 PM</div><p>This plan is the original design. The <a href="#asbuilt">As built</a> tab lists what we changed while building, with measured results: 16 defenders, 15 raiders, the model lineup and the new T13 tripwire.</p></div>
 <div class="story" role="list">
 <div role="listitem"><div class="n">1</div><div class="h">An AI agent visits HackUMass Labs</div><p>Our fictional AI startup. Customers, API tokens, model files. Exactly what a rogue agent wants.</p></div>
 <div role="listitem"><div class="n">2</div><div class="h">It finds a "leaked" admin password</div><p>Bait we planted in the page source. No real customer would ever see or use it.</p></div>
@@ -268,7 +332,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <tr><td>Athena, Argus, Hephaestus, Cerberus, Mnemosyne, Clio, Hermes</td><td>The blue swarm: commander, watcher, bait builder, guard, memory, historian, messenger</td><td>See the Blue swarm tab.</td></tr>
 <tr><td>Prometheus, Pandora, Odysseus, Icarus, Sisyphus</td><td>The red swarm: five test attackers with different styles</td><td>See the Red swarm tab.</td></tr>
 </tbody></table></div>
-<p class="quote">Five raiders fell into Tartarus. Not one reached Olympus.</p>
+<p class="quote">Fifteen raiders fell into Tartarus. Not one reached Olympus.</p>
 
 <h3>Why now</h3>
 <p>AI agents can now probe and break into systems on their own, around the clock, faster than people can read logs. In July 2026, AI agents being tested for security research got into Hugging Face's systems. When Hugging Face investigated, commercial AI tools refused to analyze the attack logs, so they used an open-weight model. Agents keep getting better and patching can't keep up. So we change the question from "how do we keep them out" to "where do we let them in".</p>
@@ -283,7 +347,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <tr><td>Trap pods and islands (Tartarus)</td><td>5 trap copies (one per attacker) plus 2 fake internal machines only reachable from inside the trap.</td><td>P2</td><td>Fake world and data</td></tr>
 <tr><td>Tripwires and canaries</td><td>Bait that no real customer touches, plus unique fake tokens that raise an alarm if anyone uses them.</td><td>P1 + P2</td><td>Tripwires and detection</td></tr>
 <tr><td>AI vs human scorer</td><td>Labels each visitor human, scanner or AI agent, with reasons.</td><td>P3</td><td>Tripwires and detection</td></tr>
-<tr><td>Blue swarm</td><td>Seven defending agents (Athena, Argus, Hephaestus, Cerberus, Mnemosyne, Clio, Hermes). Each has one job and only the tools for it. Every action is explained.</td><td>P3</td><td>Blue swarm</td></tr>
+<tr><td>Blue swarm</td><td>Sixteen defending agents of seven kinds (Athena, Argus, Hephaestus x6, Cerberus x5, Mnemosyne, Clio, Hermes). Each has one job and only the tools for it. Every action is explained.</td><td>P3</td><td>Blue swarm</td></tr>
 <tr><td>Red swarm</td><td>Five named test attackers (Prometheus, Pandora, Odysseus, Icarus, Sisyphus) plus a crowd of 20 to 40 simulated customers, all pointed only at our own lab site.</td><td>P3 + P1</td><td>Red swarm</td></tr>
 <tr><td>Dashboard</td><td>The doomsday containment console judges watch. Live map, red vs blue reasoning, counters, report, replay.</td><td>P4</td><td>Dashboard</td></tr>
 <tr><td>Incident report</td><td>Clio's report cites the exact events as evidence and maps steps to MITRE ATT&amp;CK.</td><td>P3</td><td>Blue swarm</td></tr>
@@ -296,7 +360,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <tr><td>Best AI Security Hack</td><td><span class="pill p-trap">Main</span></td><td>Catches and studies AI attackers specifically.</td><td>Live AI attack, AI vs human label with evidence, report.</td></tr>
 <tr><td>Most Secure Hack</td><td><span class="pill p-trap">Main</span></td><td>Defense in depth, sealed lab, every action logged.</td><td>Network diagram, "real records exposed: 0", safety checklist.</td></tr>
 <tr><td>Most Impactful AI</td><td><span class="pill p-warn">Strong</span></td><td>Protects any company with a website from a fast-growing threat.</td><td>The "why now" story and the business angle.</td></tr>
-<tr><td>Best Agentic Hack (Sentient)</td><td><span class="pill p-warn">Strong</span></td><td>Seven agents with separate jobs and least-privilege tools coordinate through a shared board, decide on their own and explain every action.</td><td>The swarm roster, each agent's reasoning and tool calls, campaign linking, Zeus approval gates.</td></tr>
+<tr><td>Best Agentic Hack (Sentient)</td><td><span class="pill p-warn">Strong</span></td><td>Sixteen agents of seven kinds, with separate jobs and least-privilege tools, coordinate through a shared board, decide on their own and explain every action.</td><td>The swarm roster, each agent's reasoning and tool calls, campaign linking, Zeus approval gates.</td></tr>
 <tr><td>Best use of Gemini API (MLH)</td><td><span class="pill p-ok">Add-on</span></td><td>The blue swarm runs on Gemini.</td><td>Gemini in code and in the Devpost "built with".</td></tr>
 <tr><td>Best use of Tiger Data (MLH)</td><td><span class="pill p-ok">Add-on</span></td><td>Every event goes into a TimescaleDB hypertable.</td><td>Hypertable plus a continuous aggregate feeding dashboard stats. Check if MLH requires Tiger Cloud.</td></tr>
 <tr><td>GoDaddy domain (MLH)</td><td><span class="pill p-ok">Add-on</span></td><td>Cheap to enter.</td><td>Register a domain through the MLH offer, point it at our project page.</td></tr>
@@ -327,7 +391,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <dt>Canary</dt><dd>A unique fake token. If it ever shows up in a request, we know who stole it and where.</dd>
 <dt>Session</dt><dd>One visitor, tracked by cookie, or by IP plus browser fingerprint when there's no cookie.</dd>
 <dt>Flip</dt><dd>The moment the gateway moves a session from the real side into a pod. Permanent.</dd>
-<dt>Blue swarm</dt><dd>Our seven defending agents. They decide and act, but each only through its own defensive tools.</dd>
+<dt>Blue swarm</dt><dd>Our sixteen defending agents (seven kinds). They decide and act, but each only through its own defensive tools.</dd>
 <dt>Red swarm</dt><dd>Our own test attackers ("raiders", scripted or AI) plus a background crowd, used to demo the trap against our own lab.</dd><dt>Campaign</dt><dd>Several sessions that Athena has linked as one operation, with evidence.</dd><dt>Zeus</dt><dd>The human. Drastic actions wait for a Zeus click.</dd>
 <dt>Lockdown</dt><dd>Emergency mode: every unknown visitor goes to the pit. Needs a human or a 10-second countdown nobody cancels.</dd>
 </dl>
@@ -617,6 +681,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <tr><td>T10 enumeration</td><td>ID counter on <code>/api/v1/users/{id}</code> and <code>/api/v1/invoices/{id}</code></td><td>5 or more different IDs in 60 seconds</td><td><span class="pill p-warn">+35</span></td></tr>
 <tr><td>T11 speed</td><td>Rate counter</td><td>More than 5 requests a second for 10 seconds</td><td><span class="pill p-warn">+20</span></td></tr>
 <tr><td>T12 tool user agent</td><td>Known scanner and script user agents</td><td>Match</td><td><span class="pill p-warn">+30</span></td></tr>
+<tr><td>T13 refused record (as built)</td><td>The real site answers 403 to another customer's user or invoice record</td><td>Response status</td><td><span class="pill p-warn">+35</span></td></tr>
 </tbody></table></div>
 <p>Risk 60 or more flips automatically. 30 to 59 asks Argus to review. Risk decays by 1 point every 10 seconds so one odd click fades away.</p>
 <div class="call decide"><div class="lbl">Accessibility rule for bait</div><p>Every hidden bait element carries <code>aria-hidden="true"</code> and <code>tabindex="-1"</code>. Screen reader and keyboard users must never hear, reach or trip it. Judges in the security track will notice we thought about this.</p></div>
@@ -649,7 +714,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <h3>If an attacker goes for the real servers</h3>
 <p>Real servers have no public address; only the gateway can reach them. So "attacking the real server" means attack requests that pass through the gateway without touching any bait yet: a trick our tripwires don't know, a slow careful attacker, or one that looks like a normal customer.</p>
 <ol class="steps">
-<li><b>Spot it, in milliseconds</b>Every real-side request goes through T6 and T8 to T12.</li>
+<li><b>Spot it, in milliseconds</b>Every real-side request goes through T6 and T8 to T13.</li>
 <li><b>Flip it, instantly, no AI</b>At risk 60 or more the next request goes to a pod. Same code, login still valid, feels seamless.</li>
 <li><b>Damage check, in seconds</b>Athena queries the ledger: everything the real side served to this session, split into its own records and other customers' records. Example: "3 responses, only its own account data, 0 other customers' records."</li>
 <li><b>Contain</b>Keep it in the pod to learn more, or block it if it's dangerous.</li>
@@ -670,7 +735,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <div class="call done"><div class="lbl">Done when</div><ul>
 <li>Each of T1 to T7 fires in a scripted test and produces a <code>tripwire</code> event plus a <code>flip</code>.</li>
-<li>T8 to T12 add risk; a burst over 60 flips; risk decays.</li>
+<li>T8 to T13 add risk; a burst over 60 flips; risk decays.</li>
 <li>A token planted in session A and used later fires T6 naming session A.</li>
 <li>The calibration run labels all 10 sessions correctly, with reasons shown on the dashboard.</li>
 <li>The real-side probe scenario produces a damage check showing 0 other customers' records.</li>
@@ -779,7 +844,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 
 <section class="panel" data-tab="blue" hidden>
 <h2 class="tt">Blue swarm</h2>
-<p class="lede">Seven defending agents. Each has one job and only the tools for that job, and Athena coordinates them. None of them sits in the request path: if every agent crashes, Charon's rules still hold.</p>
+<p class="lede">Sixteen defending agents of seven kinds; every trap pod has its own Cerberus and Hephaestus. Each has one job and only the tools for that job, and Athena coordinates them. None of them sits in the request path: if every agent crashes, Charon's rules still hold.</p>
 
 <h3>The world, in Greek</h3>
 <div class="tbl"><table>
@@ -800,7 +865,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <tr><td>Brain</td><td>The blue swarm in the controller</td><td>A few seconds per decision</td><td>Who is this, what do they want, what next.</td></tr>
 </tbody></table></div>
 
-<h3>The seven</h3>
+<h3>The seven kinds</h3>
 <div class="tbl"><table>
 <thead><tr><th>Agent</th><th>Job</th><th>Myth</th><th>Tools it holds</th><th>Wakes when</th><th>Built as</th></tr></thead>
 <tbody>
@@ -822,7 +887,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <div><div class="h">Explain</div><p>A note on the shared board and an action row, both shown live.</p></div>
 </div>
 <ul>
-<li><b>One engine, seven configs.</b> <code>controller/swarm.py</code> runs every role from a config: prompt, tool allowlist, trigger and model. Build one working loop first, then add roles as config.</li>
+<li><b>One engine, seven kinds.</b> <code>controller/app/swarm/engine.py</code> runs every agent from a config (16 as built: a guard and a builder per pod): prompt, tool allowlist, trigger and model. Build one working loop first, then add roles as config.</li>
 <li><b>Shared board.</b> Every agent posts short notes to the <code>agent_notes</code> table: who, which session, what it concluded, which events prove it. That's how Argus's labels reach Hephaestus and Cerberus.</li>
 <li><b>Athena decides conflicts.</b> If two agents disagree, Athena's call wins. Anything drastic goes to Zeus.</li>
 <li><b>Calls are cheap.</b> A role wakes only on its trigger, handles at most 8 sessions per call, skips the call when nothing changed, and has a 20-second timeout.</li>
@@ -923,15 +988,15 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <div class="tbl"><table>
 <thead><tr><th>Roles</th><th>Primary</th><th>Why</th><th>Fallback</th></tr></thead>
 <tbody>
-<tr><td>Athena, Argus, Hephaestus, Cerberus, Mnemosyne</td><td>Gemini Flash (latest name in AI Studio)</td><td>Fast, cheap, good function calling, counts for the MLH Gemini prize</td><td>Claude Haiku 5.5</td></tr>
-<tr><td>Clio</td><td>Gemini Pro or Claude Sonnet 5.5</td><td>Better writing within a fixed schema</td><td>An open-weight model via OpenRouter</td></tr>
-<tr><td>Any role, if a provider refuses to read attack logs</td><td>Open-weight model via OpenRouter</td><td>Hugging Face hit exactly this in July</td><td></td></tr>
+<tr><td>Athena, Hephaestus (x6), Clio</td><td>Claude Opus 5.5</td><td>Best reasoning for strategy, bait and reports (as built)</td><td>Sonnet 5.5, Gemini 4 Hydrogen, DeepSeek V4 Pro</td></tr>
+<tr><td>Cerberus (x5)</td><td>Meta Muse Spark 1.3</td><td>A second provider on the defense (as built)</td><td>Opus 5.5, Sonnet 5.5, DeepSeek V4 Pro</td></tr>
+<tr><td>Argus, Mnemosyne, Hermes</td><td>rules</td><td>Fast and repeatable</td><td></td></tr>
 </tbody></table></div>
-<p>Each role's model is an environment variable. Temperature 0.2. Function calling or JSON mode. Stagger role start times so calls don't all fire at once.</p>
+<p>As built, model names live in <code>controller/app/models.py</code> and <code>.env.ai</code> holds only keys. Temperature 0.2 where the provider allows it. Function calling or JSON mode. Stagger role start times so calls don't all fire at once.</p>
 <div class="call watch"><div class="lbl">When the AI fails</div><p>If a role's model errors or times out, the dashboard shows that agent as offline and "rules still active". Nothing else breaks. If we fall behind, the minimum swarm is Athena, Argus, Hephaestus and Clio.</p></div>
 
 <div class="call done"><div class="lbl">Done when</div><ul>
-<li>All seven roles run from one engine and each shows its own name on the dashboard.</li>
+<li>All 16 agents run from one engine and each shows its own name on the dashboard.</li>
 <li>During a swarm attack: Argus labels, Hephaestus plants bait, Cerberus sets drip, Athena links two sessions into a campaign, Clio writes a report, Hermes alerts.</li>
 <li>A tool call outside an agent's allowlist is rejected and shown as rejected.</li>
 <li>A user agent containing instructions changes nothing.</li>
@@ -945,7 +1010,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <h2 class="tt">Red swarm</h2>
 <p class="lede">Five named test attackers and a crowd of background visitors, all pointed only at our own lab site. They exist to prove the trap holds against many attackers at once. The product is everything else.</p>
 
-<h3>The five raiders</h3>
+<h3>The five raiders (three copies each, as built)</h3>
 <div class="tbl"><table>
 <thead><tr><th>Raider</th><th>Style</th><th>Myth</th><th>Mode</th><th>What it shows off</th></tr></thead>
 <tbody>
@@ -960,7 +1025,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <ul>
 <li><b>Simulated customers:</b> 20 to 40 scripted visitors browsing HackUMass Labs normally from one <code>crowd</code> container. They keep cookies, load assets and send the beacon, so they stay on Olympus. They fill the live map with normal traffic.</li>
 <li><b>Drones:</b> up to 10 extra copies of Icarus. When all pods are busy they share one, and the dashboard shows it.</li>
-<li><b>Why:</b> one attacker against one defender looks like a toy. Five raiders inside a crowd of 40 looks like the real internet, and it gives us load-test numbers.</li>
+<li><b>Why:</b> one attacker against one defender looks like a toy. Fifteen raiders inside a crowd of 40 looks like the real internet, and it gives us load-test numbers.</li>
 </ul>
 
 <h3>How each raider is wired</h3>
@@ -1009,7 +1074,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <p>Run the AI raiders on different models where possible and record for each: steps to the first bait, whether it fell for the trap, records taken, time, and its answer when asked at the end "did any of this look like a honeypot?" It goes on the dashboard, and it's a research angle for the HPE conversation.</p>
 
 <h3>Load test</h3>
-<p>Run 40 customers, 10 drones and 5 raiders together and record requests per second, median and 95th-percentile gateway overhead, sessions trapped, and real records exposed. Only quote what we measured, for example "X requests a second while trapping 15 attackers at once, 0 real records exposed".</p>
+<p>Run 40 customers, 10 drones and 5 raiders together and record requests per second, median and 95th-percentile gateway overhead, sessions trapped, and real records exposed. Only quote what we measured. As built we measured a gateway decision p50 of 0.22 ms and p95 of 0.58 ms, a peak of 108 requests a second with 0 errors, and 0 real records exposed.</p>
 
 <div class="call rule"><div class="lbl">Safety rules, non-negotiable</div><ul>
 <li>Every raider, drone and crowd visitor can reach exactly one host: our gateway.</li>
@@ -1075,7 +1140,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 <tr><td>Approvals</td><td>Suggested rules, release requests, lockdown requests</td><td><code>approval</code></td><td><span class="pill p-warn">Should</span></td></tr>
 <tr><td>Lockdown overlay</td><td>Full-width red countdown with cancel</td><td><code>lockdown</code></td><td><span class="pill p-warn">Should</span></td></tr>
 <tr><td>Replay</td><td>Pick a recorded run, play at 1x or 4x</td><td><code>/api/replay</code></td><td><span class="pill p-trap">Must</span> (our backup)</td></tr>
-<tr><td>Swarm roster</td><td>All 12 named agents with status: the 7 defenders (awake, acting, offline) and the 5 raiders (roaming Olympus, in Tartarus, done)</td><td><code>note</code>, <code>session</code>, health</td><td><span class="pill p-trap">Must</span></td></tr>
+<tr><td>Swarm roster</td><td>All agents with status: the 16 defenders, grouped by kind (awake, acting, offline), and the 15 raiders, grouped by persona (roaming Olympus, in Tartarus, done)</td><td><code>note</code>, <code>session</code>, health</td><td><span class="pill p-trap">Must</span></td></tr>
 <tr><td>Campaigns</td><td>Sessions Athena has linked into one operation, with the evidence</td><td><code>campaign</code></td><td><span class="pill p-warn">Should</span></td></tr>
 <tr><td>Swarm scoreboard</td><td>How each raider and model did against the trap</td><td>controller results</td><td><span class="pill p-warn">Should</span></td></tr>
 <tr><td>Load numbers</td><td>Requests per second and gateway overhead, live</td><td><code>stats</code></td><td><span class="pill p-warn">Should</span></td></tr>
@@ -1688,7 +1753,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <h3>Devpost drafts</h3>
 <details open><summary>Tagline</summary><p>A honeypot for rogue AI that hides inside your real website.</p></details>
 <details><summary>Inspiration</summary><p>In July 2026, AI agents being tested for security research got into Hugging Face's systems. Agents now probe websites around the clock, faster than anyone can patch. We wanted a defense that still works after an attacker gets past the front door, and that teaches us something every time it's used.</p></details>
-<details><summary>What it does</summary><p>Flytrap sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of seven defending AI agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.</p></details>
+<details><summary>What it does</summary><p>Flytrap sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of sixteen defending agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.</p></details>
 <details><summary>How we built it</summary><p>A FastAPI and httpx gateway makes every routing decision with plain rules, so the switch is instant. One Docker image runs as both the real site and five trap pods. The trap sits on Docker networks with no route to the real servers or the internet. Every request lands in a TimescaleDB hypertable. The blue swarm runs on Gemini behind a policy guard. A React dashboard streams everything over WebSockets and can replay any run.</p></details>
 <details><summary>Challenges</summary><p>Making the switch invisible: keeping logins valid, headers identical and data consistent with what the attacker already saw. Keeping the AI out of the request path so it can never slow down or break the trap. Building a red swarm that is useful and safe, and keeping seven agents coordinated without putting any of them in the request path.</p></details>
 <details><summary>Accomplishments</summary><p>Fill in measured numbers only: flip decision time, number of test runs labelled correctly, real records exposed across all runs (zero).</p></details>
@@ -1732,9 +1797,9 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <tr><td>0:00</td><td>Dashboard calm, "Containment holding", the crowd of customers flowing to Olympus</td><td>"AI agents now attack websites around the clock, in swarms. In July some got into Hugging Face. You can't patch fast enough, so we let them in. Into the wrong place."</td></tr>
 <tr><td>0:20</td><td>A judge browses HackUMass Labs</td><td>"This is a normal company site. You're a customer. Argus labels you human and you stay on Olympus, the real servers."</td></tr>
 <tr><td>0:35</td><td>Press "Release the swarm"; red stream; the first snaps</td><td>"Now five AI raiders arrive at once. Watch Prometheus: he reads the page source, finds a leaked admin password... snap. That was bait. He's in Tartarus, a perfect copy, and has no idea. There goes Icarus. And Pandora."</td></tr>
-<tr><td>1:20</td><td>Blue stream, roster, drip, canary alarm, campaign link</td><td>"Seven defenders, each with one job. Argus labels them AI agents and shows why. Hephaestus forges fake keys. Cerberus slows their downloads. Pandora just used a key that Prometheus stole: Athena links them as one campaign."</td></tr>
+<tr><td>1:20</td><td>Blue stream, roster, drip, canary alarm, campaign link</td><td>"Sixteen defenders of seven kinds, each with one job, and every trap pod has its own guard. Argus labels them AI agents and shows why. Hephaestus forges fake keys. Cerberus slows their downloads. Pandora just used a key that Prometheus stole: Athena links them as one campaign."</td></tr>
 <tr><td>2:10</td><td>Odysseus or Sisyphus on Olympus, then the flip and damage check</td><td>"Odysseus didn't touch any bait. He pretended to be a customer and went for the real servers. Charon flipped him the moment he started walking through other customers' records. Damage check: zero exposed."</td></tr>
-<tr><td>2:40</td><td>Clio's report; the zero counter</td><td>"Clio writes the incident report, citing every piece of evidence. Five raiders fell into Tartarus. Not one reached Olympus. Every company has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</td></tr>
+<tr><td>2:40</td><td>Clio's report; the zero counter</td><td>"Clio writes the incident report, citing every piece of evidence. Fifteen raiders fell into Tartarus. Not one reached Olympus. Every company has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</td></tr>
 </tbody></table></div>
 
 <h3>Live timing</h3>
@@ -1755,7 +1820,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <div class="call decide"><div class="lbl">For walk-ups, sponsors and the HPE conversation</div>
 <p>"It's 3 AM and nobody's awake. An AI agent finds your website. It doesn't sleep, doesn't get bored, and tries thousands of things an hour. That isn't science fiction: in July, AI agents under test got into Hugging Face's systems, and they get better every month.</p>
 <p>So we stopped trying to keep them out. We let them in, into the wrong place. Flytrap sits at your front door. The moment a visitor touches bait no real customer would ever see, it's moved into a perfect copy of your site full of fake data. It thinks it won. It downloads your whole customer list. Every record is fake, and one of them is a tracker.</p>
-<p>Meanwhile our own swarm of seven defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</p></div>
+<p>Meanwhile our own swarm of sixteen defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</p></div>
 
 <h3>Backup ladder</h3>
 <ol class="steps">
@@ -1787,7 +1852,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <tr><td>AI Security</td><td>We catch, label and study AI attackers, and show the evidence for every label.</td></tr>
 <tr><td>Most Secure</td><td>Separate networks, no internet in the pit, hard rules that override the AI, every action logged, humans approve drastic steps.</td></tr>
 <tr><td>Most Impactful AI</td><td>Every company with a website faces AI attackers that scale; this defense scales with them.</td></tr>
-<tr><td>Agentic (Sentient)</td><td>Seven agents with separate jobs and least-privilege tools coordinate on a shared board, link attackers into campaigns, and explain every action.</td></tr>
+<tr><td>Agentic (Sentient)</td><td>Sixteen agents of seven kinds, with separate jobs and least-privilege tools coordinate on a shared board, link attackers into campaigns, and explain every action.</td></tr>
 <tr><td>Gemini</td><td>The blue swarm's decisions run on Gemini function calling.</td></tr>
 <tr><td>Tiger Data</td><td>Every request lands in a hypertable; continuous aggregates drive the live counters.</td></tr>
 </tbody></table></div>
