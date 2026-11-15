@@ -1,5 +1,9 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+
+// The pixel-art scene loads only when this section comes near; the SVG diagram stands in until then,
+// and stays for reduced motion or when a canvas is unavailable.
+const HowScene2D = lazy(() => import("./HowScene2D"));
 
 // Plain-words version of the README's steps, plus the real-side defence. No numbers it does not state.
 const STEPS = [
@@ -100,11 +104,11 @@ function Diagram({ step, still }: { step: number; still: boolean }) {
       <Temple color={SAGE} />
       <text x="310" y="98" textAnchor="middle" fill={SAGE} fontSize="11" letterSpacing="3.5" fontWeight="600" fontFamily="Montserrat Variable">OLYMPUS</text>
       <text x="310" y="112" textAnchor="middle" fill="rgb(138 162 147)" fontSize="9" fontFamily="Montserrat Variable">the real site</text>
-      <motion.g {...fade(true)} animate={{ opacity: open ? 1 : 0.35 }} transform="translate(0 460) scale(1 -1)">
+      <motion.g {...fade(true)} initial={false} animate={{ opacity: open ? 1 : 0.35 }} transform="translate(0 460) scale(1 -1)">
         <Temple color={GREEN} />
       </motion.g>
       <motion.text x="310" y="352" textAnchor="middle" fill={GREEN} fontSize="11" letterSpacing="3.5" fontWeight="600" fontFamily="Montserrat Variable"
-        animate={{ opacity: open ? 1 : 0.45 }}>TARTARUS</motion.text>
+        initial={false} animate={{ opacity: open ? 1 : 0.45 }}>TARTARUS</motion.text>
       <text x="310" y="368" textAnchor="middle" fill="rgb(138 162 147)" fontSize="9" fontFamily="Montserrat Variable">the copy · fake data</text>
 
       {/* The floor, with Charon's gate and the trapdoor. */}
@@ -198,6 +202,11 @@ function Step({ i, onActive }: { i: number; onActive: (i: number) => void }) {
 export function HowItWorks() {
   const still = !!useReducedMotion();
   const [step, setStep] = useState(0);
+  const stage = useRef<HTMLDivElement>(null);
+  const near = useInView(stage, { once: true, margin: "600px 0px 600px 0px" });
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const live = ready && !failed;
   return (
     <section id="how" aria-labelledby="how-title" className="relative mx-auto max-w-6xl scroll-mt-4 px-5 pt-24 sm:px-8">
       <h2 id="how-title" className="font-display text-[clamp(3.25rem,8vw,7rem)] font-[200] uppercase leading-[.85] tracking-[0.03em]">How it works</h2>
@@ -205,8 +214,20 @@ export function HowItWorks() {
         One website, two worlds. Follow the bot from the front door to the trap, and see what happens if it slips past. Every step has two sides: what it sees, and what really happens.
       </p>
       <div className="mt-10 grid gap-x-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className={`${still ? "" : "sticky top-0 z-10"} -mx-5 h-[42svh] border-b border-line bg-bg/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:order-2 lg:top-[11svh] lg:mx-0 lg:h-[78svh] lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}>
-          <Diagram step={still ? 4 : step} still={still} />
+        <div ref={stage} className={`${still ? "" : "sticky top-0 z-10"} -mx-5 h-[42svh] border-b border-line bg-bg/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:order-2 lg:top-[11svh] lg:mx-0 lg:h-[78svh] lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}>
+          <div className="relative h-full w-full">
+            {/* The SVG keeps the accessible description; once the pixel scene is up it only hides. */}
+            <div className={`h-full w-full transition-opacity duration-700 ${live ? "opacity-0" : ""}`}>
+              <Diagram step={still ? 4 : step} still={still || live} />
+            </div>
+            {!still && !failed && near && (
+              <Suspense fallback={null}>
+                <div className={`absolute inset-0 transition-opacity duration-700 ${live ? "" : "opacity-0"}`}>
+                  <HowScene2D step={step} onReady={() => setReady(true)} onFail={() => setFailed(true)} />
+                </div>
+              </Suspense>
+            )}
+          </div>
         </div>
         <div className="lg:order-1">
           {STEPS.map((_, i) => <Step key={i} i={i} onActive={setStep} />)}
