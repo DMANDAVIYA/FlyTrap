@@ -24,6 +24,6 @@ FIRST VIEWPORT: Nav top (mark, How it works, Console). A giant ultra-condensed D
 
 FORM: Pinned by the user brief (Creation of Adam reference image, Greek/Hermes, makemepulse type), position 1 of 1. seed:4086bccf7f74143e (direction pinned by the user; roll recorded only)
 
-Signature interaction: pointer near the vial makes the bot's hand reach and the vial brighten. How it works (user request): a live flow chart of the five steps inside a before/after compare window; a draggable vertical bar shows what really happens to the left and what the bot sees to the right, while the bot walks the steps in real time; step buttons and a two-column caption keep both texts readable.
+Signature interaction: pointer near the vial makes the bot's hand reach and the vial brighten. How it works: five steps in page flow beside a pinned diagram (Olympus above the floor, Charon's gate, the bait, the trapdoor, Tartarus below); the bot's path advances with Motion as each step enters view.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
