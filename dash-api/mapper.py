@@ -288,6 +288,7 @@ def row_to_message(row: Mapping[str, Any]) -> dict[str, Any]:
                 "model": p.get("model"),
                 "persona": p.get("persona"),
                 "copy": p.get("copy"),
+                "scope": p.get("scope"),
                 "session": _sid(p.get("session")),
             },
             ts,

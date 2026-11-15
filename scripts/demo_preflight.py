@@ -58,7 +58,8 @@ def main() -> int:
         "print(json.dumps({'blue':{a['agent']:a['mode'] for a in h['blue']},'red':{r['raider']:r['mode'] for r in h['red']}}))")
     try:
         h = json.loads(health)
-        record(len(h["blue"]) == 7, "blue agents: " + ", ".join(f"{k}={v}" for k, v in h["blue"].items()))
+        kinds = {a.split("-", 1)[0] for a in h["blue"]}  # cerberus-1..5 and hephaestus-1..5 guard one pod each
+        record(len(kinds) == 7, f"blue agents ({len(h['blue'])}): " + ", ".join(f"{k}={v}" for k, v in h["blue"].items()))
         record(len(h["red"]) == 5, "red raiders: " + ", ".join(f"{k}={v}" for k, v in h["red"].items()))
     except (ValueError, KeyError):
         record(False, f"controller health unreadable: {health[:120]}")

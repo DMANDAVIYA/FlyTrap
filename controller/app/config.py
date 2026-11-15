@@ -17,6 +17,7 @@ class Settings:
     rebuilder_url: str = os.getenv("REBUILDER_URL", "http://rebuilder:8050")
     crowd_url: str = os.getenv("CROWD_URL", "http://crowd:8040")
     raider_slots: list[str] = field(default_factory=lambda: _csv("RAIDERS", "raider-1,raider-2,raider-3,raider-4,raider-5"))
+    trap_pods: list[str] = field(default_factory=lambda: _csv("TRAP_PODS", "pod-1,pod-2,pod-3,pod-4,pod-5"))
     raider_copies: int = int(os.getenv("RAIDER_COPIES", "3"))  # copies of each raider per release
     raider_max_steps: int = int(os.getenv("RAIDER_MAX_STEPS", "40"))
     raider_max_minutes: float = float(os.getenv("RAIDER_MAX_MINUTES", "10"))
