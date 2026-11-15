@@ -160,8 +160,8 @@ function buildTemple(ruins: HTMLImageElement) {
     g.fillStyle = "#757161";
     g.fillRect(x, y + STEP_H - 1, w, 1);
   });
-  // 28 px apart, so all five bases stand on the top step (x 8-136)
-  for (let i = 0; i < 5; i++) tile(g, ruins, TILE.column, 8 + i * 28, 56);
+  // 26 px apart, so the top step (x 8-136) runs 4 px past the outer bases (x 12-132)
+  for (let i = 0; i < 5; i++) tile(g, ruins, TILE.column, 12 + i * 26, 56);
   for (let x = 0; x < 144; x += 16) tile(g, ruins, TILE.ledge, x, 40);
   tile(g, ruins, TILE.pediment, 0, 0);
   return c;
