@@ -16,7 +16,8 @@ export function Approvals({ s, className = "" }: { s: State; className?: string 
 
   return (
     <GlowCard label="Waiting for Zeus" glow="var(--warn-rgb)" className={className}>
-      <ul className="flex flex-col gap-3">
+      {/* several can wait at once: keep the card to about two rows and scroll the rest */}
+      <ul className="-mr-2 flex max-h-[7.5rem] flex-col gap-3 overflow-y-auto pr-2 scroll-thin">
         {pending.map((a) => (
           <li key={a.id} className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <span className="caps flex items-center gap-2 text-[10.5px] font-bold text-warn">

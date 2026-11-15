@@ -29,14 +29,25 @@ export interface State {
   lastFlip: (FlipData & { at: number }) | null;
   flips: number;
   rps: { real: number; trap: number }[];
+  /** One row per live stats message (every 2 s), for "last minute" deltas. Empty until the page has been open a while. */
+  hist: Hist[];
 }
+
+export interface Hist {
+  t: number; trapped: number; exposed: number; active: number; fake: number; keys: number; requests: number;
+  p50: number | null; p95: number | null; flip: number | null;
+}
+const histOf = (st: StatsData, t: number): Hist => ({
+  t, trapped: st.trapped, exposed: st.real_records_exposed, active: st.active_sessions ?? 0, fake: st.fake_records_taken,
+  keys: st.canaries_fired, requests: st.requests_total ?? 0, p50: st.p50_gw_ms ?? null, p95: st.p95_gw_ms ?? null, flip: st.avg_flip_ms,
+});
 
 const EMPTY_STATS: StatsData = { real_records_exposed: 0, fake_records_taken: 0, trapped: 0, canaries_fired: 0, avg_flip_ms: null };
 
 export const initial: State = {
   connected: false, mode: "", replay: { active: false }, stats: EMPTY_STATS, sessions: {},
   events: [], red: [], blue: [], roster: {}, approvals: {}, campaigns: [], canaries: [], reports: {},
-  lockdown: { state: "off" }, lastFlip: null, flips: 0, rps: [],
+  lockdown: { state: "off" }, lastFlip: null, flips: 0, rps: [], hist: [],
 };
 
 type Action =
@@ -81,11 +92,15 @@ function apply(s: State, msg: Msg, live: boolean): State {
       return { ...s, blue: cap([...s.blue, { kind: "alert", t, agent: msg.data.agent || "hermes", session: msg.data.session ?? "-", text: msg.data.message, severity: msg.data.severity }], 160) };
     case "canary":
       return { ...s, canaries: cap([...s.canaries, msg.data], 50) };
-    case "stats":
+    case "stats": {
+      const stats = { ...s.stats, ...msg.data };
       return {
-        ...s, stats: { ...s.stats, ...msg.data },
+        ...s, stats,
         rps: cap([...s.rps, { real: msg.data.rps_real ?? 0, trap: msg.data.rps_trap ?? 0 }], 60),
+        // only live readings: snapshot replays arrive all at once and would fake a time window
+        hist: live ? cap([...s.hist, histOf(stats, t)], 90) : s.hist,
       };
+    }
     case "lockdown":
       return { ...s, lockdown: msg.data };
     case "approval":

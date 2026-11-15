@@ -33,6 +33,7 @@ export interface StatsData {
   real_records_exposed: number; fake_records_taken: number; trapped: number; canaries_fired: number;
   avg_flip_ms: number | null; rps_real?: number; rps_trap?: number; p50_gw_ms?: number | null; p95_gw_ms?: number | null;
   sessions_by_label?: Record<string, number>; active_sessions?: number; real_own_records?: number;
+  requests_total?: number; tripwire_counts?: Record<string, number>; records_by_raider?: Record<string, number>; since?: string;
 }
 export interface LockdownData { state: string; seconds?: number; reason?: string; by?: string }
 export interface ApprovalData { id: number; kind: string; summary: string; status: string }

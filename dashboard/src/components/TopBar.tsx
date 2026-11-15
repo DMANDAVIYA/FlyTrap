@@ -23,7 +23,7 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
       <a href="#/" className="flex items-center gap-3" aria-label="Dolos home">
         <DolosMark />
         <Wordmark className="text-[13px]" />
-        <span className="caps text-[10px] text-text2">console</span>
+        <span className="caps hidden text-[10px] text-text2 min-[1600px]:inline">console</span>
       </a>
 
       <div className="flex items-center gap-2.5 sm:border-l sm:border-line sm:pl-6" role="status">
@@ -54,13 +54,13 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
 
       <div className="ml-auto flex flex-wrap items-center gap-2">
         <button className="btn btn-trap" aria-label="Release the swarm" disabled={busy !== null} onClick={() => act("release")}>
-          <Radar size={14} aria-hidden /> <span className="sm:hidden">Release</span><span className="hidden sm:inline">Release the swarm</span>
+          <Radar size={14} aria-hidden /> <span className="min-[1600px]:hidden">Release</span><span className="hidden min-[1600px]:inline">Release the swarm</span>
         </button>
         <button className="btn" aria-label="Reset Tartarus" disabled={busy !== null} onClick={() => act("reset")}>
-          <RotateCcw size={14} aria-hidden /> <span className="sm:hidden">Reset</span><span className="hidden sm:inline">Reset Tartarus</span>
+          <RotateCcw size={14} aria-hidden /> <span className="min-[1600px]:hidden">Reset</span><span className="hidden min-[1600px]:inline">Reset Tartarus</span>
         </button>
         <button className="btn" aria-label="Kill switch" disabled={busy !== null} onClick={() => act("stop")} title="Stop every raider, drone and the crowd">
-          <Power size={14} aria-hidden /> <span className="sm:hidden">Kill</span><span className="hidden sm:inline">Kill switch</span>
+          <Power size={14} aria-hidden /> <span className="min-[1600px]:hidden">Kill</span><span className="hidden min-[1600px]:inline">Kill switch</span>
         </button>
         {lock === "off" ? (
           <button className="btn btn-warn" aria-label="Lockdown" disabled={busy !== null} onClick={() => act("lockdown")}>
@@ -68,7 +68,7 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
           </button>
         ) : (
           <button className="btn btn-ok" aria-label="End lockdown" disabled={busy !== null} onClick={() => act("cancel_lockdown")}>
-            <LockOpen size={14} aria-hidden /> <span className="sm:hidden">Unlock</span><span className="hidden sm:inline">End lockdown</span>
+            <LockOpen size={14} aria-hidden /> <span className="min-[1600px]:hidden">Unlock</span><span className="hidden min-[1600px]:inline">End lockdown</span>
           </button>
         )}
         <button className="btn" aria-label="Details" aria-expanded={drawerOpen} aria-controls="details" onClick={onToggleDrawer}>

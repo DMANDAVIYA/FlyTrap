@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 
 export const cx = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(" ");
 
-/** A bento card whose border, spotlight and fine grid follow the pointer. `glow` is an "r g b" token var. */
+/** A card whose border, spotlight and fine grid follow the pointer. `glow` is an "r g b" token var. */
 export function GlowCard({ className = "", glow, label, children }: {
   className?: string; glow?: string; label?: string; children: ReactNode;
 }) {
@@ -37,11 +37,15 @@ export function GlowCard({ className = "", glow, label, children }: {
   );
 }
 
-export function CardTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
+/** Card heading: a plain sentence-case title with an optional line under it and an item on the right. */
+export function CardTitle({ children, sub, right }: { children: ReactNode; sub?: ReactNode; right?: ReactNode }) {
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
-      <h3 className="panel-title min-w-0 truncate">{children}</h3>
-      {right && <div className="shrink-0 whitespace-nowrap">{right}</div>}
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0 flex-1 basis-40">
+        <h3 className="truncate text-[19px] font-semibold leading-tight tracking-[-0.01em] text-text">{children}</h3>
+        {sub && <p className="mt-1 text-[12.5px] leading-snug text-text2">{sub}</p>}
+      </div>
+      {right && <div className="shrink-0">{right}</div>}
     </div>
   );
 }
@@ -79,4 +83,10 @@ export function toSmoothPath(points: Array<{ x: number; y: number }>): string {
     const mid = (prev.x + p.x) / 2;
     return `${d} C ${mid} ${prev.y}, ${mid} ${p.y}, ${p.x} ${p.y}`;
   }, "");
+}
+
+/** Small rounded status chip, as in the KPI footers. `good` is green, `bad` is breach red, anything else neutral. */
+export function Chip({ tone = "flat", children }: { tone?: "good" | "flat" | "bad"; children: ReactNode }) {
+  const cls = tone === "good" ? "bg-green/15 text-green" : tone === "bad" ? "bg-breach/15 text-breach" : "bg-text/[.07] text-text2";
+  return <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] font-semibold tabular ${cls}`}>{children}</span>;
 }

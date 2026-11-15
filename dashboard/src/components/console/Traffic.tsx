@@ -1,99 +1,98 @@
 import { useState, type MouseEvent } from "react";
-import { CardTitle, GlowCard, toSmoothPath, useAnimatedNumber } from "@/components/ui/glow-card";
-import type { StatsData } from "@/types";
+import { CardTitle, GlowCard, toSmoothPath } from "@/components/ui/glow-card";
 
 const EVERY_S = 2; // dash-api publishes stats every 2 s
+const COLUMNS = 14; // the faint columns behind the plot
 
-/** Requests per second: trapped (bright, solid) against real (sage, dashed). */
-export function Traffic({ rps, stats, className = "" }: {
-  rps: { real: number; trap: number }[]; stats: StatsData; className?: string;
-}) {
+const nice = (v: number) => {
+  const step = v <= 4 ? 1 : v <= 10 ? 2 : v <= 25 ? 5 : v <= 50 ? 10 : 25;
+  return Math.max(step * 4, Math.ceil((v * 1.15) / step) * step);
+};
+const fmt = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+/** Requests per second over the last two minutes: trapped (bright, glowing) against real. Hover moves the band. */
+export function Traffic({ rps, className = "" }: { rps: { real: number; trap: number }[]; className?: string }) {
   const [hover, setHover] = useState<number | null>(null);
   const series = rps.length >= 2 ? rps : null;
-  const latest = rps[rps.length - 1] ?? { real: 0, trap: 0 };
-  const trapNow = useAnimatedNumber(latest.trap, 600);
-  const realNow = useAnimatedNumber(latest.real, 600);
-
-  const max = series ? Math.max(1, ...series.map((d) => Math.max(d.real, d.trap))) : 1;
-  const pts = (k: "real" | "trap") =>
-    (series ?? []).map((d, i, a) => ({ x: (i / (a.length - 1)) * 100, y: 95 - (d[k] / max) * 85 }));
-  const trapPts = pts("trap");
-  const trapLine = toSmoothPath(trapPts);
-  const realLine = toSmoothPath(pts("real"));
-  const shown = hover ?? (series ? series.length - 1 : 0);
+  const top = nice(series ? Math.max(...series.map((d) => Math.max(d.real, d.trap))) : 4);
+  const at = (i: number, k: "real" | "trap") => ({ x: (i / ((series?.length ?? 2) - 1)) * 100, y: 96 - ((series?.[i]?.[k] ?? 0) / top) * 90 });
+  const pts = (k: "real" | "trap") => (series ?? []).map((_, i) => at(i, k));
+  const idx = hover ?? (series ? series.length - 1 : 0);
+  const cur = series?.[idx] ?? { real: 0, trap: 0 };
+  // change against the reading 30 s before the one shown
+  const was = series?.[Math.max(0, idx - 15)] ?? cur;
+  const delta = (k: "real" | "trap") => {
+    const d = cur[k] - was[k];
+    return `${d > 0 ? "+" : d < 0 ? "−" : "±"}${fmt(Math.abs(d))}`;
+  };
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!series) return;
     const r = e.currentTarget.getBoundingClientRect();
-    const f = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
-    setHover(Math.round(f * (series.length - 1)));
+    setHover(Math.round(Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * (series.length - 1)));
   };
+  const band = series ? at(idx, "trap").x : 100;
+  const legend = (
+        <dl className="grid grid-cols-[auto_auto_auto_auto] items-center gap-x-2.5 gap-y-1.5 rounded-2xl border border-line2/60 bg-inner px-3.5 py-2.5 text-[13px] shadow-[0_10px_30px_rgba(0,0,0,.35)]">
+          <span className="h-2 w-2 rounded-full bg-green" />
+          <dt className="font-semibold">Trapped</dt>
+          <dd className="text-right font-mono tabular text-green">{fmt(cur.trap)}/s</dd>
+          <dd className="text-right font-mono text-[12px] tabular text-text2">{delta("trap")}</dd>
+          <span className="h-2 w-2 rounded-full bg-text" />
+          <dt className="font-semibold">Real</dt>
+          <dd className="text-right font-mono tabular">{fmt(cur.real)}/s</dd>
+          <dd className="text-right font-mono text-[12px] tabular text-text2">{delta("real")}</dd>
+          <dd className="col-span-4 text-[11px] text-text2">{hover !== null && series ? `${(series.length - 1 - idx) * EVERY_S} s ago · ` : "now · "}change over 30 s</dd>
+        </dl>
+  );
 
   return (
     <GlowCard label="Traffic" className={className}>
-      <CardTitle right={<span className="flex items-center gap-1.5 text-xs text-green"><span className="dolos-pulse h-1.5 w-1.5 rounded-full bg-green" />live</span>}>
-        Requests per second
-      </CardTitle>
+      <CardTitle right={legend} sub="Requests per second, live. Real visitors stay on Olympus; anything that touched bait is in Tartarus.">Traffic</CardTitle>
 
-      <div className="flex flex-wrap items-end gap-x-8 gap-y-2">
-        <div>
-          <span className="font-display text-[clamp(3rem,4.6vw,4.5rem)] font-[300] leading-[.82] tabular text-green">{trapNow.toFixed(1)}</span>
-          <span className="caps ml-2 text-[10px] text-text2">trapped</span>
-        </div>
-        <div>
-          <span className="font-display text-[clamp(2rem,3vw,3rem)] font-[300] leading-[.82] tabular text-real">{realNow.toFixed(1)}</span>
-          <span className="caps ml-2 text-[10px] text-text2">real</span>
-        </div>
-        <p className="ml-auto text-xs text-text2">
-          gateway p50 <b className="font-mono font-medium text-text">{stats.p50_gw_ms?.toFixed(2) ?? "—"}</b> · p95{" "}
-          <b className="font-mono font-medium text-text">{stats.p95_gw_ms?.toFixed(2) ?? "—"}</b> ms
-        </p>
-      </div>
-
-      {series ? (
-        <>
-          <div className="relative mt-3 min-h-[44px] flex-1 cursor-crosshair" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" role="img"
-              aria-label={`Requests per second over the last ${(series.length - 1) * EVERY_S} seconds: trapped ${latest.trap}, real ${latest.real} now`}>
-              <defs>
-                <linearGradient id="dolos-trap-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgb(61,255,143)" stopOpacity="0.28" />
-                  <stop offset="100%" stopColor="rgb(61,255,143)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[25, 50, 75].map((y) => (
-                <line key={y} x1="0" x2="100" y1={y} y2={y} stroke="rgba(228,240,232,.06)" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
-              ))}
-              <path d={`${trapLine} L 100 100 L 0 100 Z`} fill="url(#dolos-trap-fill)" />
-              <path d={realLine} fill="none" stroke="var(--real)" strokeWidth="1.5" strokeDasharray="5 4" vectorEffect="non-scaling-stroke" />
-              <path d={trapLine} fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"
-                style={{ filter: "drop-shadow(0 0 6px rgba(61,255,143,.6))" }} />
-              {hover !== null && (
-                <line x1={trapPts[hover].x} x2={trapPts[hover].x} y1="0" y2="100" stroke="rgba(61,255,143,.4)" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-              )}
-            </svg>
-            <span aria-hidden className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#d7ffe7] bg-green shadow-[0_0_12px_rgba(61,255,143,.9)]"
-              style={{ left: `${trapPts[shown].x}%`, top: `${trapPts[shown].y}%` }} />
-            {hover !== null && (
-              <div aria-hidden className="pointer-events-none absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-line2 bg-panel/95 px-2.5 py-1.5 text-xs shadow-xl"
-                style={{ left: `clamp(56px, ${trapPts[hover].x}%, calc(100% - 56px))`, top: `calc(${trapPts[hover].y}% - 14px)` }}>
-                <div className="text-text2">{(series.length - 1 - hover) * EVERY_S}s ago</div>
-                <div className="font-mono"><span className="text-green">{series[hover].trap}</span> trapped · <span className="text-real">{series[hover].real}</span> real</div>
-              </div>
-            )}
-          </div>
-          <div className="mt-1.5 flex shrink-0 justify-between text-[11px] leading-none text-text2">
-            <span>{(series.length - 1) * EVERY_S}s ago</span>
-            <span className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-green" />trapped</span>
-              <span className="flex items-center gap-1.5"><span className="h-0 w-4 border-t border-dashed border-real" />real</span>
+      <div className="flex min-h-0 flex-1 pl-8">
+        <div className="relative min-h-[110px] flex-1 cursor-crosshair" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+          {[0, 1, 2, 3, 4].map((k) => (
+            <span key={k} aria-hidden className="absolute -left-8 w-6 -translate-y-1/2 text-right font-mono text-[11px] tabular text-text2" style={{ top: `${96 - k * 22.5}%` }}>
+              {((top / 4) * k).toFixed(0)}
             </span>
-            <span>now</span>
-          </div>
-        </>
-      ) : (
-        <p className="mt-6 text-sm text-text2">The chart fills in as readings arrive, one every {EVERY_S} seconds.</p>
-      )}
+          ))}
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" role="img"
+            aria-label={series ? `Requests per second over the last ${(series.length - 1) * EVERY_S} seconds: trapped ${cur.trap}, real ${cur.real}` : "No traffic readings yet"}>
+            <defs>
+              <linearGradient id="dolos-col" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(228,240,232)" stopOpacity="0.045" />
+                <stop offset="100%" stopColor="rgb(228,240,232)" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="dolos-band" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(61,255,143)" stopOpacity="0.04" />
+                <stop offset="100%" stopColor="rgb(61,255,143)" stopOpacity="0.42" />
+              </linearGradient>
+            </defs>
+            {Array.from({ length: COLUMNS }, (_, i) => (
+              <rect key={i} x={(i / COLUMNS) * 100 + 0.9} width={100 / COLUMNS - 1.8} y="0" height="100" rx="1.5" fill="url(#dolos-col)" />
+            ))}
+            {series && (
+              <>
+                <rect x={band - 2.6} width="5.2" y="0" height="100" rx="2" fill="url(#dolos-band)" />
+                <path d={toSmoothPath(pts("real"))} fill="none" stroke="rgb(228,240,232)" strokeOpacity=".85" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                <path d={toSmoothPath(pts("trap"))} fill="none" stroke="var(--green)" strokeWidth="2.75" strokeLinecap="round" vectorEffect="non-scaling-stroke"
+                  style={{ filter: "drop-shadow(0 0 8px rgba(61,255,143,.55))" }} />
+              </>
+            )}
+          </svg>
+          {series ? (
+            <>
+              <span aria-hidden className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-bg bg-text"
+                style={{ left: `${at(idx, "real").x}%`, top: `${at(idx, "real").y}%` }} />
+              <span aria-hidden className="pointer-events-none absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#d7ffe7] bg-green shadow-[0_0_14px_rgba(61,255,143,.9)]"
+                style={{ left: `${at(idx, "trap").x}%`, top: `${at(idx, "trap").y}%` }} />
+            </>
+          ) : (
+            <p className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm text-text2">The chart fills in as readings arrive, one every {EVERY_S} seconds.</p>
+          )}
+        </div>
+      </div>
     </GlowCard>
   );
 }

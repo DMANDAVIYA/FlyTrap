@@ -9,20 +9,20 @@ related_targets: ["dashboard/src/components/ui/glow-card.tsx"]
 
 Scope: `dashboard/src/pages/Console.tsx` (route `#/console`). Mode: Operate.
 User: the demo operator on a laptop at the judging table. Task: release the swarm, watch visitors get trapped, approve Zeus actions, hit lockdown or the kill switch, open a trapped session's incident report.
-Main screen, split in two sides by the user's request: attackers on the left (live real-vs-trapped traffic, trapped visitors, raider messages, what they took), defenders on the right (vitals: real records exposed, trapped, flip time; the pantheon; visitor types as Argus labels them; defender messages; Zeus approvals when one waits). Always visible: lockdown overlay, breach status, kill switch, lockdown button, REPLAY badge. Incident report, trackers, roster, full agent streams and replay live in the right-hand drawer. Every card reads the real feed; empty states say what fills them.
+Main screen, modelled on the user's reference dashboard (soft analytics cards) and kept black and green: traffic trends with a highlight band and a legend chip; six live readings as tiles (real records exposed, trapped, flip time, active sessions, fake records taken, marked keys used) with change chips over the last minute of live readings; visitors as Argus labels them around a lit orb; the pantheon over the gateway's decision-time chart; a tabbed table (trapped visitors, agent messages, requests, trackers) with Open report and All streams. Zeus approvals lead the page while one waits. A Raw switch at the top right of the header shows the same feed as a terminal UI. Always visible: lockdown overlay, breach status, kill switch, lockdown button, REPLAY badge. Incident report, trackers, roster, full agent streams and replay live in the right-hand drawer. Every card reads the real feed; empty states say what fills them.
 
 ## Direction contract
 
-THESIS: A calm bento of live readings lit by a torch: the cursor carries a green glow across card borders and faces. Refuses a wall of equal panels and any 3D or terminal costume.
+THESIS: Soft, rounded analytics cards on black, lit green: the reference dashboard's calm grid carrying a live trap. A Raw switch turns the console into a terminal UI of the same feed, for operators who want every field.
 
-OWN-WORLD: Same black and green tokens as the landing page. Montserrat wide capitals for card titles and controls, Sofia Sans Extra Condensed for the big numerals that do not tick, JetBrains Mono tabular figures for live data and the log. Sage = real, bright green = trapped, amber = Zeus and lockdown, red = breach only. Rounded cards with a hairline border; no boxes inside cards.
+OWN-WORLD: Same black and green tokens as the landing page, with three console surfaces: page, card, inner panel. Montserrat sentence-case card titles and semibold readings; JetBrains Mono for times, ids, chart axes and the whole raw view. Sage = real, bright green = trapped, amber = Zeus and lockdown, red = breach only (never for a negative change).
 
-STORY: The operator sees at a glance that containment holds (zero exposed), watches trapped traffic rise against real traffic, reads Hermes' messages, and acts from one control row.
+STORY: The operator sees at a glance that containment holds (zero exposed), watches trapped traffic against real traffic, picks a trapped visitor and opens its report, and acts from one control row.
 
-FIRST VIEWPORT: Top bar: mark and wordmark, status, live state, controls (Release, Reset, Kill switch, Lockdown), Details. Two mirrored sides under a hairline seam, each with its own heading and one-line summary. Attackers (bright green heading): traffic across the top, trapped visitors down the outer left edge, raider messages and what they took beside it. Defenders (sage heading): vitals across the top, the defender log down the outer right edge, pantheon and visitor types beside it. A Zeus card leads the defenders' side while an approval waits.
+FIRST VIEWPORT: Header: mark, status, live state, controls (Release, Reset, Kill, Lockdown, Details) and the Raw switch at the far right. Zeus approvals when any wait, then two rows: traffic beside the six reading tiles; visitors, the pantheon over the gateway, and the tabbed table.
 
-FORM: Pinned by the user brief (interactive bento with glow cards, Greek theme), position 1 of 1. seed:a1faaef247878c11 (direction pinned by the user; roll recorded only)
+FORM: Pinned by the user: their reference dashboard image, recoloured green on black, plus a raw terminal view. seed:a1faaef247878c11 (direction pinned by the user; roll recorded only)
 
-Signature move: torch-light glow that follows the pointer across cards; the trapped line glows on the traffic chart.
+Signature move: the glowing trapped line with its highlight band, and the lit visitors orb.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
