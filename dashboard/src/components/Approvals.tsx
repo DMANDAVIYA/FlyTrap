@@ -1,30 +1,36 @@
+import { Zap } from "lucide-react";
 import { useState } from "react";
+import { GlowCard } from "@/components/ui/glow-card";
 import { control, type State } from "../feed";
-import { Panel } from "./Panel";
 
-export function Approvals({ s }: { s: State }) {
+/** Zeus: only takes space while a drastic action waits for a human. */
+export function Approvals({ s, className = "" }: { s: State; className?: string }) {
   const [busy, setBusy] = useState<number | null>(null);
   const pending = Object.values(s.approvals).filter((a) => a.status === "pending");
+  if (!pending.length) return null;
+
   const decide = async (id: number, action: "approve" | "reject") => {
     setBusy(id);
     try { await control(`${action}/${id}`); } finally { setBusy(null); }
   };
+
   return (
-    <Panel title="Zeus · approvals" className="col-span-3" bodyClass="overflow-y-auto scroll-thin"
-      right={pending.length ? <span className="text-xs text-warn">{pending.length} waiting</span> : null}>
-      <div className="p-3 space-y-2">
+    <GlowCard label="Waiting for Zeus" glow="var(--warn-rgb)" className={className}>
+      {/* several can wait at once: keep the card to about two rows and scroll the rest */}
+      <ul className="-mr-2 flex max-h-[7.5rem] flex-col gap-3 overflow-y-auto pr-2 scroll-thin">
         {pending.map((a) => (
-          <div key={a.id} className="rounded border border-warn/40 p-2.5">
-            <div className="text-[11px] uppercase tracking-widest text-warn">{a.kind.replace("_", " ")} · #{a.id}</div>
-            <div className="text-sm mt-1">{a.summary}</div>
-            <div className="flex gap-2 mt-2">
-              <button className="btn btn-ok !py-1" disabled={busy === a.id} onClick={() => decide(a.id, "approve")}>Approve</button>
-              <button className="btn !py-1" disabled={busy === a.id} onClick={() => decide(a.id, "reject")}>Reject</button>
+          <li key={a.id} className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span className="caps flex items-center gap-2 text-[10.5px] font-bold text-warn">
+              <Zap size={14} aria-hidden /> Zeus · {a.kind.replace("_", " ")} #{a.id}
+            </span>
+            <p className="min-w-[16rem] flex-1 text-sm leading-snug">{a.summary}</p>
+            <div className="flex gap-2">
+              <button className="btn btn-ok !py-1.5" disabled={busy === a.id} onClick={() => decide(a.id, "approve")}>Approve</button>
+              <button className="btn !py-1.5" disabled={busy === a.id} onClick={() => decide(a.id, "reject")}>Reject</button>
             </div>
-          </div>
+          </li>
         ))}
-        {!pending.length && <p className="text-text2 text-sm">Release, global rules and lockdown wait here for a human.</p>}
-      </div>
-    </Panel>
+      </ul>
+    </GlowCard>
   );
 }

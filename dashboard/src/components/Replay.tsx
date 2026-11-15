@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { goLive, replay, type State } from "../feed";
+import { goLive, listRuns, replay, type State } from "../feed";
 
 export function Replay({ s }: { s: State }) {
   const [runs, setRuns] = useState<{ run: string; current: boolean }[]>([]);
   const [run, setRun] = useState("");
   const [speed, setSpeed] = useState(1);
   useEffect(() => {
-    fetch("/api/runs").then((r) => r.json()).then((d) => {
+    listRuns().then((d) => {
       const list = (d.runs ?? []).map((r: { run: string }) => ({ run: r.run, current: r.run === d.recording }));
       setRuns(list);
       setRun((cur) => cur || list.find((r: { current: boolean }) => !r.current)?.run || list[0]?.run || "");

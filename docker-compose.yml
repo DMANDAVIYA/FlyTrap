@@ -1,4 +1,4 @@
-# Flytrap lab: one laptop, seven networks.
+# Dolos lab: one laptop, seven networks.
 #   front   (bridge)    host access to the site (8080) and dash-api (8090)
 #   egress  (bridge)    controller only: AI API calls
 #   dbnet   (bridge)    real servers reach the local PostgreSQL on the host

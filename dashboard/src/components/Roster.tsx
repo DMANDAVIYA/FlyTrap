@@ -11,7 +11,7 @@ function Who({ name, s }: { name: string; s: State }) {
       <span className={`w-2 h-2 shrink-0 rounded-full ${live ? "animate-pulse" : ""}`}
         style={{ background: st === "offline" ? "#3a4450" : agentColor(name), boxShadow: live ? `0 0 8px ${agentColor(name)}` : "none" }} />
       <span className="font-display font-semibold uppercase tracking-wider text-[13px] flex-1 truncate" style={{ color: agentColor(name) }}>{name}</span>
-      <span className={`text-[10px] uppercase ${st === "offline" ? "text-trap" : live ? "text-text" : "text-text2"}`}>
+      <span className={`text-[10px] uppercase ${st === "offline" ? "text-text2/60 line-through" : live ? "text-text" : "text-text2"}`}>
         {st === "offline" ? "offline" : st}{r?.mode === "rules" ? " ·rules" : ""}
       </span>
     </div>

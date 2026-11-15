@@ -20,13 +20,13 @@ ROUTES: dict[str, tuple[str, str, dict[str, Any]]] = {
     "lockdown": (
         "POST",
         "/tools/request_lockdown",
-        {"agent": "zeus", "reason": "Manual lockdown from the Flytrap console"},
+        {"agent": "zeus", "reason": "Manual lockdown from the Dolos console"},
     ),
     # Not in contract 6.6 yet: the controller should expose this tool for zeus.
     "cancel_lockdown": (
         "POST",
         "/tools/cancel_lockdown",
-        {"agent": "zeus", "reason": "Cancelled by Zeus from the Flytrap console"},
+        {"agent": "zeus", "reason": "Cancelled by Zeus from the Dolos console"},
     ),
     "approve": ("POST", "/approvals/{id}", {"decision": "approve", "by": "human"}),
     "reject": ("POST", "/approvals/{id}", {"decision": "reject", "by": "human"}),

@@ -2,7 +2,7 @@
 
 Gets itself flipped into Tartarus on purpose (requests /.env), logs into the decoy admin
 panel with the migration login from the page comment, then visits every page and checks:
-  - no giveaway words in bodies (pod, trap, honeypot, fake, flytrap, edge, canary)
+  - no giveaway words in bodies (pod, trap, honeypot, fake, flytrap, dolos, edge, canary)
   - no internal headers reach the visitor (X-Edge-*, X-Raider)
 Stdlib only. Run with the stack up:  python scripts/leakcheck.py [--base http://localhost:8080]
 Run "Reset Tartarus" afterwards; this crawl leaves one trapped session behind.
@@ -18,7 +18,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-WORDS = re.compile(r"\b(pods?|traps?|trapped|honeypots?|fake|flytrap|edge|canar(?:y|ies))\b", re.I)
+WORDS = re.compile(r"\b(pods?|traps?|trapped|honeypots?|fake|flytrap|dolos|edge|canar(?:y|ies))\b", re.I)
 INTERNAL = ("x-edge-", "x-raider")
 PUBLIC = ["/", "/pricing", "/about", "/models", "/login", "/signup", "/contact", "/docs", "/robots.txt",
           "/api/v1/models", "/this-page-does-not-exist"]

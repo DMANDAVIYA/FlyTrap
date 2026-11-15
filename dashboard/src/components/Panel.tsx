@@ -1,11 +1,20 @@
+import { MessageSquare, PenLine, TriangleAlert, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
+
+const KIND_ICON = { thought: MessageSquare, action: Wrench, note: PenLine, alert: TriangleAlert };
+
+/** Drawn icon for a log line kind, at the stroke weight the rest of the UI uses. */
+export function KindIcon({ kind, className = "" }: { kind: string; className?: string }) {
+  const Icon = KIND_ICON[kind as keyof typeof KIND_ICON] ?? MessageSquare;
+  return <Icon size={11} strokeWidth={1.8} aria-label={kind} className={`inline-block -translate-y-px ${className}`} />;
+}
 
 export function Panel({ title, right, children, className = "", bodyClass = "" }: {
   title: string; right?: ReactNode; children: ReactNode; className?: string; bodyClass?: string;
 }) {
   return (
     <section className={`panel flex flex-col min-h-0 ${className}`}>
-      <header className="flex items-center justify-between px-3 py-2 border-b border-line">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-line">
         <h2 className="panel-title">{title}</h2>
         {right}
       </header>
@@ -16,9 +25,10 @@ export function Panel({ title, right, children, className = "", bodyClass = "" }
 
 export const agentColor = (agent: string) =>
   ({
-    athena: "#c9b8ff", argus: "#7fd4ff", hephaestus: "#ffb36b", cerberus: "#ff8a8a", mnemosyne: "#b8e986",
-    clio: "#f5d76e", hermes: "#9ef0e0", zeus: "#ffffff", charon: "#93a3af",
-    prometheus: "#ff6b4a", pandora: "#ff4fa3", odysseus: "#ffa94d", icarus: "#ff4747", sisyphus: "#d97757",
+    // Defenders in greens, raiders in neutral greys: the log stays black and green.
+    athena: "#e4f0e8", argus: "#9fe8c3", hephaestus: "#c8dc8f", cerberus: "#5fd39a", mnemosyne: "#b3c7bb",
+    clio: "#d6e6a6", hermes: "#3dff8f", zeus: "#ffffff", charon: "#8aa293",
+    prometheus: "#d9dfdb", pandora: "#c3cbc6", odysseus: "#d9dfdb", icarus: "#c3cbc6", sisyphus: "#aeb7b1",
   })[agent] ?? "#93a3af";
 
 export const sideColor = (side?: string | null) => (side === "trap" || side === "blocked" ? "var(--trap)" : "var(--real)");

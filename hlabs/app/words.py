@@ -1,6 +1,6 @@
 """Words that must never appear in anything the site serves (spec 2.10)."""
 
-FORBIDDEN = ("pod", "trap", "honeypot", "fake", "flytrap", "edge", "canary")
+FORBIDDEN = ("pod", "trap", "honeypot", "fake", "flytrap", "dolos", "edge", "canary")
 
 
 def is_clean(text: str) -> bool:

@@ -1,5 +1,7 @@
 // Live state: /api/state snapshot + /ws messages, reduced into one object.
+// On the static site (VITE_DEMO=1) the messages come from the in-browser replay in demo.ts instead.
 import { useEffect, useReducer, useRef } from "react";
+import { DEMO, DEMO_RUNS, DemoPlayer, type ControlResult } from "./demo";
 import type {
   ApprovalData, CampaignData, CanaryData, EventData, FlipData, LockdownData, Msg, RosterData, SessionData,
   StatsData, StreamItem,
@@ -29,14 +31,25 @@ export interface State {
   lastFlip: (FlipData & { at: number }) | null;
   flips: number;
   rps: { real: number; trap: number }[];
+  /** One row per live stats message (every 2 s), for "last minute" deltas. Empty until the page has been open a while. */
+  hist: Hist[];
 }
+
+export interface Hist {
+  t: number; trapped: number; exposed: number; active: number; fake: number; keys: number; requests: number;
+  p50: number | null; p95: number | null; flip: number | null;
+}
+const histOf = (st: StatsData, t: number): Hist => ({
+  t, trapped: st.trapped, exposed: st.real_records_exposed, active: st.active_sessions ?? 0, fake: st.fake_records_taken,
+  keys: st.canaries_fired, requests: st.requests_total ?? 0, p50: st.p50_gw_ms ?? null, p95: st.p95_gw_ms ?? null, flip: st.avg_flip_ms,
+});
 
 const EMPTY_STATS: StatsData = { real_records_exposed: 0, fake_records_taken: 0, trapped: 0, canaries_fired: 0, avg_flip_ms: null };
 
 export const initial: State = {
   connected: false, mode: "", replay: { active: false }, stats: EMPTY_STATS, sessions: {},
   events: [], red: [], blue: [], roster: {}, approvals: {}, campaigns: [], canaries: [], reports: {},
-  lockdown: { state: "off" }, lastFlip: null, flips: 0, rps: [],
+  lockdown: { state: "off" }, lastFlip: null, flips: 0, rps: [], hist: [],
 };
 
 type Action =
@@ -81,11 +94,15 @@ function apply(s: State, msg: Msg, live: boolean): State {
       return { ...s, blue: cap([...s.blue, { kind: "alert", t, agent: msg.data.agent || "hermes", session: msg.data.session ?? "-", text: msg.data.message, severity: msg.data.severity }], 160) };
     case "canary":
       return { ...s, canaries: cap([...s.canaries, msg.data], 50) };
-    case "stats":
+    case "stats": {
+      const stats = { ...s.stats, ...msg.data };
       return {
-        ...s, stats: { ...s.stats, ...msg.data },
+        ...s, stats,
         rps: cap([...s.rps, { real: msg.data.rps_real ?? 0, trap: msg.data.rps_trap ?? 0 }], 60),
+        // only live readings: snapshot replays arrive all at once and would fake a time window
+        hist: live ? cap([...s.hist, histOf(stats, t)], 90) : s.hist,
       };
+    }
     case "lockdown":
       return { ...s, lockdown: msg.data };
     case "approval":
@@ -143,19 +160,30 @@ export const onMessage = (fn: Listener) => {
 };
 
 let socket: WebSocket | null = null;
+let player: DemoPlayer | null = null;
+
 export async function replay(run: string, speed: number) {
+  if (player) return player.replay(run, speed);
   await fetch(`/api/replay?run=${encodeURIComponent(run)}&speed=${speed}&client=${clientId}`);
 }
 export async function goLive() {
+  if (player) return player.goLive();
   await fetch(`/api/replay/stop?client=${clientId}`);
   socket?.close(); // reconnect reloads the live snapshot
 }
 
-export async function control(action: string, body: Record<string, unknown> = {}) {
+export async function control(action: string, body: Record<string, unknown> = {}): Promise<ControlResult & Record<string, unknown>> {
+  if (player) return player.control(action);
   const r = await fetch(`/api/control/${action}`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
   });
   return r.json().catch(() => ({ ok: r.ok }));
+}
+
+/** The recorded runs the Replay tab can play. */
+export async function listRuns(): Promise<{ runs?: { run: string }[]; recording?: string | null }> {
+  if (DEMO) return { runs: DEMO_RUNS.map((run) => ({ run })), recording: null };
+  return (await fetch("/api/runs")).json();
 }
 
 export function useFeed() {
@@ -165,6 +193,31 @@ export function useFeed() {
   useEffect(() => {
     let closed = false;
     let retry: number | undefined;
+    const take = (msg: Msg) => {
+      listeners.forEach((fn) => fn(msg));
+      queue.current.push(msg);
+    };
+
+    // Batch renders: at most ~12 per second, however busy the feed is.
+    const flush = window.setInterval(() => {
+      if (!queue.current.length) return;
+      const msgs = queue.current;
+      queue.current = [];
+      for (const m of msgs) dispatch({ kind: "msg", msg: m, live: true });
+    }, 80);
+
+    if (DEMO) {
+      dispatch({ kind: "snapshot", snap: { mode: "demo" } });
+      dispatch({ kind: "connected", value: true });
+      const p = new DemoPlayer(take);
+      player = p;
+      p.start();
+      return () => {
+        window.clearInterval(flush);
+        p.dispose();
+        if (player === p) player = null;
+      };
+    }
 
     const loadSnapshot = () =>
       fetch("/api/state").then((r) => r.json()).then((snap: Snapshot) => dispatch({ kind: "snapshot", snap })).catch(() => {});
@@ -178,25 +231,13 @@ export function useFeed() {
         dispatch({ kind: "connected", value: true });
         loadSnapshot();
       };
-      ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data) as Msg;
-        listeners.forEach((fn) => fn(msg));
-        queue.current.push(msg);
-      };
+      ws.onmessage = (e) => take(JSON.parse(e.data) as Msg);
       ws.onclose = () => {
         dispatch({ kind: "connected", value: false });
         if (!closed) retry = window.setTimeout(connect, 1500);
       };
     };
     connect();
-
-    // Batch renders: at most ~12 per second, however busy the feed is.
-    const flush = window.setInterval(() => {
-      if (!queue.current.length) return;
-      const msgs = queue.current;
-      queue.current = [];
-      for (const m of msgs) dispatch({ kind: "msg", msg: m, live: true });
-    }, 80);
 
     return () => {
       closed = true;

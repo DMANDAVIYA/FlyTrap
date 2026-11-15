@@ -62,7 +62,7 @@ def create_app(backend: Backend, runs_dir: Path, record: bool = True) -> FastAPI
             await backend.stop()
             recorder.close()
 
-    app = FastAPI(title="Flytrap dash-api", lifespan=lifespan)
+    app = FastAPI(title="Dolos dash-api", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
     )

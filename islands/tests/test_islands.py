@@ -17,7 +17,7 @@ from app.main import create_app
 
 SECRET = "test-bait-secret"
 SID = "s_0123456789abcdef"
-FORBIDDEN = ("pod", "trap", "honeypot", "fake", "flytrap", "edge", "canary")
+FORBIDDEN = ("pod", "trap", "honeypot", "fake", "flytrap", "dolos", "edge", "canary")
 HEADERS = {"X-Edge-Session": SID, "X-Forwarded-Prefix": "/admin/infra/backup-01"}
 
 
