@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
  *   robot.png     "Biped Robot" by Silver Ink, CC BY-SA 4.0 (credited on the page)
  *   ruins.png     "Classical Ruin Tiles" by surt, CC0: temple, gate, vial and chest are cut from it here
  * The world is 256 x 368 pixels drawn at one scale and blown up by whole multiples, so pixels stay square.
+ * The knight's sheets are halved on load, so it stands about as tall as the robot.
  * The set is toned toward the black-and-green world in the browser; the knight and the robot keep their colours.
  */
 
@@ -17,13 +18,17 @@ const FLOOR = 184; // top of the floor band; Olympus stands on it
 const UNDER = 190; // underside of the floor band; Tartarus hangs from it, upside down
 const TRAP = { x: 72, w: 24 }; // the trapdoor in the floor
 const TEMPLE_X = 108;
+const GATE_X = 4; // Charon's gate: two columns under one arch
+const KNIGHT_X = 180; // where the warrior stands in step 6: at the temple door
+const FADE = 20; // the sky, floor and glow fade out over this many pixels at each side
 const ESCAPE_S = 8.4; // step 6 loop length, seconds
 // step 6 beats, in seconds into the loop: the attack clip starts at 4.2 and its blade is out from frame 8 (HIT);
 // the robot hangs in the copy from LAND
 const HIT = 4.2 + 8 / 12;
 const LAND = HIT + 1.4;
-// the robot's leap at the warrior: from x0 to x1, feet h px up, so the blade (47-51 px above the floor) crosses its middle
-const LEAP = { x0: 98, x1: 122, h: 37 };
+// the robot's hop at the warrior: from x0 to x1, feet h px up, so the half-size blade (24-26 px above the floor,
+// reaching x 114-145 from KNIGHT_X) crosses its middle
+const LEAP = { x0: 114, x1: 130, h: 13 };
 const TRAP_MID = TRAP.x + TRAP.w / 2;
 
 type Rect = [number, number, number, number];
@@ -31,7 +36,7 @@ const TILE: Record<string, Rect> = {
   pediment: [488, 32, 144, 40],
   column: [264, 192, 16, 64],
   ledge: [264, 0, 16, 16],
-  arch: [488, 0, 60, 32],
+  arch: [488, 0, 32, 32], // left half of one bay of an arcade, cornice to keystone; drawn twice, the second mirrored
   vial: [489, 72, 14, 16],
   chest: [488, 105, 32, 23],
   chestOpen: [520, 105, 32, 23],
@@ -47,7 +52,7 @@ const FOCUS: Rect[] = [
   [0, 28, 256, 316],
 ];
 
-type Clip = { img: HTMLImageElement; fw: number; fh: number; n: number; fps: number; fx: number; fy: number; row?: number };
+type Clip = { img: CanvasImageSource; fw: number; fh: number; n: number; fps: number; fx: number; fy: number; row?: number };
 type Pos = { x: number; y: number };
 type Act =
   | { k: "walk"; to: Pos; speed: number }
@@ -79,25 +84,73 @@ function frame(g: CanvasRenderingContext2D, c: Clip, f: number, x: number, y: nu
 const tile = (g: CanvasRenderingContext2D, img: HTMLImageElement, r: Rect, x: number, y: number) =>
   g.drawImage(img, r[0], r[1], r[2], r[3], Math.round(x), Math.round(y), r[2], r[3]);
 
+/** Halves a pixel-art sheet: each 2x2 block becomes the mean of its solid pixels, or stays clear when mostly clear. */
+function half(img: HTMLImageElement) {
+  const src = document.createElement("canvas");
+  src.width = img.width;
+  src.height = img.height;
+  const sg = src.getContext("2d")!;
+  sg.drawImage(img, 0, 0);
+  const a = sg.getImageData(0, 0, src.width, src.height).data;
+  const c = document.createElement("canvas");
+  c.width = src.width >> 1;
+  c.height = src.height >> 1;
+  const cg = c.getContext("2d")!;
+  const im = cg.createImageData(c.width, c.height);
+  for (let y = 0; y < c.height; y++) {
+    for (let x = 0; x < c.width; x++) {
+      let n = 0;
+      let r = 0;
+      let gr = 0;
+      let b = 0;
+      for (let k = 0; k < 4; k++) {
+        const p = ((2 * y + (k >> 1)) * src.width + 2 * x + (k & 1)) * 4;
+        if (a[p + 3] < 128) continue;
+        n++;
+        r += a[p];
+        gr += a[p + 1];
+        b += a[p + 2];
+      }
+      if (n < 2) continue;
+      const q = (y * c.width + x) * 4;
+      im.data.set([r / n, gr / n, b / n, 255], q);
+    }
+  }
+  cg.putImageData(im, 0, 0);
+  return c;
+}
+
+// a bird on its upstroke and downstroke, 7 x 4 ("#" is a pixel); the watchers circle as sixteen of these
+const BIRD = [
+  ["#.....#", ".#...#.", "..#.#..", "...#..."],
+  [".......", "...#...", ".##.##.", "#.....#"],
+];
+const bird = (g: CanvasRenderingContext2D, x: number, y: number, pose: number) =>
+  BIRD[pose].forEach((row, j) => [...row].forEach((p, i) => p === "#" && g.fillRect(x - 3 + i, y - 2 + j, 1, 1)));
+
+const STEP_H = 9; // each of the temple's three steps
+const TEMPLE_H = 40 + 16 + 64 + 3 * STEP_H; // pediment, ledge, columns, steps
+
 /** Olympus: steps, five columns, the entablature and the pediment, on its own canvas (feet of the steps on its bottom row). */
 function buildTemple(ruins: HTMLImageElement) {
   const c = document.createElement("canvas");
   c.width = 144;
-  c.height = 132;
+  c.height = TEMPLE_H;
   const g = c.getContext("2d")!;
   g.imageSmoothingEnabled = false;
   // three steps in the tiles' own palette: sandstone body, light top edge, dark foot line
   [144, 136, 128].forEach((w, i) => {
-    const y = 132 - 4 * (i + 1);
+    const y = TEMPLE_H - STEP_H * (i + 1);
     const x = (144 - w) / 2;
     g.fillStyle = "#d2aa99";
-    g.fillRect(x, y, w, 4);
+    g.fillRect(x, y, w, STEP_H);
     g.fillStyle = "#deeed6";
     g.fillRect(x, y, w, 1);
     g.fillStyle = "#757161";
-    g.fillRect(x, y + 3, w, 1);
+    g.fillRect(x, y + STEP_H - 1, w, 1);
   });
-  for (let i = 0; i < 5; i++) tile(g, ruins, TILE.column, 4 + i * 30, 132 - 12 - 64);
+  // 28 px apart, so all five bases stand on the top step (x 8-136)
+  for (let i = 0; i < 5; i++) tile(g, ruins, TILE.column, 8 + i * 28, 56);
   for (let x = 0; x < 144; x += 16) tile(g, ruins, TILE.ledge, x, 40);
   tile(g, ruins, TILE.pediment, 0, 0);
   return c;
@@ -140,11 +193,12 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           left: { img: robotImg, fw: 32, fh: 32, n: 6, fps: 10, fx: 18, fy: 27, row: 3 } as Clip,
           hurt: { img: robotImg, fw: 32, fh: 32, n: 2, fps: 6, fx: 13, fy: 27, row: 4 } as Clip,
         };
+        // halved sheets, so frame sizes and feet anchors are half the source's
         const knight = {
-          idle: { img: kIdle, fw: 100, fh: 100, n: 8, fps: 8, fx: 33, fy: 90 } as Clip,
-          run: { img: kRun, fw: 100, fh: 100, n: 10, fps: 12, fx: 35, fy: 98 } as Clip,
-          attack: { img: kAttack, fw: 180, fh: 100, n: 17, fps: 12, fx: 32, fy: 90 } as Clip,
-          power: { img: kPower, fw: 100, fh: 180, n: 19, fps: 12, fx: 32, fy: 168 } as Clip,
+          idle: { img: half(kIdle), fw: 50, fh: 50, n: 8, fps: 8, fx: 17, fy: 45 } as Clip,
+          run: { img: half(kRun), fw: 50, fh: 50, n: 10, fps: 12, fx: 17, fy: 49 } as Clip,
+          attack: { img: half(kAttack), fw: 90, fh: 50, n: 17, fps: 12, fx: 16, fy: 45 } as Clip,
+          power: { img: half(kPower), fw: 50, fh: 90, n: 19, fps: 12, fx: 16, fy: 84 } as Clip,
         };
 
         // ---- the set, drawn once ----------------------------------------------------------------
@@ -171,12 +225,39 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           s.fillStyle = i % 5 ? "rgba(222,238,214,.35)" : "rgba(222,238,214,.8)";
           s.fillRect(Math.floor(rnd() * W), Math.floor(rnd() * 120), 1, 1);
         }
+        // the floor band, with a gap for the trapdoor
+        const band = (x0: number, x1: number) => {
+          s.fillStyle = "#2a2f2b";
+          s.fillRect(x0, FLOOR, x1 - x0, UNDER - FLOOR);
+          s.fillStyle = "#6f7a72";
+          s.fillRect(x0, FLOOR, x1 - x0, 1);
+          s.fillStyle = "#16301f";
+          s.fillRect(x0, UNDER - 1, x1 - x0, 1);
+        };
+        band(0, TRAP.x);
+        band(TRAP.x + TRAP.w, W);
+        // the backdrop so far fades out toward both sides; the stone drawn next stays crisp
+        const side = s.createLinearGradient(0, 0, W, 0);
+        side.addColorStop(0, "rgba(0,0,0,0)");
+        side.addColorStop(FADE / W, "#000");
+        side.addColorStop(1 - FADE / W, "#000");
+        side.addColorStop(1, "rgba(0,0,0,0)");
+        s.globalCompositeOperation = "destination-in";
+        s.fillStyle = side;
+        s.fillRect(0, 0, W, H);
+        s.globalCompositeOperation = "source-over";
         // the stone, toned toward sage marble; the copy below in green line light
         s.filter = "saturate(.35) sepia(.2) hue-rotate(62deg) brightness(.82)";
-        s.drawImage(temple, TEMPLE_X, FLOOR - 132);
-        tile(s, ruins, TILE.column, 4, FLOOR - 64);
-        tile(s, ruins, TILE.column, 48, FLOOR - 64);
-        tile(s, ruins, TILE.arch, 4, FLOOR - 64 - 32);
+        s.drawImage(temple, TEMPLE_X, FLOOR - TEMPLE_H);
+        // Charon's gate: columns under the arch's piers (both shafts 12 px, 48 px apart), the arch's half drawn twice
+        tile(s, ruins, TILE.column, GATE_X, FLOOR - 64);
+        tile(s, ruins, TILE.column, GATE_X + 48, FLOOR - 64);
+        tile(s, ruins, TILE.arch, GATE_X, FLOOR - 96);
+        s.save();
+        s.translate(GATE_X + 64, FLOOR - 96);
+        s.scale(-1, 1);
+        tile(s, ruins, TILE.arch, 0, 0);
+        s.restore();
         s.filter = "none";
         const copy = document.createElement("canvas");
         copy.width = temple.width;
@@ -190,19 +271,8 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
         s.globalAlpha = 0.55;
         s.translate(TEMPLE_X, UNDER);
         s.scale(1, -1);
-        s.drawImage(copy, 0, -132);
+        s.drawImage(copy, 0, -TEMPLE_H);
         s.restore();
-        // the floor band, with a gap for the trapdoor
-        const band = (x0: number, x1: number) => {
-          s.fillStyle = "#2a2f2b";
-          s.fillRect(x0, FLOOR, x1 - x0, UNDER - FLOOR);
-          s.fillStyle = "#6f7a72";
-          s.fillRect(x0, FLOOR, x1 - x0, 1);
-          s.fillStyle = "#16301f";
-          s.fillRect(x0, UNDER - 1, x1 - x0, 1);
-        };
-        band(0, TRAP.x);
-        band(TRAP.x + TRAP.w, W);
 
         const world = document.createElement("canvas");
         world.width = W;
@@ -303,17 +373,34 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           } else {
             Object.assign(bot, { x: TRAP_MID, y: UNDER, down: true, face: 1, moving: false, hurt: t < LAND + 0.6 });
           }
-          // the warrior's clip and frame come from the same t
+          // the warrior runs in from the right, powers up and strikes; its clip and frame come from the same t
+          kx = KNIGHT_X;
           let clip = knight.idle;
           let f = Math.floor(t * knight.idle.fps);
-          if (t >= 2.6 && t < 2.6 + knight.power.n / knight.power.fps) {
+          if (t < 0.8) return; // not on stage yet
+          if (t < 2.2) {
+            clip = knight.run;
+            f = Math.floor(t * knight.run.fps);
+            kx = W + 16 + (KNIGHT_X - W - 16) * ((t - 0.8) / 1.4);
+          } else if (t >= 2.6 && t < 2.6 + knight.power.n / knight.power.fps) {
             clip = knight.power;
             f = Math.floor((t - 2.6) * knight.power.fps);
           } else if (t >= 4.2 && t < 4.2 + knight.attack.n / knight.attack.fps) {
             clip = knight.attack;
             f = Math.floor((t - 4.2) * knight.attack.fps);
           }
-          frame(g, clip, f, 222, FLOOR, true);
+          frame(g, clip, f, kx, FLOOR, true);
+        };
+        let kx = KNIGHT_X; // the warrior's x, for its label
+
+        // the watchers: sixteen birds circling the robot in step 5, the near half in front of it
+        const ring = (front: boolean) => {
+          g.fillStyle = "#deeed6";
+          for (let i = 0; i < 16; i++) {
+            const a = clock * 0.9 + (i / 16) * Math.PI * 2;
+            if (Math.sin(a) > 0 !== front) continue;
+            bird(g, Math.round(bot.x + Math.cos(a) * 34), Math.round(bot.y + 16 + Math.sin(a) * 14), Math.floor(clock * 6 + i * 0.7) % 2);
+          }
         };
 
         const sizeView = () => {
@@ -342,12 +429,12 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
         };
 
         const anchors: Record<LabelKey, () => Pos> = {
-          olympus: () => ({ x: TEMPLE_X + 72, y: FLOOR - 142 }),
-          tartarus: () => ({ x: TEMPLE_X + 72, y: UNDER + 146 }),
+          olympus: () => ({ x: TEMPLE_X + 72, y: FLOOR - TEMPLE_H - 10 }),
+          tartarus: () => ({ x: TEMPLE_X + 72, y: UNDER + TEMPLE_H + 14 }),
           charon: () => ({ x: 34, y: UNDER + 9 }),
           env: () => ({ x: TRAP.x + 18, y: FLOOR - 24 + vialY }),
           loot: () => ({ x: 196, y: UNDER + 40 }),
-          warrior: () => ({ x: 190, y: FLOOR - 84 }),
+          warrior: () => ({ x: kx, y: FLOOR - 52 }),
           rotated: () => ({ x: 64, y: FLOOR - 118 }),
           trapped: () => ({ x: TRAP_MID, y: UNDER + 40 }),
         };
@@ -412,18 +499,7 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
             }
           }
 
-          // the watchers: sixteen eyes round the robot in step 5
-          if (st === 4) {
-            for (let i = 0; i < 16; i++) {
-              const a = clock * 0.9 + (i / 16) * Math.PI * 2;
-              const ex = Math.round(bot.x + Math.cos(a) * 30);
-              const ey = Math.round(bot.y + 14 + Math.sin(a) * 18);
-              g.fillStyle = "#deeed6";
-              g.fillRect(ex - 1, ey, 3, 2);
-              g.fillStyle = "#3dff8f";
-              g.fillRect(ex, ey, 1, 1);
-            }
-          }
+          if (st === 4) ring(false);
 
           if (st === 5) escape(escT);
           else runQueue(dt);
@@ -432,6 +508,7 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           const clip = bot.hurt ? robot.hurt : bot.face > 0 ? robot.right : robot.left;
           const f = bot.moving || bot.hurt ? Math.floor(clock * clip.fps) : 0;
           frame(g, clip, f, bot.x, bot.y, false, bot.down);
+          if (st === 4) ring(true);
           // the hit: a burst of light where the blade meets the robot
           if (st === 5 && escT >= HIT && escT < HIT + 0.3) {
             const k = (escT - HIT) / 0.3;
@@ -451,12 +528,23 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
           cam.y = damp(cam.y, want.y, 3, dt);
           cam.z = Math.abs(cam.z - want.z) < 0.03 ? want.z : damp(cam.z, want.z, 4, dt);
           out.imageSmoothingEnabled = false;
-          out.fillStyle = "#030604";
-          out.fillRect(0, 0, view.width, view.height);
+          out.clearRect(0, 0, view.width, view.height);
           const z = cam.z;
           const ox = Math.round(view.width / 2 - cam.x * z);
           const oy = Math.round(view.height / 2 - cam.y * z);
           out.drawImage(world, ox, oy, W * z, H * z);
+          // where the view cuts through the world, that side fades out too
+          const edge = FADE * z;
+          out.globalCompositeOperation = "destination-out";
+          for (const [cut, x0, x1] of [[-ox, 0, edge], [ox + W * z - view.width, view.width, view.width - edge]]) {
+            if (cut <= 0) continue;
+            const fade = out.createLinearGradient(x0, 0, x1, 0);
+            fade.addColorStop(0, `rgba(0,0,0,${Math.min(1, cut / edge).toFixed(3)})`);
+            fade.addColorStop(1, "rgba(0,0,0,0)");
+            out.fillStyle = fade;
+            out.fillRect(Math.min(x0, x1), 0, edge, view.height);
+          }
+          out.globalCompositeOperation = "source-over";
 
           // labels follow their anchors, in CSS pixels
           const dpr = view.width / Math.max(1, el.clientWidth);
@@ -466,7 +554,7 @@ export default function HowScene2D({ step, onReady, onFail }: { step: number; on
             charon: st <= 1 || (st === 5 && escT < HIT) ? 1 : 0, // gone before the robot lands under it
             env: st === 1 ? 1 : 0,
             loot: st === 3 ? 1 : 0,
-            warrior: st === 5 ? 1 : 0,
+            warrior: st === 5 && escT > 1.2 ? 1 : 0,
             rotated: st === 5 && escT > 3.2 ? 1 : 0,
             trapped: st === 5 && escT > LAND ? 1 : 0,
           };
