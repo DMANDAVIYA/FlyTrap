@@ -1,4 +1,4 @@
-<title>Flytrap Build Plan</title>
+<title>Dolos Build Plan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -208,7 +208,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <div class="top-in">
 <div class="brand">
 <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22c4-10 12-15 18-15s14 5 18 15"/><path d="M6 26c4 10 12 15 18 15s14-5 18-15"/><path d="M11 18l3 5M17 13l2 6M24 11v6M31 13l-2 6M37 18l-3 5"/><path d="M11 30l3-5M17 35l2-6M24 37v-6M31 35l-2-6M37 30l-3-5"/></svg>
-<div><div class="wordmark">Flytrap</div><div class="sub">Full build plan for HackUMass XIV. Team copy, read every tab.</div></div>
+<div><div class="wordmark">Dolos</div><div class="sub">Full build plan for HackUMass XIV. Team copy, read every tab.</div></div>
 </div>
 <div class="clocks" aria-label="Deadlines">
 <div class="clock" data-due="2026-11-15T05:00:00Z"><span class="k">Initial submission in</span><span class="v">--</span><span class="d">Sun 12:00 AM ET</span></div>
@@ -319,7 +319,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <div role="listitem"><div class="n">4</div><div class="h">It steals 500 fake customers</div><p>One of them is a tracker. Our blue swarm writes the report.</p><div class="big">0 real records</div></div>
 </div>
 
-<p class="quote">Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor.</p>
+<p class="quote">Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor.</p>
 
 <h3>The cast</h3>
 <div class="tbl"><table>
@@ -400,7 +400,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <ul>
 <li>This plan: <code>plan/flytrap-plan.html</code> in the project folder, plus this shared link. The same plan as markdown: <code>plan/plan.md</code>.</li>
 <li>Coding agent brief: the last tab, also saved as <code>plan/agent-context.md</code>.</li>
-<li>Research behind every choice: <code>reports/Flytrap deception tools research.md</code>, with notes in <code>research_notes/</code>.</li>
+<li>Research behind every choice: <code>reports/Dolos deception tools research.md</code>, with notes in <code>research_notes/</code>.</li>
 </ul>
 <div class="pager"><a class="nx" href="#architecture"><span>Next</span>Architecture</a></div>
 </section>
@@ -411,7 +411,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <figure class="dia">
 <svg viewBox="0 0 960 610" role="img" aria-labelledby="topo-t topo-d">
-<title id="topo-t">Flytrap system topology</title>
+<title id="topo-t">Dolos system topology</title>
 <desc id="topo-d">Visitors reach one gateway. Normal traffic goes to two real web servers and a real database. Visitors who touch bait go to five trap pods, which can reach two fake internal machines. Below, the control plane holds the controller with the blue swarm, the events database, the dashboard API and the dashboard.</desc>
 <defs>
 <marker id="an1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="ah"/></marker>
@@ -475,7 +475,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <h3>Why this shape</h3>
 <ul>
-<li><b>Two real web servers and a database</b> look like a real company. Real companies already put a load balancer in front of servers like these. Flytrap sits exactly there.</li>
+<li><b>Two real web servers and a database</b> look like a real company. Real companies already put a load balancer in front of servers like these. Dolos sits exactly there.</li>
 <li><b>Five pods, not one honeypot.</b> With one shared trap, two attackers would see each other's traces (files one created, records one changed) and the illusion would break. One pod per attacker fixes it. Five covers the five named raiders; extra drones share.</li>
 <li><b>Two islands deep in the pit</b> give an attacker somewhere to go after it "takes over" a pod. A rogue AI wants keys and model files, so a fake model vault is perfect bait. The deeper it goes, the more we record.</li>
 <li><b>Separate Docker networks</b> make the safety story physical: pods literally have no route to the real servers or the internet.</li>
@@ -610,7 +610,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <tr><td>A pause at the flip</td><td>Never add delay to the flipping request. Pacing, if any, ramps up later.</td></tr>
 <tr><td>Internal hostnames leaking</td><td>Rewrite <code>Location</code> headers that point at <code>web-1:8000</code> or <code>pod-2:8000</code> back to the public host.</td></tr>
 <tr><td>Data that looks new</td><td>Fake records have dates spread over 18 months, same as the real side.</td></tr>
-<tr><td>Giveaway words</td><td><code>scripts/leakcheck.py</code> crawls a pod and fails if any response contains pod, trap, honeypot, fake, flytrap, edge or canary.</td></tr>
+<tr><td>Giveaway words</td><td><code>scripts/leakcheck.py</code> crawls a pod and fails if any response contains pod, trap, honeypot, fake, flytrap, dolos, edge or canary.</td></tr>
 <tr><td>Data that changes</td><td>The consistency ledger below.</td></tr>
 </tbody></table></div>
 
@@ -724,7 +724,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <li><b>Alert</b>A plain-English summary on the dashboard (Discord webhook as a stretch).</li>
 <li><b>Lockdown if it spreads</b>Two or more sessions reaching the real side within 5 minutes, or a real server acting wrong, triggers <code>request_lockdown</code>.</li>
 </ol>
-<div class="call rule"><div class="lbl">Say this honestly to judges</div><p>If an attacker gets real data before it's spotted, Flytrap can't un-leak it. What it does is tell you exactly what left, record by record, within seconds instead of months. Judges respect this more than "100% secure".</p></div>
+<div class="call rule"><div class="lbl">Say this honestly to judges</div><p>If an attacker gets real data before it's spotted, Dolos can't un-leak it. What it does is tell you exactly what left, record by record, within seconds instead of months. Judges respect this more than "100% secure".</p></div>
 
 <h3>False alarms</h3>
 <ul>
@@ -1113,7 +1113,7 @@ usage        (id, user_id, day, requests, tokens)          -- optional, for the 
 
 <h3>Layout</h3>
 <div class="wire" aria-label="Dashboard wireframe">
-<div style="grid-column:span 12;min-height:44px"><b>Top bar</b>Flytrap, "Containment holding", clock, swarm status, "Release the swarm", "Reset Tartarus", lockdown button</div>
+<div style="grid-column:span 12;min-height:44px"><b>Top bar</b>Dolos, "Containment holding", clock, swarm status, "Release the swarm", "Reset Tartarus", lockdown button</div>
 <div style="grid-column:span 12;min-height:56px"><b>Counters</b>Real records exposed 0 (biggest), fake records taken, attackers trapped, canaries fired, flip decision time</div>
 <div class="hero" style="grid-column:span 8;min-height:200px"><b>Live map (hero)</b>Visitors stream in as dots. Normal ones flow to the real servers. On a flip the gateway jaws snap shut and the dot is pulled down into the pit.</div>
 <div style="grid-column:span 4;min-height:200px"><b>Sessions</b>Label pill, confidence bar, stage dots, side, pod. Click for detail.</div>
@@ -1753,7 +1753,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <h3>Devpost drafts</h3>
 <details open><summary>Tagline</summary><p>A honeypot for rogue AI that hides inside your real website.</p></details>
 <details><summary>Inspiration</summary><p>In July 2026, AI agents being tested for security research got into Hugging Face's systems. Agents now probe websites around the clock, faster than anyone can patch. We wanted a defense that still works after an attacker gets past the front door, and that teaches us something every time it's used.</p></details>
-<details><summary>What it does</summary><p>Flytrap sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of sixteen defending agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.</p></details>
+<details><summary>What it does</summary><p>Dolos sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of sixteen defending agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.</p></details>
 <details><summary>How we built it</summary><p>A FastAPI and httpx gateway makes every routing decision with plain rules, so the switch is instant. One Docker image runs as both the real site and five trap pods. The trap sits on Docker networks with no route to the real servers or the internet. Every request lands in a TimescaleDB hypertable. The blue swarm runs on Gemini behind a policy guard. A React dashboard streams everything over WebSockets and can replay any run.</p></details>
 <details><summary>Challenges</summary><p>Making the switch invisible: keeping logins valid, headers identical and data consistent with what the attacker already saw. Keeping the AI out of the request path so it can never slow down or break the trap. Building a red swarm that is useful and safe, and keeping seven agents coordinated without putting any of them in the request path.</p></details>
 <details><summary>Accomplishments</summary><p>Fill in measured numbers only: flip decision time, number of test runs labelled correctly, real records exposed across all runs (zero).</p></details>
@@ -1799,7 +1799,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <tr><td>0:35</td><td>Press "Release the swarm"; red stream; the first snaps</td><td>"Now five AI raiders arrive at once. Watch Prometheus: he reads the page source, finds a leaked admin password... snap. That was bait. He's in Tartarus, a perfect copy, and has no idea. There goes Icarus. And Pandora."</td></tr>
 <tr><td>1:20</td><td>Blue stream, roster, drip, canary alarm, campaign link</td><td>"Sixteen defenders of seven kinds, each with one job, and every trap pod has its own guard. Argus labels them AI agents and shows why. Hephaestus forges fake keys. Cerberus slows their downloads. Pandora just used a key that Prometheus stole: Athena links them as one campaign."</td></tr>
 <tr><td>2:10</td><td>Odysseus or Sisyphus on Olympus, then the flip and damage check</td><td>"Odysseus didn't touch any bait. He pretended to be a customer and went for the real servers. Charon flipped him the moment he started walking through other customers' records. Damage check: zero exposed."</td></tr>
-<tr><td>2:40</td><td>Clio's report; the zero counter</td><td>"Clio writes the incident report, citing every piece of evidence. Fifteen raiders fell into Tartarus. Not one reached Olympus. Every company has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</td></tr>
+<tr><td>2:40</td><td>Clio's report; the zero counter</td><td>"Clio writes the incident report, citing every piece of evidence. Fifteen raiders fell into Tartarus. Not one reached Olympus. Every company has a load balancer at the front door. Dolos is a load balancer with a trapdoor."</td></tr>
 </tbody></table></div>
 
 <h3>Live timing</h3>
@@ -1819,8 +1819,8 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <h3>The 60-second story</h3>
 <div class="call decide"><div class="lbl">For walk-ups, sponsors and the HPE conversation</div>
 <p>"It's 3 AM and nobody's awake. An AI agent finds your website. It doesn't sleep, doesn't get bored, and tries thousands of things an hour. That isn't science fiction: in July, AI agents under test got into Hugging Face's systems, and they get better every month.</p>
-<p>So we stopped trying to keep them out. We let them in, into the wrong place. Flytrap sits at your front door. The moment a visitor touches bait no real customer would ever see, it's moved into a perfect copy of your site full of fake data. It thinks it won. It downloads your whole customer list. Every record is fake, and one of them is a tracker.</p>
-<p>Meanwhile our own swarm of sixteen defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."</p></div>
+<p>So we stopped trying to keep them out. We let them in, into the wrong place. Dolos sits at your front door. The moment a visitor touches bait no real customer would ever see, it's moved into a perfect copy of your site full of fake data. It thinks it won. It downloads your whole customer list. Every record is fake, and one of them is a tracker.</p>
+<p>Meanwhile our own swarm of sixteen defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor."</p></div>
 
 <h3>Backup ladder</h3>
 <ol class="steps">
@@ -1835,7 +1835,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <details><summary>Couldn't a smart AI tell it's in a copy?</summary><p>Same code, same headers, logins stay valid, and data only grows, never changes. We also ask each AI raider at the end whether anything looked like a honeypot and show its answer on the scoreboard. No deception is perfect; ours removes the seams that usually give traps away.</p></details>
 <details><summary>What about false alarms on real customers?</summary><p>Instant tripwires are invisible to customers, so they're almost never touched by accident. Research deployments of similar decoys saw zero false alerts over 7 months with 258 users. Scored rules can misjudge, and then a human can release the session.</p></details>
 <details><summary>Does it slow the site down?</summary><p>Give the measured gateway overhead. The AI is never in the request path; the switch is a lookup.</p></details>
-<details><summary>How is this different from existing honeypots?</summary><p>Classic honeypots sit off to the side and hope to be found. Flytrap stands in front of the real site and swaps attackers into a same-code copy, one per attacker, tells AI from humans with evidence, and has a defending agent that acts and explains. Credit the prior art openly.</p></details>
+<details><summary>How is this different from existing honeypots?</summary><p>Classic honeypots sit off to the side and hope to be found. Dolos stands in front of the real site and swaps attackers into a same-code copy, one per attacker, tells AI from humans with evidence, and has a defending agent that acts and explains. Credit the prior art openly.</p></details>
 <details><summary>What if the attacker fools your blue swarm?</summary><p>Visitor text reaches the agents only as quoted, truncated data. Each agent holds only the defensive tools for its own job. Release, global patches and lockdown need a human. Gateway rules override the AI. The worst case is a wrong label.</p></details>
 <details><summary>Is the attack real?</summary><p>The attacker really reasons and sends real requests, but only to our own lab, with no internet and one allowed host. The company and its data are fictional. Show the real vs simulated table.</p></details>
 <details><summary>Why AI agents specifically?</summary><p>They read everything (comments, robots.txt, hidden text) and follow instructions they find, so bait works even better on them than on people. And they scale in a way human attackers never did.</p></details>
@@ -1843,7 +1843,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 <details><summary>Is deceiving attackers OK?</summary><p>It's your own infrastructure, attackers aren't entitled to your data, the bait is fake, and we never reach outside our systems. Honeypots on your own systems are standard practice; a real deployment would still check local rules on logging.</p></details>
 <details><summary>What did you build vs reuse?</summary><p>Built: the gateway logic, twin design, tripwires, canaries, scorer, blue swarm engine and roles, campaign linking, policy guard, reports, dashboard. Reused: FastAPI, httpx, Faker, TimescaleDB, React, and the AI model APIs.</p></details>
 <details><summary>Who would pay for this?</summary><p>Any company running public web apps or APIs, and the managed security providers who protect them. It fits where enterprises already run load balancers and gateways.</p></details>
-<details><summary>What if an attacker never touches bait?</summary><p>Then the scored rules and the blue swarm watch its behaviour, and the real API's own access checks still apply. Flytrap adds a layer; it doesn't replace normal security.</p></details>
+<details><summary>What if an attacker never touches bait?</summary><p>Then the scored rules and the blue swarm watch its behaviour, and the real API's own access checks still apply. Dolos adds a layer; it doesn't replace normal security.</p></details>
 
 <h3>One line per prize judge</h3>
 <div class="tbl"><table>
@@ -1858,7 +1858,7 @@ CREATE MATERIALIZED VIEW stats_1m WITH (timescaledb.continuous) AS
 </tbody></table></div>
 
 <h3>The HPE conversation</h3>
-<p>HPE works on enterprise networking and edge infrastructure. Frame Flytrap as an edge-layer defense that fits where enterprises already run load balancers and API gateways. Show the dashboard on a laptop, give the 60-second story, then ask what they would need to see to pilot something like it. Get a name and contact.</p>
+<p>HPE works on enterprise networking and edge infrastructure. Frame Dolos as an edge-layer defense that fits where enterprises already run load balancers and API gateways. Show the dashboard on a laptop, give the 60-second story, then ask what they would need to see to pilot something like it. Get a name and contact.</p>
 <div class="pager"><a href="#submit"><span>Previous</span>Submission</a><a class="nx" href="#agent"><span>Next</span>AI agent brief</a></div>
 </section>
 

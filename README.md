@@ -1,12 +1,12 @@
-# Flytrap
+# Dolos
 
 A honeypot for rogue AI that hides inside your real website.
 
 One public address. Visitors who touch bait no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded, each visitor is labelled human, scanner or AI agent, and a swarm of seven defending AI agents responds through least-privilege tools. Real records exposed: zero.
 
-Built at HackUMass XIV.
+Built at HackUMass XIV. Formerly Flytrap: Docker, image and database names still use `flytrap`.
 
-> Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor.
+> Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor.
 
 ## How it works
 
@@ -67,7 +67,7 @@ All database settings live in `.env` (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSW
 
 - Site: http://localhost:8080
 - Dashboard API: http://localhost:8090
-- Dashboard: `cd dashboard && npm install && npm run dev`, then http://localhost:5173
+- Dashboard: `cd dashboard && npm install && npm run dev`, then http://localhost:5173 (landing page) and http://localhost:5173/#/console (live console)
 
 ## AI models
 
@@ -129,6 +129,6 @@ Gateway, controller, site and islands suites run inside their containers; `scrip
 
 ## Prior art and credits
 
-Routing attackers into decoys is not new: Bait-and-Switch (2003), Shadow Honeypots (2005), Honey-Patches (2014-2015) and Han et al.'s deployment study (2017). AI-agent honeypots exist too: Palisade Research's LLM Agent Honeypot, Beelzebub and HoneyMCP; Argus's "hidden instruction plus machine speed" signal follows Palisade's two-gate idea. Flytrap adds a same-code twin with one trap copy per attacker, evidence-backed human/scanner/AI labels, campaign linking through per-visitor bait, and a least-privilege defending swarm with human approval gates.
+Routing attackers into decoys is not new: Bait-and-Switch (2003), Shadow Honeypots (2005), Honey-Patches (2014-2015) and Han et al.'s deployment study (2017). AI-agent honeypots exist too: Palisade Research's LLM Agent Honeypot, Beelzebub and HoneyMCP; Argus's "hidden instruction plus machine speed" signal follows Palisade's two-gate idea. Dolos adds a same-code twin with one trap copy per attacker, evidence-backed human/scanner/AI labels, campaign linking through per-visitor bait, and a least-privilege defending swarm with human approval gates.
 
 Built entirely during HackUMass XIV. All data is generated; the company, HackUMass Labs, is fictional.

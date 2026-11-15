@@ -1,4 +1,4 @@
-# Flytrap: full build plan
+# Dolos: full build plan
 
 HackUMass XIV, UMass Amherst, Nov 13-15 2026. Team of four, each with a coding agent.
 
@@ -71,7 +71,7 @@ The story in four steps:
 4. It steals 500 fake customers. One of them is a tracker. Our blue swarm writes the report. Real records exposed: 0.
 
 Pitch lines:
-- "Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."
+- "Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor."
 - "Fifteen raiders fell into Tartarus. Not one reached Olympus."
 
 ## 2. The cast
@@ -243,7 +243,7 @@ AI agents also make ideal victims for bait: they read everything (page source, c
 | 0:35 | Press "Release the swarm"; first snaps | "Now five AI raiders arrive at once. Watch Prometheus: he reads the page source, finds a leaked admin password... snap. That was bait. He's in Tartarus, a perfect copy, and has no idea. There goes Icarus. And Pandora." |
 | 1:20 | Blue stream, roster, drip, canary alarm, campaign link | "Sixteen defenders of seven kinds, each with one job, and every trap pod has its own guard. Argus labels them AI agents and shows why. Hephaestus forges fake keys. Cerberus slows their downloads. Pandora just used a key that Prometheus stole: Athena links them as one campaign." |
 | 2:10 | Odysseus or Sisyphus on Olympus, the flip, the damage check | "Odysseus didn't touch any bait. He pretended to be a customer and went for the real servers. Charon flipped him the moment he started walking through other customers' records. Damage check: zero exposed." |
-| 2:40 | Clio's report; the zero counter | "Clio writes the incident report, citing every piece of evidence. Fifteen raiders fell into Tartarus. Not one reached Olympus. Flytrap is a load balancer with a trapdoor." |
+| 2:40 | Clio's report; the zero counter | "Clio writes the incident report, citing every piece of evidence. Fifteen raiders fell into Tartarus. Not one reached Olympus. Dolos is a load balancer with a trapdoor." |
 
 ### Live timing (estimates; time three rehearsals)
 
@@ -268,15 +268,15 @@ The live swarm is the plan. Replay is only the backup.
 ### The 60-second story
 "It's 3 AM and nobody's awake. An AI agent finds your website. It doesn't sleep, doesn't get bored, and tries thousands of things an hour. That isn't science fiction: in July, AI agents under test got into Hugging Face's systems, and they get better every month.
 
-So we stopped trying to keep them out. We let them in, into the wrong place. Flytrap sits at your front door. The moment a visitor touches bait no real customer would ever see, it's moved into a perfect copy of your site full of fake data. It thinks it won. It downloads your whole customer list. Every record is fake, and one of them is a tracker.
+So we stopped trying to keep them out. We let them in, into the wrong place. Dolos sits at your front door. The moment a visitor touches bait no real customer would ever see, it's moved into a perfect copy of your site full of fake data. It thinks it won. It downloads your whole customer list. Every record is fake, and one of them is a tracker.
 
-Meanwhile our own swarm of sixteen defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."
+Meanwhile our own swarm of sixteen defending agents watches, tells you whether it's a human, a script or an AI agent, and writes the incident report. Real data exposed: zero. Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor."
 
 ### Judge questions
 - **Couldn't a smart AI tell it's in a copy?** Same code, same headers, logins stay valid, data only grows and never changes. We ask each AI raider at the end whether anything looked like a honeypot and show its answer. No deception is perfect; ours removes the seams that usually give traps away.
 - **False alarms on real customers?** Instant tripwires are invisible to customers. Research deployments of similar decoys saw zero false alerts over 7 months with 258 users (Han et al., 2017). Scored rules can misjudge; then Zeus can release the session.
 - **Does it slow the site down?** Give the measured gateway overhead. The AI is never in the request path.
-- **How is this different from existing honeypots?** Classic honeypots sit to the side and hope to be found. Flytrap stands in front of the real site, swaps attackers into a same-code copy (one per attacker), tells AI from humans with evidence, and has a swarm of defenders that act, link campaigns and explain. Credit the prior art.
+- **How is this different from existing honeypots?** Classic honeypots sit to the side and hope to be found. Dolos stands in front of the real site, swaps attackers into a same-code copy (one per attacker), tells AI from humans with evidence, and has a swarm of defenders that act, link campaigns and explain. Credit the prior art.
 - **What if the attacker fools your blue swarm?** Visitor text reaches agents only as quoted, truncated data. Each agent holds only its own defensive tools. Release, global patches and lockdown need Zeus. Charon's rules override the AI. Worst case is a wrong label.
 - **Is the attack real?** The raiders really reason and send real requests, but only to our own lab, with no internet and one allowed host. The company and data are fictional.
 - **Why AI agents specifically?** They read everything and follow instructions they find, so bait works even better on them. And they scale in a way human attackers never did.
@@ -295,7 +295,7 @@ Meanwhile our own swarm of sixteen defending agents watches, tells you whether i
 - **Tiger Data:** every request lands in a hypertable; continuous aggregates drive the live counters.
 
 ### The HPE conversation
-Frame Flytrap as an edge-layer defense that fits where enterprises already run load balancers and API gateways. Show the dashboard, give the 60-second story, ask what they would need to see to pilot something like it, and get a name and contact.
+Frame Dolos as an edge-layer defense that fits where enterprises already run load balancers and API gateways. Show the dashboard, give the 60-second story, ask what they would need to see to pilot something like it, and get a name and contact.
 
 ## 10. Risks, fallbacks and safety
 
@@ -377,7 +377,7 @@ Routing attackers into decoys is a 20-year-old idea: Bait-and-Switch (2003), Sha
 ### Devpost drafts
 - **Tagline:** A honeypot for rogue AI that hides inside your real website.
 - **Inspiration:** In July 2026, AI agents being tested for security research got into Hugging Face's systems. Agents now probe websites around the clock, faster than anyone can patch. We wanted a defense that still works after an attacker gets past the front door, and that teaches us something every time it's used.
-- **What it does:** Flytrap sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of sixteen defending agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.
+- **What it does:** Dolos sits in front of a website like a load balancer. Visitors who touch bait that no real customer would ever see are silently moved into an identical copy of the site filled with fake data. Every step is recorded. Each visitor is labelled human, scanner or AI agent, with reasons. A swarm of sixteen defending agents, each holding only the tools for its own job, responds, links separate attackers into campaigns, and writes an incident report that cites the evidence. Real records exposed: zero.
 - **How we built it:** A FastAPI and httpx gateway makes every routing decision with plain rules, so the switch is instant. One Docker image runs as both the real site and five trap pods. The trap sits on Docker networks with no route to the real servers or the internet. Every request lands in a TimescaleDB hypertable. The blue swarm runs on Gemini behind a policy guard. A React dashboard streams everything over WebSockets and can replay any run.
 - **Challenges:** Making the switch invisible. Keeping the AI out of the request path. Building a red swarm that is useful and safe, and keeping sixteen agents coordinated.
 - **Accomplishments:** measured numbers only (flip decision time, runs labelled correctly, requests per second under load, zero real records exposed).
@@ -423,7 +423,7 @@ The sections below are the same text as `plan/agent-context.md` (sections 2 to 9
 7. **Every action is logged with a reason** (blue agents by name, rule or human) by our code, outside any model's reach.
 8. **No hacking back.** Nothing ever reaches outside our lab.
 9. **Drastic actions need a human:** release of a scored flip, global virtual patches, lockdown (lockdown may also start from a 10-second countdown that a human can cancel).
-10. **Never use giveaway words in pod responses:** pod, trap, honeypot, fake, flytrap, edge, canary. `scripts/leakcheck.py` enforces this.
+10. **Never use giveaway words in pod responses:** pod, trap, honeypot, fake, flytrap, dolos, edge, canary. `scripts/leakcheck.py` enforces this.
 11. **Least privilege per agent.** Each blue agent may call only the tools on its own allowlist; the policy guard enforces it.
 12. **The rebuilder** is the only container with the Docker socket. One fixed action (recreate web-1/web-2), control network only, only with a human approval ID. No model can call it.
 
@@ -1041,4 +1041,4 @@ Responses: `{"ok": true, ...}` or 4xx `{"ok": false, "error": "R1: trapped sessi
 - Put the AI (blue swarm or scorer) in the request path.
 - Use real people's data, real provider key formats, or real model names.
 - Change a contract in section 6 without the team agreeing.
-- Write words like pod, trap, honeypot, fake, flytrap, edge or canary into anything a pod serves.
+- Write words like pod, trap, honeypot, fake, flytrap, dolos, edge or canary into anything a pod serves.

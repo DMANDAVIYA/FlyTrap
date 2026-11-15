@@ -1,4 +1,4 @@
--- Flytrap events database. Plain PostgreSQL; idempotent, safe to re-run.
+-- Dolos events database. Plain PostgreSQL; idempotent, safe to re-run.
 -- The events table is the append-only source of truth; everything else
 -- (sessions, stats, reports) is state or a view derived from it.
 -- If TimescaleDB is installed, db/timescale.sql upgrades events to a

@@ -1,6 +1,6 @@
-# Flytrap: coding agent brief
+# Dolos: coding agent brief
 
-You are helping a student team build **Flytrap** at HackUMass XIV (UMass Amherst, Nov 13-15 2026). This brief is the full shared context. Read all of it before writing code. The human will tell you their role (P1, P2, P3 or P4). Work only inside that role's folders unless asked, and never change a contract (schemas, API shapes, headers, ports, message formats) without the human confirming the team agreed.
+You are helping a student team build **Dolos** at HackUMass XIV (UMass Amherst, Nov 13-15 2026). This brief is the full shared context. Read all of it before writing code. The human will tell you their role (P1, P2, P3 or P4). Work only inside that role's folders unless asked, and never change a contract (schemas, API shapes, headers, ports, message formats) without the human confirming the team agreed.
 
 Deadlines (Eastern time): initial submission Sun Nov 15 12:00 AM, final submission Sun 9:00 AM, judging Sun 12:30 PM. Checkpoints: CP1 Sat 3:30 PM, CP2 Sat 7:30 PM, CP3 Sat 10:30 PM, feature freeze Sun 7:00 AM. Favor working, demoable code over perfect code.
 
@@ -58,9 +58,9 @@ The plan below is the original design. This section lists everything we changed 
 
 ## 1. The project in one paragraph
 
-Flytrap is a defensive deception system: a honeypot for rogue AI that hides inside a real website. One public address. A gateway sits in front of the site like a load balancer. Visitors who touch bait that no real customer would ever see (a "leaked" admin login in an HTML comment, a robots.txt disallowed path, a fake .env file, a hidden link, a hidden form field, an AI-only hidden note) are silently moved ("flipped") into an identical trap copy of the site ("pod") filled with fake data. Everything they do is recorded. Each visitor is labelled human, scanner or AI agent. A swarm of sixteen defending agents of seven kinds (the "blue swarm": Athena, Argus, Hephaestus x6, Cerberus x5, Mnemosyne, Clio, Hermes) watches sessions; each agent acts only through the few guarded defensive tools for its own job, explains every action, links separate attackers into campaigns, and writes incident reports citing event IDs. A dashboard shows it all live. The fictional company is **HackUMass Labs**, a small AI model-hosting startup (customers, API tokens, model files, invoices). All data is generated. A red swarm of five named test attackers (Prometheus, Pandora, Odysseus, Icarus, Sisyphus), released three copies each (15 raiders), AI with a single HTTP tool and a scripted fallback, plus a crowd of simulated customers attacks only our own lab to demonstrate the trap at scale.
+Dolos is a defensive deception system: a honeypot for rogue AI that hides inside a real website. One public address. A gateway sits in front of the site like a load balancer. Visitors who touch bait that no real customer would ever see (a "leaked" admin login in an HTML comment, a robots.txt disallowed path, a fake .env file, a hidden link, a hidden form field, an AI-only hidden note) are silently moved ("flipped") into an identical trap copy of the site ("pod") filled with fake data. Everything they do is recorded. Each visitor is labelled human, scanner or AI agent. A swarm of sixteen defending agents of seven kinds (the "blue swarm": Athena, Argus, Hephaestus x6, Cerberus x5, Mnemosyne, Clio, Hermes) watches sessions; each agent acts only through the few guarded defensive tools for its own job, explains every action, links separate attackers into campaigns, and writes incident reports citing event IDs. A dashboard shows it all live. The fictional company is **HackUMass Labs**, a small AI model-hosting startup (customers, API tokens, model files, invoices). All data is generated. A red swarm of five named test attackers (Prometheus, Pandora, Odysseus, Icarus, Sisyphus), released three copies each (15 raiders), AI with a single HTTP tool and a scripted fallback, plus a crowd of simulated customers attacks only our own lab to demonstrate the trap at scale.
 
-Pitch line: "Every company already has a load balancer at the front door. Flytrap is a load balancer with a trapdoor."
+Pitch line: "Every company already has a load balancer at the front door. Dolos is a load balancer with a trapdoor."
 
 Display names used on the dashboard and in the pitch (Docker names stay technical): **Olympus** = the real side, **Tartarus** = the trap network, **Charon** = the gateway, **Zeus** = the human approver. Second pitch line: "Fifteen raiders fell into Tartarus. Not one reached Olympus."
 
@@ -77,7 +77,7 @@ Display names used on the dashboard and in the pitch (Docker names stay technica
 7. **Every action is logged with a reason** (blue agents by name, rule or human) by our code, outside any model's reach.
 8. **No hacking back.** Nothing ever reaches outside our lab.
 9. **Drastic actions need a human:** release of a scored flip, global virtual patches, lockdown (lockdown may also start from a 10-second countdown that a human can cancel).
-10. **Never use giveaway words in pod responses:** pod, trap, honeypot, fake, flytrap, edge, canary. `scripts/leakcheck.py` enforces this.
+10. **Never use giveaway words in pod responses:** pod, trap, honeypot, fake, flytrap, dolos, edge, canary. `scripts/leakcheck.py` enforces this.
 11. **Least privilege per agent.** Each blue agent may call only the tools on its own allowlist; the policy guard enforces it.
 12. **The rebuilder** is the only container with the Docker socket. One fixed action (recreate web-1/web-2), control network only, only with a human approval ID. No model can call it.
 
@@ -695,7 +695,7 @@ Responses: `{"ok": true, ...}` or 4xx `{"ok": false, "error": "R1: trapped sessi
 - Put the AI (blue swarm or scorer) in the request path.
 - Use real people's data, real provider key formats, or real model names.
 - Change a contract in section 6 without the team agreeing.
-- Write words like pod, trap, honeypot, fake, flytrap, edge or canary into anything a pod serves.
+- Write words like pod, trap, honeypot, fake, flytrap, dolos, edge or canary into anything a pod serves.
 
 ---
 

@@ -185,7 +185,7 @@ class MockBackend:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Flytrap mock dash-api (no database)")
+    parser = argparse.ArgumentParser(description="Dolos mock dash-api (no database)")
     parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8090")))
     parser.add_argument("--speed", type=float, default=float(os.environ.get("MOCK_SPEED", "1.0")))
