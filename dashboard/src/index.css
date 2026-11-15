@@ -90,6 +90,12 @@ a { text-underline-offset: 0.2em; }
 /* Wild Hunt footer: tone the painting and its riders into the black-and-green world (component untouched). */
 .dolos-footer .whf-picture img:not(.whf-cutout) { filter: grayscale(1) contrast(1.12) brightness(.92) sepia(.55) hue-rotate(78deg) saturate(1.7); }
 
+/* Raw view (console header switch): the console as a terminal UI. Monospace, square corners, no glow. */
+.tui, .tui .font-sans, .tui .font-display { font-family: "JetBrains Mono Variable", ui-monospace, monospace; }
+.tui .btn { border-radius: 0; text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 500; padding: 6px 10px; }
+.tui .caps { letter-spacing: .06em; }
+.tui .rounded-full, .tui .rounded, .tui .rounded-lg, .tui .rounded-xl, .tui .rounded-2xl, .tui [class*="rounded-["] { border-radius: 0; }
+
 /* Incident report markdown */
 .md h1 { font-size: 20px; font-weight: 650; margin: 0 0 8px; } .md h2, .md h3 { font-size: 15px; font-weight: 650; margin: 14px 0 6px; color: var(--text); }
 .md p { margin: 6px 0; color: var(--text); line-height: 1.55; } .md strong { color: #fff; }

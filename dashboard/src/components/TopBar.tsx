@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, LockOpen, PanelRightClose, PanelRightOpen, Power, Radar, RotateCcw } from "lucide-react";
+import { Lock, LockOpen, PanelRightClose, PanelRightOpen, Power, Radar, RotateCcw, Terminal } from "lucide-react";
 import { useState } from "react";
 import { control, type State } from "../feed";
 import { DolosMark, Wordmark } from "./Logo";
 
-export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen: boolean; onToggleDrawer: () => void }) {
+export function TopBar({ s, drawerOpen, onToggleDrawer, raw, onToggleRaw }: {
+  s: State; drawerOpen: boolean; onToggleDrawer: () => void; raw: boolean; onToggleRaw: () => void;
+}) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const act = async (action: string, body: Record<string, unknown> = {}) => {
@@ -26,33 +28,36 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
         <span className="caps hidden text-[10px] text-text2 min-[1600px]:inline">console</span>
       </a>
 
-      <div className="flex items-center gap-2.5 sm:border-l sm:border-line sm:pl-6" role="status">
-        <span className={`h-2 w-2 rounded-full ${breached || lock !== "off" ? "animate-pulse" : ""}`} style={{ background: statusColor }} />
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={status}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
-            className="caps text-[11px] font-bold"
-            style={{ color: statusColor }}
-          >
-            {status}
-          </motion.span>
-        </AnimatePresence>
+      {/* Below xl the header wraps: mark and Raw switch on the first row, status, then the controls. */}
+      <div className="order-1 flex flex-wrap items-center gap-x-6 gap-y-2 max-sm:order-3 max-sm:basis-full">
+        <div className="flex items-center gap-2.5 sm:border-l sm:border-line sm:pl-6" role="status">
+          <span className={`h-2 w-2 rounded-full ${breached || lock !== "off" ? "animate-pulse" : ""}`} style={{ background: statusColor }} />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={status}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              className="caps text-[11px] font-bold"
+              style={{ color: statusColor }}
+            >
+              {status}
+            </motion.span>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1.5" style={{ color: s.connected ? "var(--ok)" : "var(--text-2)" }}>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "currentColor" }} />
+            {s.connected ? "live" : "offline"}
+          </span>
+          {s.replay.active && <span className="caps rounded-full bg-warn/15 px-2.5 py-1 text-[10px] font-bold text-warn">Replay · {s.replay.run}</span>}
+          {s.mode && s.mode !== "live" && <span className="rounded-full border border-line px-2.5 py-1 text-text2">{s.mode}</span>}
+        </div>
       </div>
 
-      <div className="flex items-center gap-3 text-xs">
-        <span className="flex items-center gap-1.5" style={{ color: s.connected ? "var(--ok)" : "var(--text-2)" }}>
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "currentColor" }} />
-          {s.connected ? "live" : "offline"}
-        </span>
-        {s.replay.active && <span className="caps rounded-full bg-warn/15 px-2.5 py-1 text-[10px] font-bold text-warn">Replay · {s.replay.run}</span>}
-        {s.mode && s.mode !== "live" && <span className="rounded-full border border-line px-2.5 py-1 text-text2">{s.mode}</span>}
-      </div>
-
-      <div className="ml-auto flex flex-wrap items-center gap-2">
+      <div className="order-3 ml-auto flex flex-wrap items-center gap-2 max-xl:order-4 max-xl:basis-full max-xl:justify-end max-sm:justify-start">
         <button className="btn btn-trap" aria-label="Release the swarm" disabled={busy !== null} onClick={() => act("release")}>
           <Radar size={14} aria-hidden /> <span className="min-[1600px]:hidden">Release</span><span className="hidden min-[1600px]:inline">Release the swarm</span>
         </button>
@@ -75,6 +80,14 @@ export function TopBar({ s, drawerOpen, onToggleDrawer }: { s: State; drawerOpen
           <DrawerIcon size={14} aria-hidden /> <span className="sm:hidden">Details</span><span className="hidden sm:inline">Details</span>
         </button>
       </div>
+
+      <button type="button" role="switch" aria-checked={raw} onClick={onToggleRaw} title="Raw view: every field of the live feed as a terminal UI"
+        className={`btn order-4 max-xl:order-2 max-xl:ml-auto ${raw ? "btn-trap" : ""}`}>
+        <Terminal size={14} aria-hidden /> Raw
+        <span aria-hidden className={`relative ml-0.5 inline-block h-3.5 w-6 rounded-full border transition-colors ${raw ? "border-green bg-green/30" : "border-line2"}`}>
+          <span className={`absolute top-1/2 h-2 w-2 -translate-y-1/2 rounded-full transition-all ${raw ? "left-[13px] bg-green" : "left-[2px] bg-text2"}`} />
+        </span>
+      </button>
     </header>
   );
 }

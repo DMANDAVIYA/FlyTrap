@@ -3,7 +3,7 @@ import type { StreamItem } from "../types";
 import { KindIcon, Panel, agentColor, clock, short } from "./Panel";
 
 // Follow the newest line unless the operator scrolled up to read.
-function useStick(dep: unknown) {
+export function useStick(dep: unknown) {
   const ref = useRef<HTMLDivElement>(null);
   const stuck = useRef(true);
   useEffect(() => {
