@@ -259,8 +259,6 @@ export function CompareFlow() {
     <div>
       <div className="overflow-hidden rounded-2xl border border-line2/80 bg-panel">
         <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
-          <span className={`h-2 w-2 rounded-full bg-green ${playing ? "dolos-pulse" : ""}`} />
-          <span className="caps text-[10px] font-semibold text-text2">Live flow</span>
           <span className="font-mono text-[11px] text-text2">step {Math.max(1, step)} / 5</span>
           <button onClick={() => (playing ? setPlaying(false) : setPlaying(true))}
             className="ml-auto flex items-center gap-1.5 rounded-full border border-line2 px-3 py-1 text-[11px] text-text2 hover:text-text"
