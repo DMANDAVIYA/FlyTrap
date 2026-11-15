@@ -72,6 +72,8 @@ a { text-underline-offset: 0.2em; }
 .dolos-pulse { animation: dolos-pulse 1.6s ease-in-out infinite; }
 @keyframes dolos-slide { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .dolos-slide { animation: dolos-slide .3s ease both; }
+@keyframes dolos-dash { to { stroke-dashoffset: -28; } }
+.flow-dash { stroke-dasharray: 6 22; animation: dolos-dash 1.1s linear infinite; }
 @keyframes dolos-ring { from { stroke-dashoffset: var(--from); } to { stroke-dashoffset: var(--to); } }
 .dolos-ring { animation: dolos-ring 1.2s cubic-bezier(.4, 0, .2, 1) both; }
 

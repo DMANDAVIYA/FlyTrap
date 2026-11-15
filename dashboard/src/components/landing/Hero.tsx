@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { GlyphHand } from "./GlyphHand";
 import { Vial } from "./Vial";
@@ -10,7 +10,7 @@ const BOT_TIP_X = 0.96, BOT_H = 300 / 680;
 const HERMES_TIP_X = 0.013, HERMES_H = 390 / 680, LINE = 0.505 * HERMES_H;
 const ease = [0.16, 1, 0.3, 1] as const;
 
-export function Hero({ bait }: { bait: string }) {
+export function Hero() {
   const still = !!useReducedMotion();
   const [reach, setReach] = useState(false);
   const enter = (from: number, delay = 0) =>
@@ -92,7 +92,7 @@ export function Hero({ bait }: { bait: string }) {
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <a href="#/console" className="btn btn-trap !px-5 !py-3">Open the console <ArrowRight size={14} aria-hidden /></a>
-          <a href={bait} target="_blank" rel="noopener" className="btn !px-5 !py-3">See what the bot sees <ArrowUpRight size={14} aria-hidden /></a>
+          <a href="#/see" className="btn !px-5 !py-3">See what the bot sees <ArrowRight size={14} aria-hidden /></a>
         </div>
       </motion.div>
     </section>

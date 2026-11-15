@@ -2,9 +2,10 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Landing from "./pages/Landing";
 
 const Console = lazy(() => import("./pages/Console"));
+const BotView = lazy(() => import("./pages/BotView"));
 
 // Hash routes: dash-api has no SPA fallback, so "#/console" works on any static host.
-const routeOf = (hash: string) => (hash.startsWith("#/console") ? "console" : "landing");
+const routeOf = (hash: string) => (hash.startsWith("#/console") ? "console" : hash.startsWith("#/see") ? "see" : "landing");
 
 export default function App() {
   const [route, setRoute] = useState(() => routeOf(location.hash));
@@ -21,11 +22,10 @@ export default function App() {
     else window.scrollTo(0, 0);
   }, [route]);
 
-  return route === "console" ? (
+  if (route === "landing") return <Landing />;
+  return (
     <Suspense fallback={<div className="h-screen bg-bg" />}>
-      <Console />
+      {route === "console" ? <Console /> : <BotView />}
     </Suspense>
-  ) : (
-    <Landing />
   );
 }

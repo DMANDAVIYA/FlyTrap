@@ -1,12 +1,10 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { DolosMark, Wordmark } from "@/components/Logo";
 
 export default function Landing() {
-  const bait = `${location.protocol}//${location.hostname}:8080`;
-
   useEffect(() => {
     document.title = "Dolos · a honeypot for rogue AI";
   }, []);
@@ -29,7 +27,7 @@ export default function Landing() {
         </nav>
       </header>
 
-      <Hero bait={bait} />
+      <Hero />
       <HowItWorks />
 
       <section className="mx-auto max-w-6xl px-5 pb-6 pt-16 sm:px-8">
@@ -48,7 +46,7 @@ export default function Landing() {
           </div>
           <div className="flex flex-wrap gap-3">
             <a href="#/console" className="btn btn-trap !px-5 !py-3">Open the console <ArrowRight size={14} aria-hidden /></a>
-            <a href={bait} target="_blank" rel="noopener" className="btn !px-5 !py-3">See what the bot sees <ArrowUpRight size={14} aria-hidden /></a>
+            <a href="#/see" className="btn !px-5 !py-3">See what the bot sees <ArrowRight size={14} aria-hidden /></a>
           </div>
         </div>
         <footer className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-5 pb-10 text-[13px] text-text2 sm:px-8">
