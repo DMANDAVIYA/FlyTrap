@@ -89,8 +89,6 @@ python scripts/leakcheck.py          # crawls the trap copies for anything that 
 
 Press Reset Tartarus afterwards (`curl -X POST localhost:8090/api/control/reset`). Every run is recorded to `runs/`; save the best one as `runs/golden.jsonl` for replay.
 
-Full plan and specification: [`plan/plan.md`](plan/plan.md). Coding agent brief: [`plan/agent-context.md`](plan/agent-context.md).
-
 ## Safety
 
 - The trap network has no route to the real servers or the internet.
