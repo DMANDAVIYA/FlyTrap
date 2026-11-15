@@ -207,9 +207,10 @@ function Chapter({ i, active }: { i: number; active: boolean }) {
         <span className="font-[150] text-green/70">{s.n}</span>
         {s.name}
       </h3>
-      {/* always in the DOM, so screen readers get every step; only the open one has height */}
-      <motion.div className="overflow-hidden" initial={false} animate={active ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
+      {/* Always in the DOM, so screen readers get every step. It opens as a grid row going 0fr to 1fr: framer's
+          height "auto" measures, then restores the page with window.scrollTo, which cancelled smooth scrolls like Back to top. */}
+      <div className={`grid transition-[grid-template-rows,opacity] duration-[350ms] ease-[cubic-bezier(.22,1,.36,1)] ${active ? "grid-rows-[1fr]" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
         <dl className="max-w-[46ch] space-y-4 pt-4">
           <div>
             <dt className="caps text-[10.5px] font-semibold text-real">They see</dt>
@@ -220,7 +221,8 @@ function Chapter({ i, active }: { i: number; active: boolean }) {
             <dd className="mt-1.5 text-[16px] leading-relaxed">{s.real}</dd>
           </div>
         </dl>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
