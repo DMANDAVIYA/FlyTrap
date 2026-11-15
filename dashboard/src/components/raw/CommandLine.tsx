@@ -42,6 +42,9 @@ export function CommandLine({ s, onReport, onDetails, onExit }: {
 }) {
   const [log, setLog] = useState<Line[]>([{ kind: "out", text: "type help for commands · : or / jumps here" }]);
   const [value, setValue] = useState("");
+  // terminal block cursor drawn over the input: where it sits, how far the input has scrolled, and focus
+  const [cursor, setCursor] = useState({ at: 0, scroll: 0, range: false });
+  const [focused, setFocused] = useState(false);
   const [busy, setBusy] = useState(false);
   const history = useRef<string[]>([]);
   const at = useRef(-1);
@@ -62,6 +65,15 @@ export function CommandLine({ s, onReport, onDetails, onExit }: {
   useEffect(() => {
     out.current?.scrollTo({ top: out.current.scrollHeight });
   }, [log]);
+
+  const sync = () => {
+    const el = input.current;
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? start;
+    setCursor({ at: end, scroll: el.scrollLeft, range: start !== end });
+  };
+  useEffect(sync, [value]);
 
   const print = (...lines: Line[]) => setLog((l) => [...l, ...lines].slice(-300));
   const say = (text: string) => print({ kind: "out", text });
@@ -194,18 +206,34 @@ export function CommandLine({ s, onReport, onDetails, onExit }: {
       </div>
       <label className="flex items-center gap-2 border-t border-line px-2 py-1.5">
         <span className="text-green" aria-hidden>dolos&gt;</span>
-        <input
-          ref={input}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={onKeyDown}
-          aria-busy={busy}
-          aria-label="Command"
-          spellCheck={false}
-          autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text2/60 focus-visible:outline-none"
-          placeholder="type a command, e.g. stats or report pandora"
-        />
+        <span className="relative flex min-w-0 flex-1">
+          <input
+            ref={input}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={onKeyDown}
+            onSelect={sync}
+            onFocus={() => { setFocused(true); sync(); }}
+            onBlur={() => setFocused(false)}
+            aria-busy={busy}
+            aria-label="Command"
+            spellCheck={false}
+            autoComplete="off"
+            className="w-full min-w-0 bg-transparent text-text caret-transparent outline-none placeholder:text-text2/60 focus-visible:outline-none"
+            placeholder="type a command, e.g. stats or report pandora"
+          />
+          {/* monospace, so the cursor sits at (index)ch; a new key per keystroke restarts the blink, holding it lit while typing */}
+          {!cursor.range && (
+            <span
+              key={`${value}|${cursor.at}`}
+              aria-hidden
+              className={`pointer-events-none absolute inset-y-0 w-[1ch] ${focused ? "tui-cursor bg-green text-bg" : "border border-text2/70"}`}
+              style={{ left: `calc(${cursor.at}ch - ${cursor.scroll}px)` }}
+            >
+              {focused ? value[cursor.at] ?? "\u00a0" : null}
+            </span>
+          )}
+        </span>
       </label>
     </section>
   );

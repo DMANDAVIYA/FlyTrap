@@ -72,6 +72,9 @@ a { text-underline-offset: 0.2em; }
 @keyframes dolos-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .dolos-float { animation: dolos-float 6s ease-in-out infinite; }
 
+/* Raw view command line: a block cursor that blinks like a terminal's. */
+@keyframes dolos-blink { 50% { opacity: 0; } }
+.tui-cursor { animation: dolos-blink 1.1s steps(1, end) infinite; }
 @keyframes dolos-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 .dolos-pulse { animation: dolos-pulse 1.6s ease-in-out infinite; }
 @keyframes dolos-slide { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
