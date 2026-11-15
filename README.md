@@ -19,11 +19,11 @@ Built at HackUMass XIV.
             event log (PostgreSQL + TimescaleDB hypertable)
                    │
                    ▼
-            blue swarm (7 agents) ──► actions through a policy guard ──► Charon admin API
+            blue swarm (16 agents) ──► actions through a policy guard ──► Charon admin API
 ```
 
 1. **Charon** decides every request with plain rules in memory, so the switch adds no visible delay. The AI is never in the request path.
-2. **Tripwires** fire on things no real customer does: a robots.txt-hidden path, a leaked `.env`, a migration login in a page comment, a hidden link, a hidden form field, a note only AI agents read, a stolen token being used, record-ID walking, attack signatures.
+2. **Tripwires** fire on things no real customer does: a robots.txt-hidden path, a leaked `.env`, a migration login in a page comment, a hidden link, a hidden form field, a note only AI agents read, a stolen token being used, record-ID walking, the real site refusing another customer's record, attack signatures.
 3. A tripped visitor is **flipped** into its own trap copy: same code, same pages, valid login, fake data. Instant flips are permanent; Charon enforces that in code.
 4. Every value of bait is **unique per visitor**, so a stolen token used anywhere names who took it and links separate visitors into one **campaign**.
 5. The **blue swarm** reads compact session summaries, decides, and acts only through tools its role holds. Drastic actions (release, global patches, lockdown, server restarts) wait for **Zeus**, a human.
@@ -34,13 +34,13 @@ Built at HackUMass XIV.
 |---|---|---|
 | Athena | Commander: campaigns, damage checks, lockdown requests | Claude Opus 5.5 |
 | Argus | Labels visitors human, scanner or AI agent | rules (scoring) |
-| Hephaestus | Plants unique bait, rotates keys after a real-side probe | Claude Opus 5.5 |
-| Cerberus | Slows, drip-feeds, freezes, blocks trapped visitors | Meta Muse Spark 1.3 |
+| Hephaestus (x6) | Plants unique bait, rotates keys after a real-side probe: one per trap pod, plus one for the real site | Claude Opus 5.5 |
+| Cerberus (x5) | Slows, drip-feeds, freezes, blocks trapped visitors: one guard per trap pod | Meta Muse Spark 1.3 |
 | Mnemosyne | Fingerprints attackers, suggests new tripwires | rules |
 | Clio | Writes incident reports that cite event IDs | Claude Opus 5.5 |
 | Hermes | Alerts | rules |
 
-The red swarm releases 3 copies of each raider by default (15 raiders, each copy on its own runner and IP) and runs only Chinese models: Prometheus, Icarus and Sisyphus on DeepSeek V4 Pro, Pandora and Odysseus on Kimi K3.1 Pro, each falling back to the other. Claude and Gemini refuse the raider brief, so they only defend. Every chain lives in `controller/app/models.py` (keys go in `.env.ai`); the first model in a chain is retried on rate limits and never benched, a raider with no working model runs its scripted storyline, and without any keys the whole system runs in rules mode.
+Each trap pod has its own guard and builder, so the blue swarm is 16 agents: Athena, Argus, Mnemosyne, Clio, Hermes, six Hephaestus and five Cerberus. The red swarm releases 3 copies of each raider by default (15 raiders, each copy on its own runner and IP) and runs only Chinese models: all five on DeepSeek V4 Pro, falling back to DeepSeek Flash (Kimi K3.1 Pro is supported, but our plan allows one request at a time). Claude and Gemini refuse the raider brief, so they only defend. Every chain lives in `controller/app/models.py` (keys go in `.env.ai`); the first model in a chain is retried on rate limits and never benched, a raider with no working model runs its scripted storyline, and without any keys the whole system runs in rules mode.
 
 ## The cast
 
@@ -112,8 +112,9 @@ Numbers from our own runs on a single Windows laptop (Docker Desktop, 19 contain
 | Gateway throughput | peak 108 req/s, mean 86 req/s, 0 errors | 40 customers, 10 drones, raiders and 16 extra browsers at once |
 | End-to-end page latency under that load | p50 274 ms, p95 868 ms, p99 1,328 ms | mostly the site itself (Python and Postgres on the same laptop) |
 | Flip into Tartarus | 0.19 to 0.31 ms average | dash-api live stats |
-| Other customers' records served to any raider | 0 | golden run: 15 AI raiders, 15 flips, 26 canaries, 14 reports |
+| Other customers' records served to any raider | 0 | golden run: 15 AI raiders, all 15 trapped, 24 canaries, 15 reports |
 | Argus labels in the golden run | 15 of 15 AI raiders ai_agent, 10 of 10 customers human, drones scanner | `runs/golden.jsonl` |
+| Logged-in customer reaching for another customer's record (T13) | flipped on the second refusal | live check: risk 35, then 70, moved to pod-5 |
 | Rolling rebuild after Zeus approves | 10 s, 58 requests during the roll, 0 failed | uptime probe every 0.2 s |
 
 ## Tests
